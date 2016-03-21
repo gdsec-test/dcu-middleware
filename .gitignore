@@ -1,0 +1,5 @@
+.idea
+*.pyc
+tests/.coverage
+tests/cover
+*sublime*
