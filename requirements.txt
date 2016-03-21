@@ -1,0 +1,6 @@
+pymongo
+celery
+selenium
+PyVirtualDisplay
+python-whois
+tld
