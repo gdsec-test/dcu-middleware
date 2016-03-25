@@ -25,42 +25,43 @@ class PhishstoryDB:
         iid = None
         try:
             iid = self._collection.insert_one(incident)
+            iid = iid.inserted_id or None
         except Exception as e:
             self._logger.error("Unable to add incident to database {}".format(e.message))
         finally:
             return iid
 
-    def replace_incident(self, id, incident):
+    def replace_incident(self, iid, incident):
         """
         Replaces the incident
-        :param id:
+        :param iid:
         :param incident:
         :return:
         """
-        self._logger.info("Updating incident: {}".format(id))
+        self._logger.info("Updating incident: {}".format(iid))
         document = None
         try:
-            document = self._collection.find_one_and_replace({'_id': id}, incident)
+            document = self._collection.find_one_and_replace({'_id': iid}, incident)
         except Exception as e:
-            self._logger.error("Unable to update incident {} {}".format(id, e.message))
+            self._logger.error("Unable to update incident {} {}".format(iid, e.message))
         finally:
             return document
 
-    def find_incident(self, id):
+    def find_incident(self, query):
         """
         Finds the given incident by id
-        :param id:
+        :param query:
         :return:
         """
         document = None
         try:
-            document = self._collection.find_one({'_id': id})
+            document = self._collection.find_one(query)
         except Exception as e:
-            self._logger.warning("Unable to find incident {} {}".format(id, e.message))
+            self._logger.warning("Unable to find incident {}".format(e.message))
         finally:
             return document
 
-    def _find_incidents(self, query):
+    def find_incidents(self, query):
         """
         Find incidents given a query(dictionary)
         :param query:
@@ -74,22 +75,22 @@ class PhishstoryDB:
         finally:
             return document_list
 
-    def save_file(self, bytes, **kwargs):
+    def save_file(self, dbytes, **kwargs):
         """
         Saves the given bytes to the gridFS. Any additional metadata may be added to the record via the kwargs argument
-        :param bytes:
+        :param dbytes:
         :param kwargs:
         :return:
         """
         with self._gridfs.new_file(**kwargs) as fp:
-            fp.write(bytes)
+            fp.write(dbytes)
             return fp._id
 
-    def get_file(self, id):
+    def get_file(self, iid):
         """
-        Returns the raw bytes for the file with the given id
-        :param id:
+        Returns the file document, and the raw bytes for the file with the given id
+        :param iid:
         :return:
         """
-        with self._gridfs.get(id) as fs_read:
+        with self._gridfs.get(iid) as fs_read:
             return fs_read._file, fs_read.read()
