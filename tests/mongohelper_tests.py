@@ -1,5 +1,6 @@
 import mongomock
 from nose.tools import assert_true
+
 from dcumiddleware.mongohelper import MongoHelper
 from test_settings import TestingConfig
 
@@ -38,8 +39,8 @@ class TestMongoHelper:
         assert_true(doc['_id'] == 1234)
 
     def test_update_incident(self):
-        self._db.add_incident(dict(_id=1234,type='PHISHING'))
-        doc = self._db.update_incident(1234, dict(type='MALWARE'))
+        self._db.add_incident(dict(_id=12345,type='PHISHING'))
+        doc = self._db.update_incident(12345, dict(type='MALWARE'))
         assert_true(doc['type']=='PHISHING')  # old version
-        doc = self._db.find_incident(dict(type='MALWARE'))
-        assert_true(doc['_id'] == 1234)
+        doc = self._db.find_incident(dict(_id=12345))
+        assert_true(doc['type'] == 'MALWARE')
