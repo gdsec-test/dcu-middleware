@@ -37,10 +37,11 @@ class PhishstoryDB(object):
         :return:
         """
     @abc.abstractmethod
-    def add_crits_data(self, incident_id):
+    def add_crits_data(self, incident_id, crits_data):
         """
         Adds crits related data to an existing incident
         :param incident_id:
+        :param crits_data: tuple consisting of screenshot, and sourcecode
         :return:
         """
     @abc.abstractmethod
