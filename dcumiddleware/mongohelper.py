@@ -4,9 +4,9 @@ import gridfs
 import pymongo
 
 
-class PhishstoryDB:
+class MongoHelper:
     """
-    This class houses the database functionality for PhishstoryDB.
+    This class houses low level database functionality for PhishstoryDB.
     """
     def __init__(self, settings):
         self._logger = logging.getLogger(__name__)
@@ -38,10 +38,26 @@ class PhishstoryDB:
         :param incident:
         :return:
         """
-        self._logger.info("Updating incident: {}".format(iid))
+        self._logger.info("Replacing incident: {}".format(iid))
         document = None
         try:
             document = self._collection.find_one_and_replace({'_id': iid}, incident)
+        except Exception as e:
+            self._logger.error("Unable to replace incident {} {}".format(iid, e.message))
+        finally:
+            return document
+
+    def update_incident(self, iid, update):
+        """
+        Updates the incident
+        :param iid:
+        :param incident:
+        :return:
+        """
+        self._logger.info("Updating incident: {}".format(iid))
+        document = None
+        try:
+            document = self._collection.find_one_and_update({'_id': iid}, {'$set':update})
         except Exception as e:
             self._logger.error("Unable to update incident {} {}".format(iid, e.message))
         finally:
