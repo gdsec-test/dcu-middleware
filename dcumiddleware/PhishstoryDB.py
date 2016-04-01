@@ -43,3 +43,11 @@ class PhishstoryDB(object):
         :param incident_id:
         :return:
         """
+    @abc.abstractmethod
+    def find_incidents(self, field_dict, and_operator=True):
+        """
+        Finds arbitrary incidents
+        :param field_dict: key/value pairs of fields to find.
+        NOTE: AND operator assumed
+        :return:
+        """
