@@ -1,5 +1,6 @@
 import logging
-from phishstorydb import PhishstoryDB
+
+from dcumiddleware.interfaces.phishstorydb import PhishstoryDB
 from mongohelper import MongoHelper
 
 
