@@ -2,9 +2,9 @@ import mongomock
 from mock import patch
 from nose.tools import assert_true
 
+from dcumiddleware.phishstorymongo import MongoHelper
 from dcumiddleware.phishstorymongo import PhishstoryDB
 from dcumiddleware.phishstorymongo import PhishstoryMongo
-from dcumiddleware.phishstorymongo import MongoHelper
 from test_settings import TestingConfig
 
 
@@ -42,6 +42,7 @@ class TestPhishstoryMongo:
 
     def test_update_incident(self):
         document = self._db.update_incident(1234, dict(type=PhishstoryDB.PHISHING, reporter='def@456.net'))
-        assert_true(document == dict(_id=1234, reporter='abc@123.com', type=PhishstoryDB.PHISHING))
+        comp = dict(_id=1234, reporter='abc@123.com', type=PhishstoryDB.PHISHING)
+        assert_true(document == comp)
         document = self._db.update_incident(666, dict(type=PhishstoryDB.PHISHING, reporter='def@456.net'))
         assert_true(document is None)
