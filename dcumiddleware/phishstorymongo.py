@@ -5,13 +5,24 @@ from mongohelper import MongoHelper
 
 
 class PhishstoryMongo(PhishstoryDB):
-
     def __init__(self, settings):
         self._logger = logging.getLogger(__name__)
         self._mongo = MongoHelper(settings)
 
     def add_crits_data(self, incident_id, crits_data):
         """TODO for each element in crits data, save to gridfs, and retrieve id, then add id to existing incident"""
+        document = None
+        try:
+            screenshot_id = self._mongo.save_file(crits_data[0])
+            sourcecode_id = self._mongo.save_file(crits_data[1])
+            incident_dict = {'screenshot_id': screenshot_id, 'sourcecode': sourcecode_id}
+            document = self._mongo.update_incident(incident_id, incident_dict)
+
+        except Exception as e:
+            self._logger.error("Error saving screenshot/sourcecode for incident id {}:{}".format(incident_id, e.message))
+
+        finally:
+            return document
 
     def add_new_incident(self, incident_type, incident_dict):
         incident_dict.update(dict(type=incident_type))
@@ -19,7 +30,7 @@ class PhishstoryMongo(PhishstoryDB):
 
     def find_incidents(self, field_dict, and_operator=True):
         if not and_operator:
-            return self._mongo.find_incidents({"$or": [{key:value} for key,value in field_dict.iteritems()]})
+            return self._mongo.find_incidents({"$or": [{key: value} for key, value in field_dict.iteritems()]})
         else:
             return self._mongo.find_incidents(field_dict)
 
@@ -27,4 +38,13 @@ class PhishstoryMongo(PhishstoryDB):
         return self._mongo.find_incidents(dict(type=incident_type))
 
     def update_incident(self, incident_id, incident_dict):
-       """TODO """
+        """
+        Updates the incident with the incident dict and returns the updated document
+        :param incident_id:
+        :param incident_dict:
+        :return:
+        """
+
+        document = self._mongo.update_incident(incident_id, incident_dict)
+        return document
+
