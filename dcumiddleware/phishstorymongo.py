@@ -20,7 +20,6 @@ class PhishstoryMongo(PhishstoryDB):
 
         except Exception as e:
             self._logger.error("Error saving screenshot/sourcecode for incident id {}:{}".format(incident_id, e.message))
-            return document
 
         finally:
             return document
@@ -40,15 +39,12 @@ class PhishstoryMongo(PhishstoryDB):
 
     def update_incident(self, incident_id, incident_dict):
         """
-        Updates the incident with the incident dict and returns the updated document or None if the update fails
+        Updates the incident with the incident dict and returns the updated document
         :param incident_id:
         :param incident_dict:
         :return:
         """
-        document = None
-        try:
-            document = self._mongo.update_incident(incident_id, incident_dict)
-        except Exception as e:
-            self._logger.error("Error in updating incident id {}:{}".format(incident_id, e.message))
-        finally:
-            return document
+
+        document = self._mongo.update_incident(incident_id, incident_dict)
+        return document
+
