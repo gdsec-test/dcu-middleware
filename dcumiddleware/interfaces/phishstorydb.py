@@ -29,10 +29,10 @@ class PhishstoryDB(object):
         """
 
     @abc.abstractmethod
-    def add_new_incident(self, incident_type, incident_dict):
+    def add_new_incident(self, incident_id,  incident_dict):
         """
         Adds a new incident to the database for the given type
-        :param incident_type: The type of incident to add
+        :param incident_id: id of the incident to be inserted
         :param incident_dict: Dictionary representation of incident data
         :return:
         """

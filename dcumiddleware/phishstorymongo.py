@@ -5,27 +5,31 @@ from mongohelper import MongoHelper
 
 
 class PhishstoryMongo(PhishstoryDB):
+
     def __init__(self, settings):
         self._logger = logging.getLogger(__name__)
         self._mongo = MongoHelper(settings)
 
     def add_crits_data(self, incident_id, crits_data):
-        """TODO for each element in crits data, save to gridfs, and retrieve id, then add id to existing incident"""
+        """
+        Adds crits data to an existing incident
+        :param incident_id:
+        :param crits_data:
+        :return:
+        """
         document = None
         try:
             screenshot_id = self._mongo.save_file(crits_data[0])
             sourcecode_id = self._mongo.save_file(crits_data[1])
-            incident_dict = {'screenshot_id': screenshot_id, 'sourcecode': sourcecode_id}
+            incident_dict = {'screenshot_id': screenshot_id, 'sourcecode_id': sourcecode_id}
             document = self._mongo.update_incident(incident_id, incident_dict)
-
         except Exception as e:
             self._logger.error("Error saving screenshot/sourcecode for incident id {}:{}".format(incident_id, e.message))
-
         finally:
             return document
 
-    def add_new_incident(self, incident_type, incident_dict):
-        incident_dict.update(dict(type=incident_type))
+    def add_new_incident(self, incident_id, incident_dict):
+        incident_dict.update(dict(_id=incident_id))
         self._mongo.add_incident(incident_dict)
 
     def find_incidents(self, field_dict, and_operator=True):
@@ -44,7 +48,5 @@ class PhishstoryMongo(PhishstoryDB):
         :param incident_dict:
         :return:
         """
-
         document = self._mongo.update_incident(incident_id, incident_dict)
         return document
-

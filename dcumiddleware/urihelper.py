@@ -1,8 +1,8 @@
 import logging
-import socket
 import re
-import requests
+import socket
 
+import requests
 from pyvirtualdisplay import Display
 from selenium import webdriver
 from tld import get_tld
@@ -48,18 +48,19 @@ class URIHelper:
         display = Display(visible=0, size=(800, 600))
         display.start()
         browser = webdriver.Firefox()
+        data = None
         try:
             browser.set_page_load_timeout(30)
             browser.get(url)
             screenshot = browser.get_screenshot_as_png()
             sourcecode = browser.page_source.encode('ascii', 'ignore')
-            return screenshot, sourcecode
+            data = (screenshot, sourcecode)
         except Exception as e:
             self._logger.error("Error while taking snapshot and/or source code for %s: %s", url, e.message)
-            return None, None
         finally:
             browser.quit()
             display.stop()
+            return data
 
     def get_status(self, uri):
         """
