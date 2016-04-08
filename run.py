@@ -29,7 +29,19 @@ logger = get_task_logger(__name__)
 app = Celery()
 app.config_from_object(celeryconfig)
 
-
+"""
+Sample data:
+{'info': u'My spam Farm is better than yours...',
+ 'domain': u'spam.com',
+ 'ticketId': u'DCU000001053',
+ 'target': u'The spam Brothers',
+ 'reporter': u'bxberry',
+ 'intentional': False,
+ 'sources': u'http://spam.com/thegoodstuff/jonas.php?g=a&itin=1324',
+ 'proxy': u'Must be viewed from an German IP',
+ 'moreInfo': u'http://report.busters.com?report=714',
+ 'type': u'SPAM'}
+"""
 @app.task(name='run.process')
 def process(data):
     """
