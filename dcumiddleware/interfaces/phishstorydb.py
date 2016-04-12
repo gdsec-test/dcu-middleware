@@ -44,11 +44,19 @@ class PhishstoryDB(object):
         :param crits_data: tuple consisting of screenshot, and sourcecode
         :return:
         """
+
     @abc.abstractmethod
-    def find_incidents(self, field_dict, and_operator=True):
+    def get_incident(self, incident_id):
         """
-        Finds arbitrary incidents
-        :param field_dict: key/value pairs of fields to find.
-        NOTE: AND operator assumed
+        Retrieves the given incident
+        :param incident_id:
+        :return:
+        """
+
+    @abc.abstractmethod
+    def get_crits_data(self, incident_id):
+        """
+        Get crits data for the given incident
+        :param incident_id:
         :return:
         """

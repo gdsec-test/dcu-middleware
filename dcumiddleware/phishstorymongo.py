@@ -32,14 +32,13 @@ class PhishstoryMongo(PhishstoryDB):
         incident_dict.update(dict(_id=incident_id))
         self._mongo.add_incident(incident_dict)
 
-    def find_incidents(self, field_dict, and_operator=True):
-        if not and_operator:
-            return self._mongo.find_incidents({"$or": [{key: value} for key, value in field_dict.iteritems()]})
-        else:
-            return self._mongo.find_incidents(field_dict)
-
     def get_open_tickets(self, incident_type):
-        return self._mongo.find_incidents(dict(type=incident_type))
+        """
+        Gets open/valid tickets
+        :param incident_type:
+        :return:
+        """
+        return self._mongo.find_incidents(dict(type=incident_type, valid=True))
 
     def update_incident(self, incident_id, incident_dict):
         """
@@ -50,3 +49,27 @@ class PhishstoryMongo(PhishstoryDB):
         """
         document = self._mongo.update_incident(incident_id, incident_dict)
         return document
+
+    def get_incident(self, incident_id):
+        """
+        Returns the given incident
+        :param incident_id:
+        :return:
+        """
+        return self._mongo.find_incident(dict(_id=incident_id))
+
+    def get_crits_data(self, incident_id):
+        """
+        Returns a tuple of the screenshot, and sourcecode associated with the incident
+        :param incident_id:
+        :return:
+        """
+        screenshot = None
+        sourcecode = None
+        document = self.get_incident(incident_id)
+        if document:
+            if 'screenshot_id' in document:
+                screenshot = self._mongo.get_file(document['screenshot_id'])
+            if 'sourcecode_id' in document:
+                sourcecode = self._mongo.get_file(document['sourcecode_id'])
+        return screenshot, sourcecode

@@ -25,12 +25,13 @@ class PhishingStrategy(Strategy):
             self._logger.warn("Unknown hosted status for incident: {}".format(data))
             status = "UNKNOWN"
 
-        # Add hosted_status attribute to incident
+        # Add hosted_status, phishstory status, and valid flag attributes to incident
         data.hosted_status = status
-        data.phishstory_status = "OPEN" if self._urihelper.resolves(data.sources) else "CLOSED"
+        data.phishstory_status= "OPEN"
+        data.valid = True if self._urihelper.resolves(data.sources) else False
         # save the incident to the database
         self._db.add_new_incident(data.ticketId, data.as_dict())
 
-        if data.phishstory_status=="OPEN":
+        if data.valid:
             # Attach crits data
             self._db.add_crits_data(data.ticketId, self._urihelper.get_site_data(data.sources))

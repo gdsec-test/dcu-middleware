@@ -10,7 +10,7 @@ class MongoHelper:
     """
     def __init__(self, settings):
         self._logger = logging.getLogger(__name__)
-        self._conn = pymongo.MongoClient(settings.DBHOST, settings.DBPORT)
+        self._conn = pymongo.MongoClient(settings.DBURL)
         self._db = self._conn[settings.DB]
         self._collection = self._db[settings.COLLECTION]
         self._gridfs = gridfs.GridFS(self._db)
