@@ -3,6 +3,7 @@ from mock import patch
 from nose.tools import assert_true
 
 from dcumiddleware.incident import Incident
+from dcumiddleware.interfaces.phishstorydb import PhishstoryDB
 from dcumiddleware.mongohelper import MongoHelper
 from dcumiddleware.phishingstrategy import PhishingStrategy
 from dcumiddleware.urihelper import URIHelper
@@ -30,5 +31,5 @@ class TestPhishingStrategy:
                         'sources': u'http://comicsn.beer/uncategorized/casual-gaming-and-the-holidays/',
                         'type': u'PHISHING'}
         self._phishing.process(Incident(test_record))
-        lst =  [doc for doc in self._phishing._db.find_incidents({'type':'PHISHING'})]
+        lst =  [doc for doc in self._phishing._db.get_open_tickets(PhishstoryDB.PHISHING)]
         assert_true(lst[0]['ticketId'] == 'DCU000001053')

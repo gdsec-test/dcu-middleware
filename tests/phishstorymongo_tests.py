@@ -15,8 +15,8 @@ class TestPhishstoryMongo:
         cls._db = PhishstoryMongo(TestingConfig())
         # replace collection with mock
         cls._db._mongo._collection = mongomock.MongoClient().db.collection
-        cls._db.add_new_incident(1234, dict(type='PHISHING', reporter='abc@123.com'))
-        cls._db.add_new_incident(1235, dict(type='PHISHING', reporter='abc@xyz.com'))
+        cls._db.add_new_incident(1234, dict(type='PHISHING', reporter='abc@123.com', valid=True))
+        cls._db.add_new_incident(1235, dict(type='PHISHING', reporter='abc@xyz.com', valid=True))
         cls._db.add_new_incident(1236, dict(type='MALWARE', reporter='abc@xyz.com'))
         cls._db.add_new_incident(1237, dict(type='MALWARE', reporter='abc@xyz.com'))
 
@@ -24,7 +24,7 @@ class TestPhishstoryMongo:
     def test_add_crits_data(self, mocked_method):
         mocked_method.return_value = '987'
         document = self._db.add_crits_data(1234, ('screenshot', 'sourcecode'))
-        orig = dict(_id=1234, reporter='abc@123.com', type=PhishstoryDB.PHISHING)
+        orig = dict(_id=1234, reporter='abc@123.com', type=PhishstoryDB.PHISHING, valid=True)
         assert_true(document == orig)
         document = self._db.add_crits_data(666, ())
         assert_true(document is None)
@@ -33,17 +33,14 @@ class TestPhishstoryMongo:
         lst = [data for data in self._db.get_open_tickets(PhishstoryDB.PHISHING)]
         assert_true(len(lst) == 2)
 
-    def test_find_incidents_by_and(self):
-        lst = [data for data in self._db.find_incidents(dict(type=PhishstoryDB.MALWARE, reporter='abc@xyz.com'))]
-        assert_true(len(lst) == 2)
-
-    def test_find_incidents_by_or(self):
-        lst = [data for data in self._db.find_incidents(dict(type=PhishstoryDB.MALWARE, reporter='abc@xyz.com'), False)]
-        assert_true(len(lst) == 3)
-
     def test_update_incident(self):
         document = self._db.update_incident(1235, dict(type=PhishstoryDB.PHISHING, reporter='def@456.net'))
-        comp = dict(_id=1235, reporter='abc@xyz.com', type=PhishstoryDB.PHISHING)
+        comp = dict(_id=1235, reporter='abc@xyz.com', type=PhishstoryDB.PHISHING, valid=True)
         assert_true(document == comp)
         document = self._db.update_incident(666, dict(type=PhishstoryDB.PHISHING, reporter='def@456.net'))
         assert_true(document is None)
+
+    def test_get_incident(self):
+        document = self._db.get_incident(1235)
+        comp = dict(_id=1235, reporter='abc@xyz.com', type=PhishstoryDB.PHISHING, valid=True)
+        assert_true(document == comp)
