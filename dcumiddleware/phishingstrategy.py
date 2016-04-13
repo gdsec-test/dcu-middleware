@@ -30,8 +30,8 @@ class PhishingStrategy(Strategy):
         data.phishstory_status= "OPEN"
         data.valid = True if self._urihelper.resolves(data.sources) else False
         # save the incident to the database
-        self._db.add_new_incident(data.ticketId, data.as_dict())
+        iid = self._db.add_new_incident(data.ticketId, data.as_dict())
 
-        if data.valid:
+        if iid and data.valid:
             # Attach crits data
             self._db.add_crits_data(data.ticketId, self._urihelper.get_site_data(data.sources))

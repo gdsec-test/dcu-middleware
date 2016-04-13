@@ -1,5 +1,6 @@
 import logging
 
+import bson
 import gridfs
 import pymongo
 
@@ -108,5 +109,5 @@ class MongoHelper:
         :param iid:
         :return:
         """
-        with self._gridfs.get(iid) as fs_read:
+        with self._gridfs.get(bson.objectid.ObjectId(iid)) as fs_read:
             return fs_read._file, fs_read.read()

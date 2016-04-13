@@ -30,7 +30,7 @@ class PhishstoryMongo(PhishstoryDB):
 
     def add_new_incident(self, incident_id, incident_dict):
         incident_dict.update(dict(_id=incident_id))
-        self._mongo.add_incident(incident_dict)
+        return self._mongo.add_incident(incident_dict)
 
     def get_open_tickets(self, incident_type):
         """
