@@ -1,0 +1,2 @@
+dcu-middleware:
+  image: artifactory.secureserver.net:10014/docker-dcu-local/dcumiddleware:dev
