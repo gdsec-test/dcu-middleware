@@ -25,13 +25,18 @@ class PhishingStrategy(Strategy):
             self._logger.warn("Unknown hosted status for incident: {}".format(data))
             status = "UNKNOWN"
 
-        # Add hosted_status, phishstory status, and valid flag attributes to incident
+        # Add hosted_status to incident
         data.hosted_status = status
-        data.phishstory_status= "OPEN"
-        data.valid = True if self._urihelper.resolves(data.sources) else False
-        # save the incident to the database
-        iid = self._db.add_new_incident(data.ticketId, data.as_dict())
-
-        if iid and data.valid:
+        if self._urihelper.resolves(data.sources):
             # Attach crits data
-            self._db.add_crits_data(data.ticketId, self._urihelper.get_site_data(data.sources))
+            screenshot_id, sourcecode_id = self._db.add_crits_data(self._urihelper.get_site_data(data.sources))
+            data.screenshot_id = screenshot_id
+            data.sourcecode_id = sourcecode_id
+            iid = self._db.add_new_incident(data.ticketId, data.as_dict())
+            if iid:
+                self._logger.info("Incident {} inserted into database".format(iid))
+            else:
+                self._logger.error("Unable to insert {} into database".format(iid))
+        else:
+            data.close_reason = "unresolvable"
+            self._db.close_incident(data.ticketId, data.as_dict())

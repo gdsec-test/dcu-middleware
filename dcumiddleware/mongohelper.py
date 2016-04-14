@@ -48,7 +48,7 @@ class MongoHelper:
         finally:
             return document
 
-    def update_incident(self, iid, update):
+    def update_incident(self, iid, update, upsert=False):
         """
         Updates the incident
         :param iid:
@@ -58,7 +58,7 @@ class MongoHelper:
         self._logger.info("Updating incident: {}".format(iid))
         document = None
         try:
-            document = self._collection.find_one_and_update({'_id': iid}, {'$set':update})
+            document = self._collection.find_one_and_update({'_id': iid}, {'$set':update}, upsert=upsert)
         except Exception as e:
             self._logger.error("Unable to update incident {} {}".format(iid, e.message))
         finally:

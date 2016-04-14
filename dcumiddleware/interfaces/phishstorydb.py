@@ -37,10 +37,9 @@ class PhishstoryDB(object):
         :return:
         """
     @abc.abstractmethod
-    def add_crits_data(self, incident_id, crits_data):
+    def add_crits_data(self, crits_data):
         """
-        Adds crits related data to an existing incident
-        :param incident_id:
+        Adds crits related data to the database
         :param crits_data: tuple consisting of screenshot, and sourcecode
         :return:
         """
@@ -58,5 +57,13 @@ class PhishstoryDB(object):
         """
         Get crits data for the given incident
         :param incident_id:
+        :return:
+        """
+    @abc.abstractmethod
+    def close_incident(self, incident_id, additional_data):
+        """
+        Closes the incident with the given id
+        :param incident_id:
+        :param additional_data: additional data associated with closing the incident
         :return:
         """
