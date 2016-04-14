@@ -31,5 +31,5 @@ class TestPhishingStrategy:
                         'sources': u'http://comicsn.beer/uncategorized/casual-gaming-and-the-holidays/',
                         'type': u'PHISHING'}
         self._phishing.process(Incident(test_record))
-        lst =  [doc for doc in self._phishing._db.get_open_tickets(PhishstoryDB.PHISHING)]
+        lst = [doc for doc in self._phishing._db.get_open_tickets(PhishstoryDB.PHISHING)]
         assert_true(lst[0]['ticketId'] == 'DCU000001053')
