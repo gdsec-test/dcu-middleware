@@ -23,11 +23,10 @@ class TestPhishstoryMongo:
     @patch.object(MongoHelper, "save_file")
     def test_add_crits_data(self, mocked_method):
         mocked_method.return_value = '987'
-        document = self._db.add_crits_data(1234, ('screenshot', 'sourcecode'))
+        source_id, screenshot_id = self._db.add_crits_data(('screenshot', 'sourcecode'))
         orig = dict(_id=1234, reporter='abc@123.com', type=PhishstoryDB.PHISHING, valid=True)
-        assert_true(document == orig)
-        document = self._db.add_crits_data(666, ())
-        assert_true(document is None)
+        assert_true(source_id=='987')
+        assert_true(screenshot_id=='987')
 
     def test_get_open_tickets(self):
         lst = [data for data in self._db.get_open_tickets(PhishstoryDB.PHISHING)]
@@ -35,12 +34,12 @@ class TestPhishstoryMongo:
 
     def test_update_incident(self):
         document = self._db.update_incident(1235, dict(type=PhishstoryDB.PHISHING, reporter='def@456.net'))
-        comp = dict(_id=1235, reporter='abc@xyz.com', type=PhishstoryDB.PHISHING, valid=True)
-        assert_true(document == comp)
+        assert_true(document['type'] == 'PHISHING')
+        assert_true(document['reporter'] == 'abc@xyz.com')
         document = self._db.update_incident(666, dict(type=PhishstoryDB.PHISHING, reporter='def@456.net'))
         assert_true(document is None)
 
     def test_get_incident(self):
         document = self._db.get_incident(1235)
-        comp = dict(_id=1235, reporter='abc@xyz.com', type=PhishstoryDB.PHISHING, valid=True)
-        assert_true(document == comp)
+        assert_true(document['type'] == 'PHISHING')
+        assert_true(document['reporter'] == 'abc@xyz.com')

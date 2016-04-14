@@ -40,7 +40,7 @@ Sample data:
  'sources': u'http://spam.com/thegoodstuff/jonas.php?g=a&itin=1324',
  'proxy': u'Must be viewed from an German IP',
  'moreInfo': u'http://report.busters.com?report=714',
- 'type': u'SPAM'}
+ 'type': u'PHISHING'}
 """
 @app.task(name='run.process')
 def process(data):
@@ -52,12 +52,12 @@ def process(data):
     incident = Incident(data)
     strategy = None
     if incident.type == "PHISHING":
-        strategy = PhishingStrategy()
+        strategy = PhishingStrategy(app_settings)
     elif incident.type == "MALWARE":
         strategy = MalwareStrategy()
     elif incident.type == "NETABUSE":
         strategy = NetAbuseStrategy()
-    try:
-        strategy.process(incident)
-    except Exception as e:
-        logger.error("Unable to process incident {}:{}".format(incident, e.message))
+   # try:
+    strategy.process(incident)
+   # except Exception as e:
+   #     logger.error("Unable to process incident {}:{}".format(incident, e.message))
