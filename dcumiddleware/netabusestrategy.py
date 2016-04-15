@@ -13,8 +13,6 @@ class NetAbuseStrategy(Strategy):
         self._db = PhishstoryMongo(settings)
 
     def process(self, data, **kwargs):
-        super(NetAbuseStrategy, self).process(data)
-
         # determine if IP is hosted with godaddy
         hosted_status = self._urihelper.get_status(data.domain)
         if hosted_status == URIHelper.HOSTED:
@@ -37,6 +35,6 @@ class NetAbuseStrategy(Strategy):
             else:
                 self._logger.error("Unable to insert {} into database".format(iid))
         else:
-            data.close_reason = "NETABUSE: Not Hosted"
+            data.close_reason = "not_hosted"
             self._db.close_incident(data.ticketId, data.as_dict())
 
