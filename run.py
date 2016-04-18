@@ -42,6 +42,8 @@ Sample data:
  'moreInfo': u'http://report.busters.com?report=714',
  'type': u'PHISHING'}
 """
+
+
 @app.task(name='run.process')
 def process(data):
     """
@@ -54,10 +56,11 @@ def process(data):
     if incident.type == "PHISHING":
         strategy = PhishingStrategy(app_settings)
     elif incident.type == "MALWARE":
-        strategy = MalwareStrategy()
+        strategy = MalwareStrategy(app_settings)
     elif incident.type == "NETABUSE":
-        strategy = NetAbuseStrategy()
-   # try:
-    strategy.process(incident)
-   # except Exception as e:
-   #     logger.error("Unable to process incident {}:{}".format(incident, e.message))
+        strategy = NetAbuseStrategy(app_settings)
+
+    try:
+        strategy.process(incident)
+    except Exception as e:
+        logger.error("Unable to process incident {}:{}".format(incident, e.message))
