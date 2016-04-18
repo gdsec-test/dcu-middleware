@@ -25,10 +25,10 @@ class TestPhishingStrategy:
     def test_process(self, uri_method, mongo_method):
         uri_method.return_value = (1,1)
         mongo_method.return_value = '1'
-        test_record = { 'domain': u'comicsn.beer',
+        test_record = { 'sourceDomainOrIp': u'comicsn.beer',
                         'ticketId': u'DCU000001053',
                         'reporter': u'bxberry',
-                        'sources': u'http://comicsn.beer/uncategorized/casual-gaming-and-the-holidays/',
+                        'source': u'http://comicsn.beer/uncategorized/casual-gaming-and-the-holidays/',
                         'type': u'PHISHING'}
         self._phishing.process(Incident(test_record))
         lst = [doc for doc in self._phishing._db.get_open_tickets(PhishstoryDB.PHISHING)]

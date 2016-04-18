@@ -14,7 +14,7 @@ class NetAbuseStrategy(Strategy):
 
     def process(self, data, **kwargs):
         # determine if IP is hosted with godaddy
-        hosted_status = self._urihelper.get_status(data.domain)
+        hosted_status = self._urihelper.get_status(data.sourceDomainOrIp)
         if hosted_status == URIHelper.HOSTED:
             status = "HOSTED"
         elif hosted_status == URIHelper.REG:

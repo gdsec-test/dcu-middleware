@@ -1,5 +1,4 @@
 import mongomock
-from mock import patch
 from nose.tools import assert_true
 
 from dcumiddleware.incident import Incident
@@ -21,20 +20,20 @@ class TestNetabuseStrategy:
 
 
     def test_process(self):
-        test_record = { 'domain': u'160.153.77.227',
+        test_record = { 'sourceDomainOrIp': u'160.153.77.227',
                         'ticketId': u'DCU000001053',
                         'reporter': u'bxberry',
-                        'sources': u'http://comicsn.beer/uncategorized/casual-gaming-and-the-holidays/',
+                        'source': u'http://comicsn.beer/uncategorized/casual-gaming-and-the-holidays/',
                         'type': u'NETABUSE'}
         self._netabuse.process(Incident(test_record))
         lst = [doc for doc in self._netabuse._db.get_open_tickets(PhishstoryDB.NETABUSE)]
-        assert_true(lst[0]['domain'] == '160.153.77.227')
+        assert_true(lst[0]['sourceDomainOrIp'] == '160.153.77.227')
 
-        test_record2 = { 'domain': u'8.8.8.8',
+        test_record2 = { 'sourceDomainOrIp': u'8.8.8.8',
                         'ticketId': u'DCU000001054',
                         'reporter': u'bxberry',
-                        'sources': u'http://comicsn.beer/uncategorized/casual-gaming-and-the-holidays/',
+                        'source': u'http://comicsn.beer/uncategorized/casual-gaming-and-the-holidays/',
                         'type': u'NETABUSE'}
         self._netabuse.process(Incident(test_record2))
         data = self._netabuse._db.get_incident("DCU000001054")
-        assert_true(data['domain'] == '8.8.8.8')
+        assert_true(data['sourceDomainOrIp'] == '8.8.8.8')
