@@ -15,10 +15,11 @@ class TestPhishstoryMongo:
         cls._db = PhishstoryMongo(TestingConfig())
         # replace collection with mock
         cls._db._mongo._collection = mongomock.MongoClient().db.collection
-        cls._db.add_new_incident(1234, dict(type='PHISHING', reporter='abc@123.com', valid=True))
-        cls._db.add_new_incident(1235, dict(type='PHISHING', reporter='abc@xyz.com', valid=True))
+        cls._db.add_new_incident(1234, dict(type='PHISHING', reporter='abc@123.com'))
+        cls._db.add_new_incident(1235, dict(type='PHISHING', reporter='abc@xyz.com'))
         cls._db.add_new_incident(1236, dict(type='MALWARE', reporter='abc@xyz.com'))
         cls._db.add_new_incident(1237, dict(type='MALWARE', reporter='abc@xyz.com'))
+        cls._db.add_new_incident(1238, dict(type='MALWARE', reporter='abc@xyz.com', screenshot_id=1, sourcecode_id=1))
 
     @patch.object(MongoHelper, "save_file")
     def test_add_crits_data(self, mocked_method):
@@ -43,3 +44,10 @@ class TestPhishstoryMongo:
         document = self._db.get_incident(1235)
         assert_true(document['type'] == 'PHISHING')
         assert_true(document['reporter'] == 'abc@xyz.com')
+
+    @patch.object(MongoHelper, "get_file")
+    def test_get_crits_data(self, mocked_method):
+        mocked_method.return_value = True
+        screenshot, sourcecode = self._db.get_crits_data(1238)
+        assert_true(screenshot)
+        assert_true(sourcecode)
