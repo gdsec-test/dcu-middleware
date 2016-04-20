@@ -10,6 +10,8 @@ RUN apt-get update && \
     apt-get install -y build-essential \
     gcc \
     firefox \
+    libffi-dev \
+    libssl-dev \
     python-dev \
     python-pip \
     xvfb
@@ -29,6 +31,8 @@ RUN pip install --compile -r requirements.txt
 # cleanup
 RUN apt-get remove --purge -y build-essential \
     gcc \
+    libffi-dev \
+    libssl-dev \
     python-dev && \
     rm -rf /var/lib/apt/lists/* && \
     rm -rf /app/private_pips

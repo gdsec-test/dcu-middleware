@@ -1,5 +1,6 @@
 import logging
 
+from dcumiddleware.dcuapi_functions import DCUAPIFunctions
 from dcumiddleware.interfaces.strategy import Strategy
 from dcumiddleware.phishstorymongo import PhishstoryMongo
 from dcumiddleware.urihelper import URIHelper
@@ -8,12 +9,15 @@ from dcumiddleware.urihelper import URIHelper
 class NetAbuseStrategy(Strategy):
 
     def __init__(self, settings):
+        super(NetAbuseStrategy, self).__init__()
         self._logger = logging.getLogger(__name__)
         self._urihelper = URIHelper(settings)
         self._db = PhishstoryMongo(settings)
+        self._api = DCUAPIFunctions(settings)
 
     def process(self, data, **kwargs):
         # determine if IP is hosted with godaddy
+        self._logger.info("Received request {}".format(data))
         hosted_status = self._urihelper.get_status(data.sourceDomainOrIp)
         if hosted_status == URIHelper.HOSTED:
             status = "HOSTED"
@@ -37,4 +41,8 @@ class NetAbuseStrategy(Strategy):
         else:
             data.close_reason = "not_hosted"
             self._db.close_incident(data.ticketId, data.as_dict())
-
+            # Close upstream ticket as well
+            if self._api.close_ticket(data.ticketId):
+                self._logger.info("Ticket {} closed successfully".format(data.ticketId))
+            else:
+                self._logger.warning("Unable to close upstream ticket {}".format(data.ticketId))
