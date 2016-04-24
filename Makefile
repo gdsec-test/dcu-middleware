@@ -3,7 +3,7 @@ BUILDROOT=$(HOME)/dockerbuild/$(REPONAME)
 DOCKERREPO=artifactory.secureserver.net:10014/docker-dcu-local/dcumiddleware
 
 # libraries we need to stage for pip to install inside Docker build
-PRIVATE_PIPS=
+PRIVATE_PIPS=git@github.secureserver.net:ITSecurity/dcdatabase.git
 
 .PHONY: prep dev stage prod clean
 

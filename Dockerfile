@@ -26,6 +26,12 @@ WORKDIR /app
 # Move files to new dir
 ADD . /app
 
+# pip install private pips staged by Makefile
+RUN for entry in dcdatabase; \
+    do \
+    pip install --compile "/app/private_pips/$entry"; \
+    done
+
 RUN pip install --compile -r requirements.txt
 
 # cleanup

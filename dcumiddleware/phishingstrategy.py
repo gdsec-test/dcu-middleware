@@ -1,8 +1,9 @@
 import logging
 
+from dcdatabase.phishstorymongo import PhishstoryMongo
+
 from dcumiddleware.dcuapi_functions import DCUAPIFunctions
 from dcumiddleware.interfaces.strategy import Strategy
-from dcumiddleware.phishstorymongo import PhishstoryMongo
 from dcumiddleware.urihelper import URIHelper
 
 
