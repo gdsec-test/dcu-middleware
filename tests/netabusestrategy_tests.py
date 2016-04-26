@@ -1,8 +1,8 @@
 import mongomock
+from dcdatabase.interfaces.phishstorydb import PhishstoryDB
 from nose.tools import assert_true
 
 from dcumiddleware.incident import Incident
-from dcumiddleware.interfaces.phishstorydb import PhishstoryDB
 from dcumiddleware.netabusestrategy import NetAbuseStrategy
 from dcumiddleware.urihelper import URIHelper
 from test_settings import TestingConfig

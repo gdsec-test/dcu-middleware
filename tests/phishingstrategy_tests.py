@@ -1,9 +1,9 @@
 import mongomock
+from dcdatabase.mongohelper import MongoHelper
 from mock import patch
 from nose.tools import assert_true
 
 from dcumiddleware.incident import Incident
-from dcumiddleware.mongohelper import MongoHelper
 from dcumiddleware.phishingstrategy import PhishingStrategy
 from dcumiddleware.urihelper import URIHelper
 from test_settings import TestingConfig
