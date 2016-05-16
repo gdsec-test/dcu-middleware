@@ -18,7 +18,6 @@ class TestNetabuseStrategy:
         # Replace underlying db implementation with mock
         cls._netabuse._db._mongo._collection = mongomock.MongoClient().db.collection
 
-
     def test_process(self):
         test_record = { 'sourceDomainOrIp': u'160.153.77.227',
                         'ticketId': u'DCU000001053',
@@ -26,7 +25,7 @@ class TestNetabuseStrategy:
                         'source': u'http://comicsn.beer/uncategorized/casual-gaming-and-the-holidays/',
                         'type': u'NETABUSE'}
         self._netabuse.process(Incident(test_record))
-        lst = [doc for doc in self._netabuse._db.get_open_tickets(PhishstoryDB.NETABUSE)]
+        lst = [doc for doc in self._netabuse._db.get_open_tickets(PhishstoryDB.NETABUSE, "HOSTED")]
         assert_true(lst[0]['sourceDomainOrIp'] == '160.153.77.227')
 
         test_record2 = { 'sourceDomainOrIp': u'8.8.8.8',
