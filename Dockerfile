@@ -27,7 +27,7 @@ WORKDIR /app
 ADD . /app
 
 # pip install private pips staged by Makefile
-RUN for entry in dcdatabase; \
+RUN for entry in dcdatabase blindAl; \
     do \
     pip install --compile "/app/private_pips/$entry"; \
     done
