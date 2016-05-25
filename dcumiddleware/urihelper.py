@@ -20,6 +20,8 @@ class URIHelper:
     def __init__(self, settings):
         self._logger = logging.getLogger(__name__)
         self._proxy = settings.PROXY
+        self._authuser = settings.AUTHUSER
+        self._authpass = settings.AUTHPASS
 
     def resolves(self, url):
         """
@@ -28,7 +30,7 @@ class URIHelper:
         :return:
         """
         try:
-            bad_site = requests.get(url, proxies=self._proxy, timeout=60)
+            bad_site = requests.get(url, proxies=self._proxy, auth=(self._authuser, self._authpass), timeout=60)
             status = str(bad_site.status_code)
             if status[0] in ["1", "2", "3"]:
                 return True

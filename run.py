@@ -13,7 +13,7 @@ from dcumiddleware.phishingstrategy import PhishingStrategy
 from settings import config_by_name
 
 # Grab the correct settings based on environment
-app_settings = config_by_name[os.getenv('sysenv') or 'dev']
+app_settings = config_by_name[os.getenv('sysenv') or 'dev']()
 
 # Define log level, location, and formatting
 logging.basicConfig(format=app_settings.FORMAT,
