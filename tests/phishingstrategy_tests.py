@@ -57,7 +57,7 @@ class TestPhishingStrategy:
         test_record = { 'sourceDomainOrIp': u'',
                         'ticketId': u'DCU000001055',
                         'reporter': u'bxberry',
-                        'source': u'http://www.malicious.com/badz/badstuff.php',
+                        'source': u'http://',
                         'type': u'PHISHING'}
         self._phishing.process(Incident(test_record))
         doc = self._phishing._db.get_incident('DCU000001055')
