@@ -1,5 +1,5 @@
 .idea
 *.pyc
-tests/.coverage
+*.coverage
 tests/cover
 *sublime*
