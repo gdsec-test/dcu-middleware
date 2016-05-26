@@ -15,6 +15,15 @@ class PhishingStrategy(Strategy):
         self._db = PhishstoryMongo(settings)
         self._api = DCUAPIFunctions(settings)
 
+    def close_process(self, data, close_reason):
+        data.close_reason = close_reason
+        self._db.close_incident(data.ticketId, data.as_dict())
+        # Close upstream ticket as well
+        if self._api.close_ticket(data.ticketId):
+            self._logger.info("Ticket {} closed successfully".format(data.ticketId))
+        else:
+            self._logger.warning("Unable to close upstream ticket {}".format(data.ticketId))
+
     def process(self, data, **kwargs):
         # determine if domain is hosted at godaddy
         self._logger.info("Received request {}".format(data))
@@ -29,8 +38,12 @@ class PhishingStrategy(Strategy):
             self._logger.warn("Unknown hosted status for incident: {}".format(data))
             status = "UNKNOWN"
 
-        # Add hosted_status to incident
         data.hosted_status = status
+        if status in ["FOREIGN", "UNKNOWN"]:
+            self.close_process(data, "unworkable")
+            return
+
+        # Add hosted_status to incident
         res = self._urihelper.resolves(data.source)
         if res or data.proxy:
             iid = self._db.add_new_incident(data.ticketId, data.as_dict())
@@ -43,10 +56,4 @@ class PhishingStrategy(Strategy):
             else:
                 self._logger.error("Unable to insert {} into database".format(iid))
         else:
-            data.close_reason = "unresolvable"
-            self._db.close_incident(data.ticketId, data.as_dict())
-            # Close upstream ticket as well
-            if self._api.close_ticket(data.ticketId):
-                self._logger.info("Ticket {} closed successfully".format(data.ticketId))
-            else:
-                self._logger.warning("Unable to close upstream ticket {}".format(data.ticketId))
+            self.close_process(data, "unresolvable")
