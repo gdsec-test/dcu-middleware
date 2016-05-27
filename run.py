@@ -5,7 +5,7 @@ import os
 from celery import Celery
 from celery.utils.log import get_task_logger
 
-import celeryconfig
+from celeryconfig import CeleryConfig
 from dcumiddleware.incident import Incident
 from dcumiddleware.malwarestrategy import MalwareStrategy
 from dcumiddleware.netabusestrategy import NetAbuseStrategy
@@ -27,7 +27,7 @@ logging.getLogger('').addHandler(fileh)
 logger = get_task_logger(__name__)
 
 app = Celery()
-app.config_from_object(celeryconfig)
+app.config_from_object(CeleryConfig())
 
 """
 Sample data:
