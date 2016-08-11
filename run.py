@@ -61,6 +61,12 @@ def process(data):
         strategy = NetAbuseStrategy(app_settings)
 
     try:
-        strategy.process(incident)
+        data = strategy.process(incident)
+        if data:
+            data = Incident(data)
+            logger.info("Successfully processed {}".format(data))
+            ## Send to grouper for any open hosted phishing tickets
+            if data.hosted_status == 'HOSTED' and data.type == 'PHISHING' and data.phishstory_status == 'OPEN':
+                app.send_task('run.group', args=(data.ticketId,))
     except Exception as e:
         logger.error("Unable to process incident {}:{}".format(incident, e.message))

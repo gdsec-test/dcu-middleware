@@ -47,3 +47,5 @@ class NetAbuseStrategy(Strategy):
                 self._logger.info("Ticket {} closed successfully".format(data.ticketId))
             else:
                 self._logger.warning("Unable to close upstream ticket {}".format(data.ticketId))
+
+        return data

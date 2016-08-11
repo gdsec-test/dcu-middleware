@@ -23,6 +23,7 @@ class PhishingStrategy(Strategy):
             self._logger.info("Ticket {} closed successfully".format(data.ticketId))
         else:
             self._logger.warning("Unable to close upstream ticket {}".format(data.ticketId))
+        return data
 
     def process(self, data, **kwargs):
         # determine if domain is hosted at godaddy
@@ -40,8 +41,7 @@ class PhishingStrategy(Strategy):
 
         data.hosted_status = status
         if status in ["FOREIGN", "UNKNOWN"]:
-            self.close_process(data, "unworkable")
-            return
+            return self.close_process(data, "unworkable")
 
         # Add hosted_status to incident
         res = self._urihelper.resolves(data.source)
@@ -52,8 +52,10 @@ class PhishingStrategy(Strategy):
                 if res:
                     # Attach crits data if it resolves
                     screenshot_id, sourcecode_id = self._db.add_crits_data(self._urihelper.get_site_data(data.source), data.source)
-                    self._db.update_incident(iid, dict(screenshot_id=screenshot_id, sourcecode_id=sourcecode_id))
+                    data = self._db.update_incident(iid, dict(screenshot_id=screenshot_id, sourcecode_id=sourcecode_id))
             else:
                 self._logger.error("Unable to insert {} into database".format(iid))
         else:
-            self.close_process(data, "unresolvable")
+            data = self.close_process(data, "unresolvable")
+
+        return data

@@ -9,6 +9,7 @@ from settings import config_by_name
 # Grab the correct settings based on environment
 app_settings = config_by_name[os.getenv('sysenv') or 'dev']
 
+
 class CeleryConfig():
     BROKER_TRANSPORT = 'pyamqp'
     BROKER_USE_SSL = True
@@ -17,6 +18,8 @@ class CeleryConfig():
     CELERY_ACCEPT_CONTENT = ['json']
     CELERY_IMPORTS = 'run'
     CELERYD_HIJACK_ROOT_LOGGER = False
+    CELERY_DEFAULT_QUEUE = app_settings.COMPACTORQUEUE
+    CELERY_DEFAULT_ROUTING_KEY = app_settings.COMPACTORQUEUE
     CELERY_QUEUES = (
         Queue(app_settings.APIQUEUE, Exchange(app_settings.APIQUEUE), routing_key=app_settings.APIQUEUE),
     )
