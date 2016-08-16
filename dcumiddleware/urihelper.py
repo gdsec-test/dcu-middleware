@@ -1,10 +1,13 @@
+import datetime
 import logging
 import re
 import socket
+import xml.etree.ElementTree as ET
 
 import requests
 from pyvirtualdisplay import Display
 from selenium import webdriver
+from suds.client import Client
 from tld import get_tld
 from whois import NICClient
 
@@ -22,6 +25,7 @@ class URIHelper:
         self._proxy = settings.PROXY
         self._authuser = settings.AUTHUSER
         self._authpass = settings.AUTHPASS
+        self._client = Client(settings.KNOX_URL)
 
     def resolves(self, url):
         """
@@ -164,3 +168,32 @@ class URIHelper:
         except Exception as e:
             self._logger.error("Error in determing whois of %s : %s", domain_name, e.message)
             return URIHelper.UNKNOWN
+
+    def get_shopper_info(self, domain):
+        """
+        Returns a tuple containing the shopper id, and the date created
+        :param domain:
+        :return:
+        """
+        try:
+            doc = ET.fromstring(self._lookup_shopper_info(domain))
+            elem = doc.find(".//*[@shopper_id]")
+            return elem.get('shopper_id'), datetime.datetime.strptime(elem.get('date_created'), '%m/%d/%Y %I:%M:%S %p')
+        except Exception as e:
+            self._logger.error("Unable to lookup shopper info for {}:{}".format(domain, e))
+
+    def _lookup_shopper_info(self, domain):
+        """
+        Returns the xml representing the shopper id(s)
+        :param domain:
+        :return:
+        """
+        shopper_search = ET.Element("ShopperSearch", IPAddress='', RequestedBy='DCU-ENG')
+        searchFields = ET.SubElement(shopper_search, 'SearchFields')
+        ET.SubElement(searchFields, 'Field', Name='domain').text = domain
+
+        returnFields = ET.SubElement(shopper_search, "ReturnFields")
+        ET.SubElement(returnFields, 'Field', Name='shopper_id')
+        ET.SubElement(returnFields, 'Field', Name='date_created')
+        xmlstr = ET.tostring(shopper_search, encoding='utf8', method='xml')
+        return self._client.service.SearchShoppers(xmlstr)

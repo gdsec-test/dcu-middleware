@@ -12,3 +12,4 @@ class TestingConfig():
     COLLECTION = 'test'
     API_UPDATE_URL = None
     API_TOKEN = None
+    KNOX_URL = 'https://shopper.test.glbt1.gdg/WSCgdShopper/WSCgdShopper.dll?Handler=GenWSCgdShopperWSDL'
