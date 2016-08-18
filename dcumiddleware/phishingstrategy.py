@@ -43,6 +43,12 @@ class PhishingStrategy(Strategy):
         if status in ["FOREIGN", "UNKNOWN"]:
             return self.close_process(data, "unworkable")
 
+        # add shopper info if we can find it
+        sid, s_create_date = self._urihelper.get_shopper_info(data.sourceDomainOrIp)
+        if sid and s_create_date:
+            data.sid = sid
+            data.s_create_date = s_create_date
+
         # Add hosted_status to incident
         res = self._urihelper.resolves(data.source)
         if res or data.proxy:

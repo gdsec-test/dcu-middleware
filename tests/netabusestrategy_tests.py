@@ -1,3 +1,5 @@
+import logging
+
 import mongomock
 from dcdatabase.interfaces.phishstorydb import PhishstoryDB
 from nose.tools import assert_true
@@ -17,15 +19,18 @@ class TestNetabuseStrategy:
         cls._urihelper = URIHelper(config)
         # Replace underlying db implementation with mock
         cls._netabuse._db._mongo._collection = mongomock.MongoClient().db.collection
+        logging.getLogger('suds').setLevel(logging.INFO)
 
     def test_process(self):
         test_record = { 'sourceDomainOrIp': u'160.153.77.227',
                         'ticketId': u'DCU000001053',
                         'reporter': u'bxberry',
                         'source': u'http://comicsn.beer/uncategorized/casual-gaming-and-the-holidays/',
-                        'type': u'NETABUSE'}
+                        'type': u'NETABUSE',
+                        'phishstory_status': u'OPEN',
+                        'hosted_status': u'HOSTED'}
         self._netabuse.process(Incident(test_record))
-        lst = [doc for doc in self._netabuse._db.get_open_tickets(PhishstoryDB.NETABUSE, "HOSTED")]
+        lst = [doc for doc in self._netabuse._db.get_tickets(PhishstoryDB.NETABUSE, "HOSTED", "OPEN")]
         assert_true(lst[0]['sourceDomainOrIp'] == '160.153.77.227')
 
         test_record2 = { 'sourceDomainOrIp': u'8.8.8.8',

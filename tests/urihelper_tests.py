@@ -17,8 +17,8 @@ class TestURIHelper(object):
 
 
     def test_resolves(self):
-        true_data = self._urihelper.resolves('http://comicsn.beer/')
-        assert_true(true_data is True)
+        true_data = self._urihelper.resolves('http://google.com/')
+        assert_true(true_data)
         false_data = self._urihelper.resolves('http://www.nonononononononononono.com/')
         assert_true(false_data is False)
 

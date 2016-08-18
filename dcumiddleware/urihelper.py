@@ -181,6 +181,7 @@ class URIHelper:
             return elem.get('shopper_id'), datetime.datetime.strptime(elem.get('date_created'), '%m/%d/%Y %I:%M:%S %p')
         except Exception as e:
             self._logger.error("Unable to lookup shopper info for {}:{}".format(domain, e))
+            return None, None
 
     def _lookup_shopper_info(self, domain):
         """

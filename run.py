@@ -1,6 +1,7 @@
 import logging
 import logging.handlers
 import os
+from datetime import datetime, timedelta
 
 from celery import Celery
 from celery.utils.log import get_task_logger
@@ -10,6 +11,7 @@ from dcumiddleware.incident import Incident
 from dcumiddleware.malwarestrategy import MalwareStrategy
 from dcumiddleware.netabusestrategy import NetAbuseStrategy
 from dcumiddleware.phishingstrategy import PhishingStrategy
+from dcumiddleware.reviews import FraudReview
 from settings import config_by_name
 
 # Grab the correct settings based on environment
@@ -32,16 +34,24 @@ app.config_from_object(CeleryConfig())
 """
 Sample data:
 {'info': u'My spam Farm is better than yours...',
- 'domain': u'spam.com',
+ 'sourceDomainOrIp': u'spam.com',
  'ticketId': u'DCU000001053',
  'target': u'The spam Brothers',
  'reporter': u'bxberry',
- 'intentional': False,
- 'sources': u'http://spam.com/thegoodstuff/jonas.php?g=a&itin=1324',
+ 'source': u'http://spam.com/thegoodstuff/jonas.php?g=a&itin=1324',
  'proxy': u'Must be viewed from an German IP',
- 'moreInfo': u'http://report.busters.com?report=714',
  'type': u'PHISHING'}
 """
+
+
+@app.task(name='run.hold')
+def hold(data):
+    pass
+
+
+@app.task(name='run.malicious')
+def malicious(data):
+    pass
 
 
 @app.task(name='run.process')
@@ -59,14 +69,35 @@ def process(data):
         strategy = MalwareStrategy(app_settings)
     elif incident.type == "NETABUSE":
         strategy = NetAbuseStrategy(app_settings)
+    rdata = strategy.process(incident)
+    if rdata:
+        logger.info("Successfully processed {}".format(rdata))
+        post_process(rdata)
+    else:
+        logger.error("Unable to process incident {}, no data returned".format(incident))
 
+
+def post_process(data):
+    """
+    This function handles post processing the data for basic fraud detection, grouping etc.
+    :param data:
+    :return:
+    """
     try:
-        data = strategy.process(incident)
-        if data:
-            data = Incident(data)
-            logger.info("Successfully processed {}".format(data))
-            ## Send to grouper for any open hosted phishing tickets
-            if data.hosted_status == 'HOSTED' and data.type == 'PHISHING' and data.phishstory_status == 'OPEN':
-                app.send_task('run.group', args=(data.ticketId,))
+        data = Incident(data)
+        # If the s_create_date is less than x days old, put on review and send to fraud
+        if data.phihstory_status == 'OPEN' \
+                and data.s_create_date \
+                and data.s_create_date > datetime.utcnow() - timedelta(days=app_settings.NEW_ACCOUNT):
+            review = FraudReview(app_settings)
+            doc = review.place_in_review(data.ticketId, app_settings.HOLD_TIME)
+            if doc.get('fraud_notified', None):
+                #TODO send ticket to fraud queue
+                pass
+        # Send to grouper for any open hosted phishing tickets
+        if data.hosted_status == 'HOSTED' \
+                and data.type == 'PHISHING' \
+                and data.phishstory_status == 'OPEN':
+            app.send_task('run.group', args=(data.ticketId,))
     except Exception as e:
-        logger.error("Unable to process incident {}:{}".format(incident, e.message))
+        logger.error("Unable to post process data {}:{}".format(data, e.message))
