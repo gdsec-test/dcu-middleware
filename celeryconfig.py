@@ -18,11 +18,14 @@ class CeleryConfig():
     CELERY_ACCEPT_CONTENT = ['json']
     CELERY_IMPORTS = 'run'
     CELERYD_HIJACK_ROOT_LOGGER = False
-    CELERY_DEFAULT_QUEUE = app_settings.COMPACTORQUEUE
-    CELERY_DEFAULT_ROUTING_KEY = app_settings.COMPACTORQUEUE
     CELERY_QUEUES = (
         Queue(app_settings.APIQUEUE, Exchange(app_settings.APIQUEUE), routing_key=app_settings.APIQUEUE),
     )
+
+    CELERY_ROUTES = {
+       'run.group': {'queue': app_settings.COMPACTORQUEUE},
+       'run.mail': {'queue': app_settings.MAILQUEUE}
+    }
 
     def __init__(self):
         self.BROKER_PASS = os.getenv('BROKER_PASS') or 'password'
