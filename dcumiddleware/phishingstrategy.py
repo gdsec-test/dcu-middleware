@@ -49,6 +49,11 @@ class PhishingStrategy(Strategy):
             data.sid = sid
             data.s_create_date = s_create_date
 
+        # set any existing fraud hold times for this domain
+        hold = self._urihelper.fraud_holds_for_domain(domain=data.sourceDomainOrIp)
+        if hold:
+            data.fraud_hold_until = hold
+
         # Add hosted_status to incident
         res = self._urihelper.resolves(data.source)
         if res or data.proxy:

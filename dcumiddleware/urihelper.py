@@ -1,10 +1,11 @@
-import datetime
 import logging
 import re
 import socket
 import xml.etree.ElementTree as ET
+from datetime import datetime
 
 import requests
+from dcdatabase.phishstorymongo import PhishstoryMongo
 from pyvirtualdisplay import Display
 from selenium import webdriver
 from suds.client import Client
@@ -26,6 +27,7 @@ class URIHelper:
         self._authuser = settings.AUTHUSER
         self._authpass = settings.AUTHPASS
         self._client = Client(settings.KNOX_URL)
+        self._db = PhishstoryMongo(settings)
 
     def resolves(self, url):
         """
@@ -198,3 +200,27 @@ class URIHelper:
         ET.SubElement(returnFields, 'Field', Name='date_created')
         xmlstr = ET.tostring(shopper_search, encoding='utf8', method='xml')
         return self._client.service.SearchShoppers(xmlstr)
+
+    def domain_for_ticket(self, ticket):
+        """
+        Returns the domain for the given ticket
+        :param ticket:
+        :return:
+        """
+        doc = self._db.get_incident(ticket)
+        if doc:
+            return doc.get('sourceDomainOrIp', None)
+
+    def fraud_holds_for_domain(self, domain):
+        """
+        Returns any valid(Non-expired) holds for the given tickets domain
+        :param domain
+        :return:
+        """
+        try:
+            query = dict(phishstory_status='OPEN', sourceDomainOrIp=domain, fraud_hold_until={'$exists': True})
+            domain_ticket = self._db.find_incidents(query, [('fraud_hold_until', 1)], 1)
+            if domain_ticket and domain_ticket[0]['fraud_hold_until'] > datetime.utcnow():
+                return domain_ticket[0]['fraud_hold_until']
+        except Exception as e:
+            self._logger.error("Unable to determine any fraud holds for {}:{}".format(domain, e.message))

@@ -11,7 +11,8 @@ from dcumiddleware.incident import Incident
 from dcumiddleware.malwarestrategy import MalwareStrategy
 from dcumiddleware.netabusestrategy import NetAbuseStrategy
 from dcumiddleware.phishingstrategy import PhishingStrategy
-from dcumiddleware.reviews import FraudReview
+from dcumiddleware.reviews import FraudReview, BasicReview
+from dcumiddleware.urihelper import URIHelper
 from settings import config_by_name
 
 # Grab the correct settings based on environment
@@ -46,19 +47,28 @@ Sample data:
 
 @app.task(name='run.hold')
 def hold(data):
-    pass
+    review = BasicReview(app_settings)
+    review.place_in_review(data, datetime.utcnow() + timedelta(seconds=app_settings.HOLD_TIME))
 
 
 @app.task(name='run.malicious')
 def malicious(data):
-    pass
+    review = FraudReview(app_settings)
+    urihelper = URIHelper(app_settings)
+    domain = urihelper.domain_for_ticket(data)
+    fhold = urihelper.fraud_holds_for_domain(domain)
+    if fhold:
+        review.place_in_review(data, fhold)
+    else:
+        review.place_in_review(data, datetime.utcnow() + timedelta(seconds=app_settings.HOLD_TIME))
+        # TODO send fraud notification for malicious domain
 
 
 @app.task(name='run.process')
 def process(data):
     """
     Processes data from the phishworker queue.
-    :param irispullerdata:
+    :param data:
     :return:
     """
     incident = Incident(data)
@@ -85,15 +95,15 @@ def post_process(data):
     """
     incident = Incident(data)
     try:
-        # If the s_create_date is less than x days old, put on review and send to fraud
+        # If the s_create_date is less than x days old, put on review and send to fraud if not already on hold
         if incident.phihstory_status == 'OPEN' \
                 and incident.s_create_date \
-                and incident.s_create_date > datetime.utcnow() - timedelta(days=app_settings.NEW_ACCOUNT):
+                and incident.s_create_date > datetime.utcnow() - timedelta(days=app_settings.NEW_ACCOUNT) \
+                and not incident.fraud_hold_until:
             review = FraudReview(app_settings)
-            doc = review.place_in_review(incident.ticketId, app_settings.HOLD_TIME)
-            if doc.get('fraud_notified', None):
-                #TODO send ticket to fraud queue
-                pass
+            review.place_in_review(data, datetime.utcnow() + timedelta(seconds=app_settings.HOLD_TIME))
+            # TODO send fraud notification for new domain
+
         # Send to grouper for any open hosted phishing tickets
         if incident.hosted_status == 'HOSTED' \
                 and incident.type == 'PHISHING' \
