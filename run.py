@@ -83,21 +83,21 @@ def post_process(data):
     :param data:
     :return:
     """
+    incident = Incident(data)
     try:
-        data = Incident(data)
         # If the s_create_date is less than x days old, put on review and send to fraud
-        if data.phihstory_status == 'OPEN' \
-                and data.s_create_date \
-                and data.s_create_date > datetime.utcnow() - timedelta(days=app_settings.NEW_ACCOUNT):
+        if incident.phihstory_status == 'OPEN' \
+                and incident.s_create_date \
+                and incident.s_create_date > datetime.utcnow() - timedelta(days=app_settings.NEW_ACCOUNT):
             review = FraudReview(app_settings)
-            doc = review.place_in_review(data.ticketId, app_settings.HOLD_TIME)
+            doc = review.place_in_review(incident.ticketId, app_settings.HOLD_TIME)
             if doc.get('fraud_notified', None):
                 #TODO send ticket to fraud queue
                 pass
         # Send to grouper for any open hosted phishing tickets
-        if data.hosted_status == 'HOSTED' \
-                and data.type == 'PHISHING' \
-                and data.phishstory_status == 'OPEN':
-            app.send_task('run.group', args=(data.ticketId,))
+        if incident.hosted_status == 'HOSTED' \
+                and incident.type == 'PHISHING' \
+                and incident.phishstory_status == 'OPEN':
+            app.send_task('run.group', args=(incident.ticketId,))
     except Exception as e:
-        logger.error("Unable to post process data {}:{}".format(data, e.message))
+        logger.error("Unable to post process data {}:{}".format(incident, e.message))
