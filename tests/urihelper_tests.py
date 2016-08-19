@@ -77,7 +77,7 @@ class TestURIHelper(object):
     @patch.object(URIHelper, '_lookup_shopper_info')
     def test_get_shopper_info(self, mocked_method):
         mocked_method.return_value = '<ShopperSearchReturn><Shopper date_created="1/9/2012 7:41:51 PM" shopper_id="49047180"/><Shopper date_created="7/20/2012 3:00:30 PM" shopper_id="54459007"/></ShopperSearchReturn>'
-        expected_time = datetime.datetime.strptime('1/9/2012 7:41:51 PM','%m/%d/%Y %I:%M:%S %p')
+        expected_time = datetime.strptime('1/9/2012 7:41:51 PM','%m/%d/%Y %I:%M:%S %p')
         sid, created = self._urihelper.get_shopper_info('comicsn.beer')
         assert_equal(sid, "49047180")
         assert_equal(created, expected_time)

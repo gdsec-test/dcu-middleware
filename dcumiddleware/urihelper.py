@@ -26,7 +26,7 @@ class URIHelper:
         self._proxy = settings.PROXY
         self._authuser = settings.AUTHUSER
         self._authpass = settings.AUTHPASS
-        self._client = Client(settings.KNOX_URL)
+        self._client = Client(settings.KNOX_URL, timeout=5)
         self._db = PhishstoryMongo(settings)
 
     def resolves(self, url):
@@ -180,7 +180,7 @@ class URIHelper:
         try:
             doc = ET.fromstring(self._lookup_shopper_info(domain))
             elem = doc.find(".//*[@shopper_id]")
-            return elem.get('shopper_id'), datetime.datetime.strptime(elem.get('date_created'), '%m/%d/%Y %I:%M:%S %p')
+            return elem.get('shopper_id'), datetime.strptime(elem.get('date_created'), '%m/%d/%Y %I:%M:%S %p')
         except Exception as e:
             self._logger.error("Unable to lookup shopper info for {}:{}".format(domain, e))
             return None, None
