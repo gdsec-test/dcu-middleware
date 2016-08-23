@@ -29,5 +29,11 @@ class Incident(object):
         """
         return self.__dict__.get(item)
 
+    def __getstate__(self):
+        return self.__dict__
+
+    def __setstate__(self, d):
+        self.__dict__.update(d)
+
     def __repr__(self):
         return '<\n %s\n>' % str('\n '.join('%s : %s' % (k, repr(v)) for (k, v) in self.__dict__.iteritems()))
