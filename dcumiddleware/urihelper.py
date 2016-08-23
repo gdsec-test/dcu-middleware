@@ -26,8 +26,8 @@ class URIHelper:
         self._proxy = settings.PROXY
         self._authuser = settings.AUTHUSER
         self._authpass = settings.AUTHPASS
-        self._client = Client(settings.KNOX_URL, timeout=5)
         self._db = PhishstoryMongo(settings)
+        self._url = settings.KNOX_URL
 
     def resolves(self, url):
         """
@@ -199,7 +199,8 @@ class URIHelper:
         ET.SubElement(returnFields, 'Field', Name='shopper_id')
         ET.SubElement(returnFields, 'Field', Name='date_created')
         xmlstr = ET.tostring(shopper_search, encoding='utf8', method='xml')
-        return self._client.service.SearchShoppers(xmlstr)
+        client = Client(self._url, timeout=5)
+        return client.service.SearchShoppers(xmlstr)
 
     def domain_for_ticket(self, ticket):
         """

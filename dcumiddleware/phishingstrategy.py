@@ -3,9 +3,9 @@ import logging
 from dcdatabase.phishstorymongo import PhishstoryMongo
 
 from dcumiddleware.dcuapi_functions import DCUAPIFunctions
+from dcumiddleware.incident import Incident
 from dcumiddleware.interfaces.strategy import Strategy
 from dcumiddleware.urihelper import URIHelper
-
 
 class PhishingStrategy(Strategy):
 
@@ -63,7 +63,7 @@ class PhishingStrategy(Strategy):
                 if res:
                     # Attach crits data if it resolves
                     screenshot_id, sourcecode_id = self._db.add_crits_data(self._urihelper.get_site_data(data.source), data.source)
-                    data = self._db.update_incident(iid, dict(screenshot_id=screenshot_id, sourcecode_id=sourcecode_id))
+                    data = Incident(self._db.update_incident(iid, dict(screenshot_id=screenshot_id, sourcecode_id=sourcecode_id)))
             else:
                 self._logger.error("Unable to insert {} into database".format(iid))
         else:
