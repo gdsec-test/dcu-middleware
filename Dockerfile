@@ -5,6 +5,8 @@
 FROM ubuntu:14.04
 MAINTAINER DCU ENG <DCUEng@godaddy.com>
 
+RUN groupadd -r dcu && useradd -r -g dcu dcu
+
 # apt-get installs
 RUN apt-get update && \
     apt-get install -y build-essential \
@@ -25,6 +27,7 @@ WORKDIR /app
 
 # Move files to new dir
 ADD . /app
+RUN chown -R dcu:dcu /app
 
 # pip install private pips staged by Makefile
 RUN for entry in dcdatabase blindAl; \
@@ -42,5 +45,7 @@ RUN apt-get remove --purge -y build-essential \
     python-dev && \
     rm -rf /var/lib/apt/lists/* && \
     rm -rf /app/private_pips
+
+USER dcu
 
 CMD ["/usr/local/bin/celery", "-A", "run", "worker", "-l", "INFO"]

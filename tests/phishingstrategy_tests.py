@@ -3,7 +3,6 @@ from dcdatabase.mongohelper import MongoHelper
 from mock import patch
 from nose.tools import assert_true
 
-from dcumiddleware.incident import Incident
 from dcumiddleware.phishingstrategy import PhishingStrategy
 from dcumiddleware.urihelper import URIHelper
 from test_settings import TestingConfig
@@ -29,7 +28,7 @@ class TestPhishingStrategy:
                         'reporter': u'bxberry',
                         'source': u'http://comicsn.beer/uncategorized/casual-gaming-and-the-holidays/',
                         'type': u'PHISHING'}
-        self._phishing.process(Incident(test_record))
+        self._phishing.process(test_record)
         doc = self._phishing._db.get_incident('DCU000001053')
         assert_true(doc['ticketId'] == 'DCU000001053')
         assert_true(doc['hosted_status'] == 'HOSTED')
@@ -44,7 +43,7 @@ class TestPhishingStrategy:
                         'reporter': u'bxberry',
                         'source': u'http://google.com',
                         'type': u'PHISHING'}
-        self._phishing.process(Incident(test_record))
+        self._phishing.process(test_record)
         doc = self._phishing._db.get_incident('DCU000001054')
         assert_true(doc['ticketId'] == 'DCU000001054')
         assert_true(doc['hosted_status'] == 'FOREIGN')
@@ -61,7 +60,7 @@ class TestPhishingStrategy:
                         'reporter': u'bxberry',
                         'source': u'http://',
                         'type': u'PHISHING'}
-        self._phishing.process(Incident(test_record))
+        self._phishing.process(test_record)
         doc = self._phishing._db.get_incident('DCU000001055')
         assert_true(doc['ticketId'] == 'DCU000001055')
         assert_true(doc['hosted_status'] == 'UNKNOWN')
@@ -79,6 +78,6 @@ class TestPhishingStrategy:
                         'source': u'http://',
                         'proxy': 'brazil',
                         'type': u'PHISHING'}
-        self._phishing.process(Incident(test_record))
+        self._phishing.process(test_record)
         doc = self._phishing._db.get_incident('DCU000001056')
         assert_true(doc['ticketId'] == 'DCU000001056')
