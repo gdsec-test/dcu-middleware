@@ -156,7 +156,7 @@ def _check_group(data):
                 and data.get('type') == 'PHISHING' \
                 and data.get('phishstory_status') == 'OPEN':
             logger.info("Sending {} to grouper".format(data.get('ticketId')))
-            app.send_task('run.group', args=(data.get('ticketId'),))
+            app.send_task('run.group', args=(data.get('ticketId'),), serializer='json')
     except Exception as e:
         logger.error("Unable to check data for grouping {}:{}".format(pformat(data), e.message))
     finally:
