@@ -13,11 +13,13 @@ app_settings = config_by_name[os.getenv('sysenv') or 'dev']
 class CeleryConfig():
     BROKER_TRANSPORT = 'pyamqp'
     BROKER_USE_SSL = True
-    CELERY_TASK_SERIALIZER = 'json'
-    CELERY_RESULT_SERIALIZER = 'json'
-    CELERY_ACCEPT_CONTENT = ['json']
+    CELERY_TASK_SERIALIZER = 'pickle'
+    CELERY_RESULT_SERIALIZER = 'pickle'
+    CELERY_ACCEPT_CONTENT = ['json', 'pickle']
     CELERY_IMPORTS = 'run'
     CELERYD_HIJACK_ROOT_LOGGER = False
+    CELERY_RESULT_BACKEND = 'redis://redis:6379'
+    CELERY_DEFAULT_QUEUE = app_settings.APIQUEUE
     CELERY_QUEUES = (
         Queue(app_settings.APIQUEUE, Exchange(app_settings.APIQUEUE), routing_key=app_settings.APIQUEUE),
     )

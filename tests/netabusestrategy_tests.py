@@ -4,7 +4,6 @@ import mongomock
 from dcdatabase.interfaces.phishstorydb import PhishstoryDB
 from nose.tools import assert_true
 
-from dcumiddleware.incident import Incident
 from dcumiddleware.netabusestrategy import NetAbuseStrategy
 from dcumiddleware.urihelper import URIHelper
 from test_settings import TestingConfig
@@ -29,7 +28,7 @@ class TestNetabuseStrategy:
                         'type': u'NETABUSE',
                         'phishstory_status': u'OPEN',
                         'hosted_status': u'HOSTED'}
-        self._netabuse.process(Incident(test_record))
+        self._netabuse.process(test_record)
         lst = [doc for doc in self._netabuse._db.get_tickets(PhishstoryDB.NETABUSE, "HOSTED", "OPEN")]
         assert_true(lst[0]['sourceDomainOrIp'] == '160.153.77.227')
 
@@ -38,6 +37,6 @@ class TestNetabuseStrategy:
                         'reporter': u'bxberry',
                         'source': u'http://comicsn.beer/uncategorized/casual-gaming-and-the-holidays/',
                         'type': u'NETABUSE'}
-        self._netabuse.process(Incident(test_record2))
+        self._netabuse.process(test_record2)
         data = self._netabuse._db.get_incident("DCU000001054")
         assert_true(data['sourceDomainOrIp'] == '8.8.8.8')
