@@ -20,6 +20,8 @@ class CeleryConfig():
     CELERYD_HIJACK_ROOT_LOGGER = False
     CELERY_RESULT_BACKEND = 'redis://redis:6379'
     CELERY_DEFAULT_QUEUE = app_settings.APIQUEUE
+    CELERY_ACKS_LATE = True
+    CELERYD_PREFETCH_MULTIPLIER = 1
     CELERY_QUEUES = (
         Queue(app_settings.APIQUEUE, Exchange(app_settings.APIQUEUE), routing_key=app_settings.APIQUEUE),
     )
