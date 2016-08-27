@@ -14,7 +14,6 @@ from whois import NICClient
 
 
 class URIHelper:
-
     # Status values
     HOSTED = 1
     REG = 2
@@ -34,14 +33,24 @@ class URIHelper:
         Returns a boolean indicating whether the site resolves or not
         :param url:
         :return:
+        NOTE: If we are using auth, requests library will not resend auth on a redirect (will result in a 401),
+        so we need to manually check for one and re-issue the get with the redirected url and the auth credentials
         """
+        retry = 0
         try:
             bad_site = requests.get(url, proxies=self._proxy, auth=(self._authuser, self._authpass), timeout=60)
+            if self._authuser and self._authpass:
+                while bad_site.status_code == 401 and bad_site.history and \
+                                bad_site.history[-1].status_code == 301 and retry < 3:
+                    self._logger.warning("Retrying with redirected url {}".format(bad_site.url))
+                    bad_site = requests.get(bad_site.url, proxies=self._proxy, auth=(self._authuser, self._authpass),
+                                            timeout=60)
+                    retry += 1
             status = str(bad_site.status_code)
             if status[0] in ["1", "2", "3"]:
                 return True
-            # elif status == "406":
-                # return False
+            elif status == "406":
+                return True
             else:
                 return False
         except Exception as e:
@@ -112,7 +121,7 @@ class URIHelper:
             return ip_results
         except Exception as e:
             self._logger.error("Error in finding an IP in %s: %s", uri, e.message)
-            ip_results = (False, )
+            ip_results = (False,)
             return ip_results
 
     def _get_domain(self, uri):
@@ -127,13 +136,13 @@ class URIHelper:
             if domain_name != uri:
                 return domain_results
             else:
-                uri = 'http://'+uri
+                uri = 'http://' + uri
                 domain_name = get_tld(uri)
                 domain_results = (True, domain_name)
                 return domain_results
         except Exception as e:
             self._logger.error("Error in finding a domain in %s : %s", uri, e.message)
-            domain_results = (False, )
+            domain_results = (False,)
             return domain_results
 
     def _is_ip_hosted(self, ip):
