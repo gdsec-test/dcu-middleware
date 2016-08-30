@@ -9,8 +9,8 @@ class TestSettings:
     @classmethod
     def setup_class(cls):
         os.environ['DBPASS'] = 'vkdE4NSw5wgFIcQDxQ=='  # decrypted password: test_password
-        path = os.getcwd() + '/tests/'
-        os.environ['KEYFILE'] = path + 'test_key.txt'
+        path = os.getcwd()
+        os.environ['KEYFILE'] = path + '/'+ 'test_key.txt'
         os.environ['AUTHPASS'] = 'vkdE4NSw5wgFIcQDxQ=='  # decrypted password: test_password
 
     def test_app_config(self):
