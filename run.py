@@ -26,8 +26,7 @@ fileh = logging.handlers.RotatingFileHandler('middleware.log', maxBytes=10485760
 fileh.setLevel(app_settings.LOGLEVEL)
 formatter = logging.Formatter(app_settings.FORMAT)
 fileh.setFormatter(formatter)
-logging.getLogger('').addHandler(fileh)
-logger = get_task_logger(__name__)
+logger = get_task_logger(__name__).addHandler(fileh)
 
 app = Celery()
 app.config_from_object(CeleryConfig())
