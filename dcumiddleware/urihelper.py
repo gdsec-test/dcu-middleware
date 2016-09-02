@@ -96,8 +96,14 @@ class URIHelper:
                 return URIHelper.HOSTED if ip_hosted else URIHelper.NOT_REG_HOSTED
 
             else:
-                domain = 'www.'+ sourceDomainOrIp if sourceDomainOrIp[:4] != 'www.' else sourceDomainOrIp
-                ip = socket.gethostbyname(domain)
+                try:
+                    ip = socket.gethostbyname(sourceDomainOrIp)
+                except socket.gaierror:
+                    # Add www if not present, else remove and try again
+                    domain = 'www.'+ sourceDomainOrIp if sourceDomainOrIp[:4] != 'www.' else sourceDomainOrIp[4:]
+                    ip = socket.gethostbyname(domain)
+                if ip == '0.0.0.0':
+                    raise Exception("Invalid Host")
                 ip_hosted = self._is_ip_hosted(ip)
                 return URIHelper.HOSTED if ip_hosted else self._domain_whois(sourceDomainOrIp)
 
