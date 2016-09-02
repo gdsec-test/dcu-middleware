@@ -85,10 +85,10 @@ def malicious(data):
     domain = urihelper.domain_for_ticket(data)
     fhold = urihelper.fraud_holds_for_domain(domain)
     if fhold:
-        review.place_in_review(data, fhold)
+        review.place_in_review(data, fhold, 'intentionally_malicious')
     else:
         logger.warning("Sending {} to fraud for being intentionally malicious".format(data))
-        rdata = review.place_in_review(data, datetime.utcnow() + timedelta(seconds=app_settings.HOLD_TIME))
+        rdata = review.place_in_review(data, datetime.utcnow() + timedelta(seconds=app_settings.HOLD_TIME), 'intentionally_malicious')
         send_malicious_notification(rdata)
 
 ##### PRIVATE TASKS #####
@@ -132,11 +132,11 @@ def _new_fraud_check(data):
             urihelper = URIHelper(app_settings)
             fhold = urihelper.fraud_holds_for_domain(data.get('sourceDomainOrIp'))
             if fhold:
-                data = review.place_in_review(data.get('ticketId'), fhold)
+                data = review.place_in_review(data.get('ticketId'), fhold, 'new_account')
             else:
                 logger.warning("Sending {} to fraud for young account investigation".format(data.get('ticketId')))
                 data = review.place_in_review(data.get('ticketId'),
-                                              datetime.utcnow() + timedelta(seconds=app_settings.HOLD_TIME))
+                                              datetime.utcnow() + timedelta(seconds=app_settings.HOLD_TIME), 'new_account')
                 send_young_account_notification(data)
     except Exception as e:
         logger.error("Unable to perform new fraud check {}:{}".format(pformat(data), e.message))

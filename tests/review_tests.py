@@ -28,6 +28,16 @@ class TestReview:
         doc = self._basic.place_in_review(1236, datetime.utcnow() + timedelta(seconds=self._config.HOLD_TIME))
         assert_true(doc['hold_until'])
 
+    def test_basic_hold_with_reason(self):
+        doc = self._basic.place_in_review(1236, datetime.utcnow() + timedelta(seconds=self._config.HOLD_TIME),'New Account')
+        assert_true(doc['hold_until'])
+        assert_true(doc['hold_reason'])
+
+    def test_fraud_hold_with_reason(self):
+        doc = self._fraud.place_in_review(1237, datetime.utcnow() + timedelta(seconds=self._config.HOLD_TIME), 'New Account')
+        assert_true(doc['fraud_hold_until'])
+        assert_true(doc['fraud_hold_reason'])
+
     def test_fraud_hold(self):
         doc = self._fraud.place_in_review(1237, datetime.utcnow() + timedelta(seconds=self._config.HOLD_TIME))
         assert_true(doc['fraud_hold_until'])
