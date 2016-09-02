@@ -1,9 +1,11 @@
 import logging
+import logging.config
 import logging.handlers
 import os
 from datetime import datetime, timedelta
 from pprint import pformat
 
+import yaml
 from celery import Celery, chain
 from celery.utils.log import get_task_logger
 
@@ -18,19 +20,21 @@ from settings import config_by_name
 # Grab the correct settings based on environment
 app_settings = config_by_name[os.getenv('sysenv') or 'dev']()
 
-# Define log level, location, and formatting
-logging.basicConfig(format=app_settings.FORMAT,
-                    datefmt=app_settings.DATE_FORMAT,
-                    level=app_settings.LOGLEVEL)
-fileh = logging.handlers.RotatingFileHandler('middleware.log', maxBytes=10485760, backupCount=5)
-fileh.setLevel(app_settings.LOGLEVEL)
-formatter = logging.Formatter(app_settings.FORMAT)
-fileh.setFormatter(formatter)
-logger = get_task_logger(__name__).addHandler(fileh)
+# setup logging
+path = 'logging.yml'
+value = os.getenv('LOG_CFG', None)
+if value:
+    path = value
+if os.path.exists(path):
+    with open(path, 'rt') as f:
+        lconfig = yaml.safe_load(f.read())
+    logging.config.dictConfig(lconfig)
+else:
+    logging.basicConfig(level=logging.INFO)
 
 app = Celery()
 app.config_from_object(CeleryConfig())
-
+logger = get_task_logger(__name__)
 """
 Sample data:
 {'info': u'My spam Farm is better than yours...',
