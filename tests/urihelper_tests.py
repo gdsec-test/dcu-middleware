@@ -39,11 +39,11 @@ class TestURIHelper(object):
         assert_true(screenshot_2 is None and sourcecode_2 is None)
 
     def test_get_status(self):
-        hosted_domain_data = self._urihelper.get_status('http://comicsn.beer/blah/')
+        hosted_domain_data = self._urihelper.get_status('comicsn.beer')
         assert_true(hosted_domain_data == URIHelper.HOSTED)
-        hosted_ip_data = self._urihelper.get_status('http://160.153.77.227/blah/')
+        hosted_ip_data = self._urihelper.get_status('160.153.77.227')
         assert_true(hosted_ip_data == URIHelper.HOSTED)
-        nrh_data = self._urihelper.get_status('http://google.com/blah/')
+        nrh_data = self._urihelper.get_status('google.com')
         assert_true(nrh_data == URIHelper.NOT_REG_HOSTED)
         unknown_data = self._urihelper.get_status('abcdefghijklmnopqrstuvwxyz')
         assert_true(unknown_data == URIHelper.UNKNOWN)

@@ -80,32 +80,29 @@ class URIHelper:
             display.stop()
             return data
 
-    def get_status(self, uri):
+    def get_status(self, sourceDomainOrIp):
         """
-        Returns a integral value indicating the state of the URI passed in. This could be a url, or an ip.
+        Returns a integral value indicating the state of the source domain or ip passed in.
         Possible return values could be HOSTED, REG, NOT_REG_HOSTED
-        :param uri:
+        :param sourceDomainOrIp:
         :return:
         """
 
         try:
-            ip_results = self._get_ip(uri)
-            domain_results = self._get_domain(uri)
+            ip_results = self._get_ip(sourceDomainOrIp)
 
             if ip_results[0]:
                 ip_hosted = self._is_ip_hosted(ip_results[1])
                 return URIHelper.HOSTED if ip_hosted else URIHelper.NOT_REG_HOSTED
 
-            elif domain_results[0]:
-                ip = socket.gethostbyname(domain_results[1])
-                ip_hosted = self._is_ip_hosted(ip)
-                return URIHelper.HOSTED if ip_hosted else self._domain_whois(domain_results[1])
-
             else:
-                return URIHelper.UNKNOWN
+                domain = 'www.'+ sourceDomainOrIp if sourceDomainOrIp[:4] != 'www.' else sourceDomainOrIp
+                ip = socket.gethostbyname(domain)
+                ip_hosted = self._is_ip_hosted(ip)
+                return URIHelper.HOSTED if ip_hosted else self._domain_whois(sourceDomainOrIp)
 
         except Exception as e:
-            self._logger.error("Error in determining state of URI %s: %s", uri, e.message)
+            self._logger.error("Error in determining state of {}:{}".format(sourceDomainOrIp, e.message))
             return URIHelper.UNKNOWN
 
     def _get_ip(self, uri):
@@ -170,6 +167,7 @@ class URIHelper:
         """
         whois_server = 'whois.godaddy.com'
         nicclient = NICClient()
+        domain_name = domain_name[4:] if domain_name[:4] == 'www.' else domain_name
         try:
             domain = nicclient.whois(domain_name, whois_server, True)
             if "No match" not in domain:
