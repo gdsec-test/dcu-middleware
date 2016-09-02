@@ -48,11 +48,11 @@ class TestURIHelper(object):
         unknown_data = self._urihelper.get_status('abcdefghijklmnopqrstuvwxyz')
         assert_true(unknown_data == URIHelper.UNKNOWN)
 
-    def test_get_ip(self):
-        domain_data = self._urihelper._get_ip('http://comicsn.beer/blah/')
-        assert_true(domain_data[0] is False)
-        ip_data = self._urihelper._get_ip('http://160.153.77.227/blah/')
-        assert_true(ip_data[0] is True and ip_data[1] == '160.153.77.227')
+    def test_is_ip(self):
+        domain_data = self._urihelper._is_ip('http://comicsn.beer/blah/')
+        assert_true(domain_data is False)
+        ip_data = self._urihelper._is_ip('160.153.77.227')
+        assert_true(ip_data)
 
     def test_get_domain(self):
         domain_data = self._urihelper._get_domain('http://comicsn.beer/blah/')

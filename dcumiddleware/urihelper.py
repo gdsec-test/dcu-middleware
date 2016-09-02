@@ -89,12 +89,10 @@ class URIHelper:
         """
 
         try:
-            ip_results = self._get_ip(sourceDomainOrIp)
-
-            if ip_results[0]:
-                ip_hosted = self._is_ip_hosted(ip_results[1])
+            # is it an ip address?
+            if self._is_ip(sourceDomainOrIp):
+                ip_hosted = self._is_ip_hosted(sourceDomainOrIp)
                 return URIHelper.HOSTED if ip_hosted else URIHelper.NOT_REG_HOSTED
-
             else:
                 try:
                     ip = socket.gethostbyname(sourceDomainOrIp)
@@ -111,21 +109,14 @@ class URIHelper:
             self._logger.error("Error in determining state of {}:{}".format(sourceDomainOrIp, e.message))
             return URIHelper.UNKNOWN
 
-    def _get_ip(self, uri):
+    def _is_ip(self, sourceDomainOrIp):
         """
-        Returns a tuple of either True with an IP or False and null based on whether an IP was found in uri.
-        :param uri:
+        Returns whether the given sourceDomainOrIp is an ip address
+        :param sourceDomainOrIp:
         :return:
         """
-        try:
-            pattern = re.compile(r"((([01]?[0-9]?[0-9]|2[0-4][0-9]|25[0-5])[ (\[]?(\.|dot)[ )\]]?){3}[0-9]{1,3})")
-            ip = [match[0] for match in re.findall(pattern, uri)][0]
-            ip_results = (True, ip)
-            return ip_results
-        except Exception as e:
-            self._logger.error("Error in finding an IP in %s: %s", uri, e.message)
-            ip_results = (False,)
-            return ip_results
+        pattern = re.compile(r"((([01]?[0-9]?[0-9]|2[0-4][0-9]|25[0-5])[ (\[]?(\.|dot)[ )\]]?){3}[0-9]{1,3})")
+        return pattern.match(sourceDomainOrIp) is not None
 
     def _get_domain(self, uri):
         """
