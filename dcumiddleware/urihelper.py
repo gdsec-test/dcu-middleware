@@ -9,7 +9,6 @@ from dcdatabase.phishstorymongo import PhishstoryMongo
 from pyvirtualdisplay import Display
 from selenium import webdriver
 from suds.client import Client
-from tld import get_tld
 from whois import NICClient
 
 
@@ -117,27 +116,6 @@ class URIHelper:
         """
         pattern = re.compile(r"((([01]?[0-9]?[0-9]|2[0-4][0-9]|25[0-5])[ (\[]?(\.|dot)[ )\]]?){3}[0-9]{1,3})")
         return pattern.match(sourceDomainOrIp) is not None
-
-    def _get_domain(self, uri):
-        """
-        Returns a tuple of either True with a domain or False and null based on whether an domain was found in uri.
-        :param uri:
-        :return:
-        """
-        try:
-            domain_name = get_tld(uri, fail_silently=True) or uri
-            domain_results = (True, domain_name)
-            if domain_name != uri:
-                return domain_results
-            else:
-                uri = 'http://' + uri
-                domain_name = get_tld(uri)
-                domain_results = (True, domain_name)
-                return domain_results
-        except Exception as e:
-            self._logger.error("Error in finding a domain in %s : %s", uri, e.message)
-            domain_results = (False,)
-            return domain_results
 
     def _is_ip_hosted(self, ip):
         """

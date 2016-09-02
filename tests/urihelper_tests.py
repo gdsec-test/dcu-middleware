@@ -54,14 +54,6 @@ class TestURIHelper(object):
         ip_data = self._urihelper._is_ip('160.153.77.227')
         assert_true(ip_data)
 
-    def test_get_domain(self):
-        domain_data = self._urihelper._get_domain('http://comicsn.beer/blah/')
-        assert_true(domain_data[0] is True and domain_data[1] == 'comicsn.beer')
-        domain_data_2 = self._urihelper._get_domain('comicsn.beer')
-        assert_true(domain_data_2[0] is True and domain_data[1] == 'comicsn.beer')
-        ip_data = self._urihelper._get_domain('http://160.153.77.227/blah/')
-        assert_true(ip_data[0] is False)
-
     def test_is_ip_hosted(self):
         ip_data = self._urihelper._is_ip_hosted('160.153.77.227')
         assert_true(ip_data is True)

@@ -2,7 +2,6 @@ celery
 selenium==2.53.6
 PyVirtualDisplay
 python-whois
-tld
 requests==2.10.0
 dcdatabase
 blindAl
