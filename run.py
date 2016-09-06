@@ -20,6 +20,10 @@ from settings import config_by_name
 # Grab the correct settings based on environment
 app_settings = config_by_name[os.getenv('sysenv') or 'dev']()
 
+app = Celery()
+app.config_from_object(CeleryConfig())
+logger = get_task_logger('celery.tasks')
+
 # setup logging
 path = 'logging.yml'
 value = os.getenv('LOG_CFG', None)
@@ -32,9 +36,6 @@ if os.path.exists(path):
 else:
     logging.basicConfig(level=logging.INFO)
 
-app = Celery()
-app.config_from_object(CeleryConfig())
-logger = get_task_logger(__name__)
 """
 Sample data:
 {'info': u'My spam Farm is better than yours...',

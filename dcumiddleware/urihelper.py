@@ -131,7 +131,7 @@ class URIHelper:
             server_domain = server_name_array[len(server_name_array) - 2]
             return server_domain == "secureserver"
         except Exception as e:
-            self._logger.error("Error in determining server name of %s : %s", ip, e.message)
+            self._logger.warning("Error in determining server name of %s : %s", ip, e.message)
             return False
 
     def _domain_whois(self, domain_name):
