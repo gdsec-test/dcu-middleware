@@ -1,6 +1,6 @@
 version: 1
 
-disable_existing_loggers: false:
+disable_existing_loggers: False
 
 formatters:
     simple:
@@ -44,12 +44,12 @@ loggers:
     dcumiddleware:
         level: INFO
         handlers: [console, info_file_handler, error_file_handler]
-        propagate: false
+        propagate: no
 
     celery.tasks:
         level: INFO
         handlers: [console, info_file_handler, error_file_handler]
-        propagate: false
+        propagate: no
 
 root:
     level: INFO
