@@ -184,16 +184,6 @@ class URIHelper:
         client = Client(self._url, timeout=5)
         return client.service.SearchShoppers(xmlstr)
 
-    def domain_for_ticket(self, ticket):
-        """
-        Returns the domain for the given ticket
-        :param ticket:
-        :return:
-        """
-        doc = self._db.get_incident(ticket)
-        if doc:
-            return doc.get('sourceDomainOrIp', None)
-
     def fraud_holds_for_domain(self, domain):
         """
         Returns any valid(Non-expired) holds for the given tickets domain

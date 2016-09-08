@@ -74,9 +74,6 @@ class TestURIHelper(object):
         assert_equal(sid, "49047180")
         assert_equal(created, expected_time)
 
-    def test_get_ticket_domain(self):
-        assert_true('abc.com' == self._urihelper.domain_for_ticket(1237))
-
     def test_no_fraud_holds_for_domain(self):
         assert_false(self._urihelper.fraud_holds_for_domain('abc.com'))
 

@@ -15,6 +15,7 @@ from dcumiddleware.netabusestrategy import NetAbuseStrategy
 from dcumiddleware.phishingstrategy import PhishingStrategy
 from dcumiddleware.reviews import FraudReview, BasicReview
 from dcumiddleware.urihelper import URIHelper
+from dcumiddleware.tickethelper import TicketHelper
 from settings import config_by_name
 
 # Grab the correct settings based on environment
@@ -66,13 +67,17 @@ def process(data):
 @app.task
 def hold(data):
     """
-    Places the incident on a basic hold
+    Places the incident on a basic hold and if the incident is for a registered only domain that is phishing or malware,
+    sends a notice to the 3rd party hosting provider
     :param data:
     :return:
     """
     logger.info("Placing {} on review".format(data))
     review = BasicReview(app_settings)
-    review.place_in_review(data, datetime.utcnow() + timedelta(seconds=app_settings.HOLD_TIME))
+    updated_data = review.place_in_review(data, datetime.utcnow() + timedelta(seconds=app_settings.HOLD_TIME))
+    if updated_data.get('hosted_status') == "REGISTERED" and updated_data.get('type') == "PHISHING" or "MALWARE":
+        logger.warning("Sending notice to 3rd party hosting provider for ticket {}".format(updated_data.get('ticketId')))
+        send_hosting_provider_notice(updated_data)
 
 
 @app.task
@@ -86,7 +91,8 @@ def malicious(data):
     logger.info("Marking {} as intentionally malicious".format(data))
     review = FraudReview(app_settings)
     urihelper = URIHelper(app_settings)
-    domain = urihelper.domain_for_ticket(data)
+    tickethelper = TicketHelper(app_settings)
+    domain = tickethelper.domain_for_ticket(data)
     fhold = urihelper.fraud_holds_for_domain(domain)
     if fhold:
         review.place_in_review(data, fhold, 'intentionally_malicious')
@@ -112,6 +118,9 @@ def _catagorize_and_load(data):
         strategy = MalwareStrategy(app_settings)
     elif type == "NETABUSE":
         strategy = NetAbuseStrategy(app_settings)
+    elif type == "SPAM":
+        # PhishingStrategy is currently being used for SPAM as its being processed in the same way
+        strategy = PhishingStrategy(app_settings)
 
     if strategy:
         return strategy.process(data)
@@ -172,6 +181,7 @@ def _printer(data):
     if data:
         logger.info("Successfully processed {}".format(pformat(data)))
 
+
 @app.task(bind=True)
 def _error_handler(self, uuid):
     result = self.app.AsyncResult(uuid)
@@ -187,13 +197,14 @@ def send_young_account_notification(data):
    :param data:
    :return:
    """
-    payload = {'from': app_settings.NOTIFY_FROM, 'to': app_settings.NOTIFY_TO, 'templateNamespacekey': 'Fraud',
-               'templateTypeKey': 'YoungShopper',
-               'substitutionValues': {'account number': data.get('sid'),
-                                      'shopper creation date': data.get('s_create_date'),
-                                      'Domain name': data.get('sourceDomainOrIp'),
-                                      'malicious activity': data.get('type'),
-                                      'sanitized URL': data.get('source')}}
+    payload = {'from': app_settings.NOTIFY_FROM, 'to': app_settings.NOTIFY_TO, 'templateNamespacekey': 'Iris',
+               'templateTypeKey': 'DCU7days',
+               'substitutionValues': {'ACCOUNT_NUMBER': data.get('sid'),
+                                      'SHOPPER_CREATION_DATE': data.get('s_create_date'),
+                                      'DOMAIN': data.get('sourceDomainOrIp'),
+                                      'MALICIOUS_ACTIVITY': data.get('type'),
+                                      'BRAND_TARGETED': data.get('target'),
+                                      'SANITIZED_URL': data.get('source')}}
     app.send_task('run.sendmail', args=(payload,))
 
 
@@ -203,8 +214,25 @@ def send_malicious_notification(data):
     :param data:
     :return:
     """
-    payload = {'from': app_settings.NOTIFY_FROM, 'to': app_settings.NOTIFY_TO, 'templateNamespacekey': 'Fraud',
-               'templateTypeKey': 'SuspectedMalicious',
-               'substitutionValues': {'account number': data.get('sid'), 'Domain name': data.get('sourceDomainOrIp'),
-                                      'malicious activity': data.get('type'), 'sanitized URL': data.get('source')}}
+    payload = {'from': app_settings.NOTIFY_FROM, 'to': app_settings.NOTIFY_TO, 'templateNamespacekey': 'Iris',
+               'templateTypeKey': 'DCUSingleClick',
+               'substitutionValues': {'ACCOUNT_NUMBER': data.get('sid'),
+                                      'DOMAIN': data.get('sourceDomainOrIp'),
+                                      'MALICIOUS_ACTIVITY': data.get('type'),
+                                      'BRAND_TARGETED': data.get('target'),
+                                      'SANITIZED_URL': data.get('source')}}
     app.send_task('run.sendmail', args=(payload,))
+
+
+def send_hosting_provider_notice(data):
+    """
+	Sends a notification to the abuse contact address found for the 3rd party hosting provider of registered domain
+	:param data:
+	:return:
+	"""
+    payload = {'from': app_settings.NOTIFY_FROM, 'to': app_settings.NOTIFY_TO, 'templateNamespacekey': 'HostingAbuse',
+               'templateTypeKey': '3rdPartyHostingNotification',
+               'substitutionValues': {'DOMAIN': data.get('sourceDomainOrIp'),
+                                      'SANITIZED_URL': data.get('source')}}
+    app.send_task('run.sendmail', args=(payload,))
+
