@@ -75,7 +75,7 @@ def hold(data):
     logger.info("Placing {} on review".format(data))
     review = BasicReview(app_settings)
     updated_data = review.place_in_review(data, datetime.utcnow() + timedelta(seconds=app_settings.HOLD_TIME))
-    if updated_data.get('hosted_status') == "REGISTERED" and updated_data.get('type') == "PHISHING" or "MALWARE":
+    if updated_data.get('hosted_status') == "REGISTERED" and updated_data.get('type') in ['PHISHING', 'MALWARE']:
         logger.warning("Sending notice to 3rd party hosting provider for ticket {}".format(updated_data.get('ticketId')))
         send_hosting_provider_notice(updated_data)
 
