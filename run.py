@@ -197,7 +197,7 @@ def send_young_account_notification(data):
    :param data:
    :return:
    """
-    payload = {'from': app_settings.NOTIFY_FROM, 'templateNamespacekey': 'Iris',
+    payload = {'templateNamespaceKey': 'Iris',
                'templateTypeKey': 'DCU7days',
                'substitutionValues': {'ACCOUNT_NUMBER': data.get('sid'),
                                       'SHOPPER_CREATION_DATE': data.get('s_create_date'),
@@ -214,7 +214,7 @@ def send_malicious_notification(data):
     :param data:
     :return:
     """
-    payload = {'from': app_settings.NOTIFY_FROM, 'templateNamespacekey': 'Iris',
+    payload = {'templateNamespaceKey': 'Iris',
                'templateTypeKey': 'DCUSingleClick',
                'substitutionValues': {'ACCOUNT_NUMBER': data.get('sid'),
                                       'DOMAIN': data.get('sourceDomainOrIp'),
@@ -230,7 +230,7 @@ def send_hosting_provider_notice(data):
 	:param data:
 	:return:
 	"""
-    payload = {'from': app_settings.NOTIFY_FROM, 'templateNamespacekey': 'HostingAbuse',
+    payload = {'templateNamespaceKey': 'HostingAbuse',
                'templateTypeKey': '3rdPartyHostingNotification',
                'substitutionValues': {'DOMAIN': data.get('sourceDomainOrIp'),
                                       'SANITIZED_URL': data.get('source')}}
