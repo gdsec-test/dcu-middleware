@@ -68,11 +68,29 @@ class TestURIHelper(object):
 
     @patch.object(URIHelper, '_lookup_shopper_info')
     def test_get_shopper_info(self, mocked_method):
-        mocked_method.return_value = '<ShopperSearchReturn><Shopper date_created="1/9/2012 7:41:51 PM" shopper_id="49047180"/><Shopper date_created="7/20/2012 3:00:30 PM" shopper_id="54459007"/></ShopperSearchReturn>'
+        mocked_method.return_value = '<ShopperSearchReturn>' \
+                                     '<Shopper ' \
+                                     'date_created="1/9/2012 7:41:51 PM" ' \
+                                     'first_name="Patrick" ' \
+                                     'email="outlawgames@gmail.com" ' \
+                                     'shopper_id="49047180"/>' \
+                                     '<Shopper ' \
+                                     'date_created="7/20/2012 3:00:30 PM" ' \
+                                     'first_name="Patrick" ' \
+                                     'email="pmcconnell@secureserver.net" ' \
+                                     'shopper_id="54459007"/>' \
+                                     '</ShopperSearchReturn>'
         expected_time = datetime.strptime('1/9/2012 7:41:51 PM','%m/%d/%Y %I:%M:%S %p')
-        sid, created = self._urihelper.get_shopper_info('comicsn.beer')
+        sid, created, email, first_name = self._urihelper.get_shopper_info('comicsn.beer')
         assert_equal(sid, "49047180")
         assert_equal(created, expected_time)
+        assert_equal(email, "outlawgames@gmail.com")
+        assert_equal(first_name, "Patrick")
+
+    # requires change of test_settings.py KNOX_URL to prod
+    # def test_lookup_shopper_info(self):
+        # doc = ET.fromstring(self._urihelper._lookup_shopper_info('comicsn.beer'))
+        # assert_true(doc is not None)
 
     def test_no_fraud_holds_for_domain(self):
         assert_false(self._urihelper.fraud_holds_for_domain('abc.com'))

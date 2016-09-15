@@ -232,9 +232,25 @@ def send_hosting_provider_notice(data):
 	:param data:
 	:return:
 	"""
-    payload = {'templateNamespaceKey': 'Hosting',
-               'templateTypeKey': 'AbuseRegOnlyToHost',
-               'substitutionValues': {'DOMAIN': data.get('sourceDomainOrIp'),
+    payload = {'templateNamespaceKey': 'HostingAbuse',
+               'templateTypeKey': '3rdPartyHostingNotification',
+               'substitutionValues': {'ACCOUNT_NUMBER': data.get('sid'),
+                                      'DOMAIN': data.get('sourceDomainOrIp'),
                                       'SANITIZED_URL': data.get('source')}}
     app.send_task('run.sendmail', args=(payload,))
 
+
+def send_registrant_warning(data):
+    """
+	Sends a notification to the shopper account email address found for the domain
+	:param data:
+	:return:
+	"""
+    payload = {'templateNamespaceKey': 'Customer',
+               'templateTypeKey': 'RegisteredOnlySuspectedAbuse',
+               'substitutionValues': {'ACCOUNT_NUMBER': data.get('sid'),
+                                      'DOMAIN': data.get('sourceDomainOrIp'),
+                                      'CUSTOMER_NAME_ON_ACCOUNT': data.get('first_name'),
+                                      'CUSTOMER_EMAIL': data.get('email'),
+                                      'SANITIZED_URL': data.get('source')}}
+    app.send_task('run.sendmail', args=(payload,))

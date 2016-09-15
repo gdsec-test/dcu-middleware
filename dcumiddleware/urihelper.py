@@ -162,10 +162,10 @@ class URIHelper:
         try:
             doc = ET.fromstring(self._lookup_shopper_info(domain))
             elem = doc.find(".//*[@shopper_id]")
-            return elem.get('shopper_id'), datetime.strptime(elem.get('date_created'), '%m/%d/%Y %I:%M:%S %p')
+            return elem.get('shopper_id'), datetime.strptime(elem.get('date_created'), '%m/%d/%Y %I:%M:%S %p'), elem.get('email'), elem.get('first_name')
         except Exception as e:
             self._logger.error("Unable to lookup shopper info for {}:{}".format(domain, e))
-            return None, None
+            return None, None, None, None
 
     def _lookup_shopper_info(self, domain):
         """
@@ -180,6 +180,8 @@ class URIHelper:
         returnFields = ET.SubElement(shopper_search, "ReturnFields")
         ET.SubElement(returnFields, 'Field', Name='shopper_id')
         ET.SubElement(returnFields, 'Field', Name='date_created')
+        ET.SubElement(returnFields, 'Field', Name='email')
+        ET.SubElement(returnFields, 'Field', Name='first_name')
         xmlstr = ET.tostring(shopper_search, encoding='utf8', method='xml')
         client = Client(self._url, timeout=5)
         return client.service.SearchShoppers(xmlstr)
