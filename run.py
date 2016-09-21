@@ -282,7 +282,7 @@ def send_hosting_provider_notice(data):
 	:param data:
 	:return:
 	"""
-    payload = {'templateNamespaceKey': 'HostingAbuse',
+    payload = {'templateNamespaceKey': 'Hosting',
                'templateTypeKey': 'AbuseRegOnlyToHost',
                'substitutionValues': {'ACCOUNT_NUMBER': data.get('sid'),
                                       'DOMAIN': data.get('sourceDomainOrIp'),
