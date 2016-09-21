@@ -6,6 +6,7 @@ from nose.tools import assert_true
 from dcumiddleware.phishingstrategy import PhishingStrategy
 from dcumiddleware.urihelper import URIHelper
 from test_settings import TestingConfig
+from datetime import datetime
 
 
 class TestPhishingStrategy:
@@ -81,3 +82,21 @@ class TestPhishingStrategy:
         self._phishing.process(test_record)
         doc = self._phishing._db.get_incident('DCU000001056')
         assert_true(doc['ticketId'] == 'DCU000001056')
+
+    @patch.object(MongoHelper, "save_file")
+    @patch.object(URIHelper, "get_site_data")
+    @patch.object(URIHelper, "get_status")
+    def test_process_reg(self, get_status, uri_method, mongo_method):
+        uri_method.return_value = (1,1)
+        mongo_method.return_value = '1'
+        get_status.return_value = (2, datetime.strptime('2014-09-25 16:00:13', '%Y-%m-%d %H:%M:%S'))
+        test_record = { 'sourceDomainOrIp': u'sapphires3.com',
+                        'ticketId': u'DCU000001057',
+                        'reporter': u'bxberry',
+                        'source': u'http://sapphires3.com',
+                        'type': u'PHISHING'}
+        self._phishing.process(test_record)
+        doc = self._phishing._db.get_incident('DCU000001057')
+        assert_true(doc['ticketId'] == 'DCU000001057')
+        assert_true(doc['hosted_status'] == 'REGISTERED')
+        assert_true(doc['d_create_date'] == datetime.strptime('2014-09-25 16:00:13', '%Y-%m-%d %H:%M:%S'))

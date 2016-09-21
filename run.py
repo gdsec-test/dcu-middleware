@@ -60,6 +60,7 @@ def process(data):
     :return:
     """
     chain(_catagorize_and_load.s(data),
+          _new_domain_check.s(),
           _new_fraud_check.s(),
           _check_group.s(),
           _printer.s(),
@@ -131,6 +132,36 @@ def _catagorize_and_load(data):
 
 
 @app.task
+def _new_domain_check(data):
+    """
+    This function handles new domain fraud detection
+    :param data:
+    :return data:
+    """
+    try:
+        # If the d_create_date(domain create date) is less than x days old, put on review and send to fraud if not already on hold
+        if data.get('phishstory_status') == 'OPEN' \
+                and data.get('d_create_date') \
+                and data.get('d_create_date') > datetime.utcnow() - timedelta(days=app_settings.NEW_ACCOUNT):
+            logger.info("Possible fraud detected on {}".format(pformat(data)))
+            review = FraudReview(app_settings)
+            urihelper = URIHelper(app_settings)
+            fhold = urihelper.fraud_holds_for_domain(data.get('sourceDomainOrIp'))
+            if fhold:
+                data = review.place_in_review(data.get('ticketId'), fhold, 'new_domain')
+            else:
+                logger.warning("Sending {} to fraud for young domain investigation".format(data.get('ticketId')))
+                data = review.place_in_review(data.get('ticketId'),
+                                              datetime.utcnow() + timedelta(seconds=app_settings.HOLD_TIME), 'new_domain')
+                send_young_domain_notification(data)
+
+    except Exception as e:
+        logger.error("Unable to perform new domain check {}:{}".format(pformat(data), e.message))
+    finally:
+        return data
+
+
+@app.task
 def _new_fraud_check(data):
     """
     This function handles new account fraud detection
@@ -138,7 +169,7 @@ def _new_fraud_check(data):
     :return data:
     """
     try:
-        # If the s_create_date is less than x days old, put on review and send to fraud if not already on hold
+        # If the s_create_date(shopper create date) is less than x days old, put on review and send to fraud if not already on hold
         if data.get('phishstory_status') == 'OPEN' \
                 and data.get('s_create_date') \
                 and data.get('s_create_date') > datetime.utcnow() - timedelta(days=app_settings.NEW_ACCOUNT):
@@ -153,6 +184,7 @@ def _new_fraud_check(data):
                 data = review.place_in_review(data.get('ticketId'),
                                               datetime.utcnow() + timedelta(seconds=app_settings.HOLD_TIME), 'new_account')
                 send_young_account_notification(data)
+
     except Exception as e:
         logger.error("Unable to perform new fraud check {}:{}".format(pformat(data), e.message))
     finally:
@@ -210,6 +242,24 @@ def send_young_account_notification(data):
     app.send_task('run.sendmail', args=(payload,))
 
 
+def send_young_domain_notification(data):
+    """
+   Sends a young domain notification to fraud
+   :param data:
+   :return:
+   """
+    # TODO update payload info when known
+    payload = {'templateNamespaceKey': 'Iris',
+               'templateTypeKey': 'Domain7days',
+               'substitutionValues': {'ACCOUNT_NUMBER': data.get('sid'),
+                                      'DOMAIN_CREATION_DATE': data.get('s_create_date'),
+                                      'DOMAIN': data.get('sourceDomainOrIp'),
+                                      'MALICIOUS_ACTIVITY': data.get('type'),
+                                      'BRAND_TARGETED': data.get('target'),
+                                      'SANITIZED_URL': data.get('source')}}
+    app.send_task('run.sendmail', args=(payload,))
+
+
 def send_malicious_notification(data):
     """
     Sends a malicious notification to fraud
@@ -233,7 +283,7 @@ def send_hosting_provider_notice(data):
 	:return:
 	"""
     payload = {'templateNamespaceKey': 'HostingAbuse',
-               'templateTypeKey': '3rdPartyHostingNotification',
+               'templateTypeKey': 'AbuseRegOnlyToHost',
                'substitutionValues': {'ACCOUNT_NUMBER': data.get('sid'),
                                       'DOMAIN': data.get('sourceDomainOrIp'),
                                       'SANITIZED_URL': data.get('source')}}

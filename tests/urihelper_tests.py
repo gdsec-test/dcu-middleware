@@ -40,13 +40,13 @@ class TestURIHelper(object):
 
     def test_get_status(self):
         hosted_domain_data = self._urihelper.get_status('comicsn.beer')
-        assert_true(hosted_domain_data == URIHelper.HOSTED)
+        assert_true(hosted_domain_data[0] == URIHelper.HOSTED)
         hosted_ip_data = self._urihelper.get_status('160.153.77.227')
-        assert_true(hosted_ip_data == URIHelper.HOSTED)
+        assert_true(hosted_ip_data[0] == URIHelper.HOSTED)
         nrh_data = self._urihelper.get_status('google.com')
-        assert_true(nrh_data == URIHelper.NOT_REG_HOSTED)
+        assert_true(nrh_data[0] == URIHelper.NOT_REG_HOSTED)
         unknown_data = self._urihelper.get_status('abcdefghijklmnopqrstuvwxyz')
-        assert_true(unknown_data == URIHelper.UNKNOWN)
+        assert_true(unknown_data[0] == URIHelper.UNKNOWN)
 
     def test_is_ip(self):
         domain_data = self._urihelper._is_ip('http://comicsn.beer/blah/')
@@ -61,10 +61,12 @@ class TestURIHelper(object):
         assert_true(ip_data_2 is False)
 
     def test_domain_whois(self):
-        domain_data = self._urihelper._domain_whois('comicsn.beer')
-        assert_true(domain_data == URIHelper.REG)
-        domain_data_2 = self._urihelper._domain_whois('google.com')
-        assert_true(domain_data_2 == URIHelper.NOT_REG_HOSTED)
+        domain_data = self._urihelper.domain_whois('comicsn.beer')
+        assert_true(domain_data[0] == URIHelper.REG)
+        domain_data_2 = self._urihelper.domain_whois('google.com')
+        assert_true(domain_data_2[0] == URIHelper.NOT_REG_HOSTED)
+        create_date = self._urihelper.domain_whois('comicsn.beer')
+        assert_true(create_date[1] == datetime.strptime('2014-09-25 16:00:13', '%Y-%m-%d %H:%M:%S'))
 
     @patch.object(URIHelper, '_lookup_shopper_info')
     def test_get_shopper_info(self, mocked_method):
