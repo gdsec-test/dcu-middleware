@@ -230,8 +230,8 @@ def send_hosting_provider_notice(data):
 	:param data:
 	:return:
 	"""
-    payload = {'templateNamespaceKey': 'HostingAbuse',
-               'templateTypeKey': '3rdPartyHostingNotification',
+    payload = {'templateNamespaceKey': 'Hosting',
+               'templateTypeKey': 'AbuseRegOnlyToHost',
                'substitutionValues': {'DOMAIN': data.get('sourceDomainOrIp'),
                                       'SANITIZED_URL': data.get('source')}}
     app.send_task('run.sendmail', args=(payload,))
