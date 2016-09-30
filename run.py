@@ -248,9 +248,8 @@ def send_young_domain_notification(data):
    :param data:
    :return:
    """
-    # TODO update payload info when known
     payload = {'templateNamespaceKey': 'Iris',
-               'templateTypeKey': 'Domain7days',
+               'templateTypeKey': 'DCUNewDomainFraud',
                'substitutionValues': {'ACCOUNT_NUMBER': data.get('sid'),
                                       'DOMAIN_CREATION_DATE': data.get('s_create_date'),
                                       'DOMAIN': data.get('sourceDomainOrIp'),
