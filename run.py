@@ -295,11 +295,12 @@ def send_registrant_warning(data):
 	:param data:
 	:return:
 	"""
-    payload = {'templateNamespaceKey': 'Customer',
-               'templateTypeKey': 'RegisteredOnlySuspectedAbuse',
-               'substitutionValues': {'ACCOUNT_NUMBER': data.get('sid'),
-                                      'DOMAIN': data.get('sourceDomainOrIp'),
-                                      'CUSTOMER_NAME_ON_ACCOUNT': data.get('first_name'),
-                                      'CUSTOMER_EMAIL': data.get('email'),
-                                      'SANITIZED_URL': data.get('source')}}
+    payload = {'templateNamespaceKey': 'Hosting',
+               'templateTypeKey': 'AbuseRegOnlyCustomer',
+               'substitutionValues': {'DOMAIN': data.get('sourceDomainOrIp'),
+                                      'SANITIZED_URL': data.get('source')
+                                      # 'CUSTOMER_NAME_ON_ACCOUNT': data.get('first_name'),
+                                      # 'CUSTOMER_EMAIL': data.get('email'),
+                                      # 'ACCOUNT_NUMBER': data.get('sid')
+                                      }}
     app.send_task('run.sendmail', args=(payload,))
