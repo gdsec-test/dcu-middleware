@@ -25,7 +25,7 @@ class TestNetabuseStrategy:
                         'ticketId': u'DCU000001053',
                         'reporter': u'bxberry',
                         'source': u'http://comicsn.beer/uncategorized/casual-gaming-and-the-holidays/',
-                        'type': u'NETABUSE',
+                        'type': u'NETWORK_ABUSE',
                         'phishstory_status': u'OPEN',
                         'hosted_status': u'HOSTED'}
         self._netabuse.process(test_record)
@@ -36,7 +36,7 @@ class TestNetabuseStrategy:
                         'ticketId': u'DCU000001054',
                         'reporter': u'bxberry',
                         'source': u'http://comicsn.beer/uncategorized/casual-gaming-and-the-holidays/',
-                        'type': u'NETABUSE'}
+                        'type': u'NETWORK_ABUSE'}
         self._netabuse.process(test_record2)
         data = self._netabuse._db.get_incident("DCU000001054")
         assert_true(data['sourceDomainOrIp'] == '8.8.8.8')
