@@ -9,7 +9,7 @@ import yaml
 from celery import Celery, chain
 from celery.utils.log import get_task_logger
 
-from dcdatabase.phishstorymongo import PhishstoryMongo
+from dcdatabase.interfaces.phishstorydb import PhishstoryDB as db
 
 from celeryconfig import CeleryConfig
 from dcumiddleware.malwarestrategy import MalwareStrategy
@@ -22,7 +22,6 @@ from settings import config_by_name
 
 # Grab the correct settings based on environment
 app_settings = config_by_name[os.getenv('sysenv') or 'dev']()
-db = PhishstoryMongo(app_settings)
 
 app = Celery()
 app.config_from_object(CeleryConfig())
