@@ -9,6 +9,8 @@ import yaml
 from celery import Celery, chain
 from celery.utils.log import get_task_logger
 
+from dcdatabase.phishstorymongo import PhishstoryMongo
+
 from celeryconfig import CeleryConfig
 from dcumiddleware.malwarestrategy import MalwareStrategy
 from dcumiddleware.netabusestrategy import NetAbuseStrategy
@@ -20,6 +22,7 @@ from settings import config_by_name
 
 # Grab the correct settings based on environment
 app_settings = config_by_name[os.getenv('sysenv') or 'dev']()
+db = PhishstoryMongo(app_settings)
 
 app = Celery()
 app.config_from_object(CeleryConfig())
@@ -75,7 +78,7 @@ def hold(data):
     logger.info("Placing {} on review".format(data))
     review = BasicReview(app_settings)
     updated_data = review.place_in_review(data, datetime.utcnow() + timedelta(seconds=app_settings.HOLD_TIME))
-    if updated_data.get('hosted_status') == "REGISTERED" and updated_data.get('type') in ['PHISHING', 'MALWARE']:
+    if updated_data.get('hosted_status') == "REGISTERED" and updated_data.get('type') in [db.PHISHING, db.MALWARE]:
         logger.warning("Sending notice to 3rd party hosting provider for ticket {}".format(updated_data.get('ticketId')))
         send_hosting_provider_notice(updated_data)
 
@@ -112,13 +115,13 @@ def _catagorize_and_load(data):
     """
     strategy = None
     type = data.get('type')
-    if type == "PHISHING":
+    if type == db.PHISHING:
         strategy = PhishingStrategy(app_settings)
-    elif type == "MALWARE":
+    elif type == db.MALWARE:
         strategy = MalwareStrategy(app_settings)
-    elif type == "NETABUSE":
+    elif type == db.NETABUSE:
         strategy = NetAbuseStrategy(app_settings)
-    elif type == "SPAM":
+    elif type == db.SPAM:
         # PhishingStrategy is currently being used for SPAM as its being processed in the same way
         strategy = PhishingStrategy(app_settings)
 
@@ -166,7 +169,7 @@ def _check_group(data):
     """
     try:
         if data.get('hosted_status') == 'HOSTED' \
-                and data.get('type') == 'PHISHING' \
+                and data.get('type') == db.PHISHING \
                 and data.get('phishstory_status') == 'OPEN':
             logger.info("Sending {} to grouper".format(data.get('ticketId')))
             app.send_task('run.group', args=(data.get('ticketId'),), serializer='json')
