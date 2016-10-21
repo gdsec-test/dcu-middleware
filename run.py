@@ -298,9 +298,9 @@ def send_registrant_warning(data):
     payload = {'templateNamespaceKey': 'Hosting',
                'templateTypeKey': 'AbuseRegOnlyCustomer',
                'substitutionValues': {'DOMAIN': data.get('sourceDomainOrIp'),
-                                      'SANITIZED_URL': data.get('source')
+                                      'SANITIZED_URL': data.get('source'),
+                                      'ACCOUNT_NUMBER': data.get('sid')
                                       # 'CUSTOMER_NAME_ON_ACCOUNT': data.get('first_name'),
                                       # 'CUSTOMER_EMAIL': data.get('email'),
-                                      # 'ACCOUNT_NUMBER': data.get('sid')
                                       }}
     app.send_task('run.sendmail', args=(payload,))
