@@ -81,8 +81,10 @@ class URIHelper:
 
     def get_status(self, sourceDomainOrIp):
         """
-        Returns a integral value indicating the state of the source domain or ip passed in.
-        Possible return values could be HOSTED, REG, NOT_REG_HOSTED
+        Returns a tuple
+        Possible return value for first in tuple could be HOSTED, REG, NOT_REG_HOSTED
+        Possible return value for second in tuple is the creation date of a registered only domain or None if registered
+        elsewhere
         :param sourceDomainOrIp:
         :return:
         """
@@ -91,7 +93,7 @@ class URIHelper:
             # is it an ip address?
             if self._is_ip(sourceDomainOrIp):
                 ip_hosted = self._is_ip_hosted(sourceDomainOrIp)
-                return URIHelper.HOSTED if ip_hosted else URIHelper.NOT_REG_HOSTED
+                return (URIHelper.HOSTED, None) if ip_hosted else (URIHelper.NOT_REG_HOSTED, None)
             else:
                 try:
                     ip = socket.gethostbyname(sourceDomainOrIp)
@@ -102,11 +104,11 @@ class URIHelper:
                 if ip == '0.0.0.0':
                     raise Exception("Invalid Host")
                 ip_hosted = self._is_ip_hosted(ip)
-                return URIHelper.HOSTED if ip_hosted else self._domain_whois(sourceDomainOrIp)
+                return (URIHelper.HOSTED, None) if ip_hosted else self.domain_whois(sourceDomainOrIp)
 
         except Exception as e:
             self._logger.error("Error in determining state of {}:{}".format(sourceDomainOrIp, e.message))
-            return URIHelper.UNKNOWN
+            return URIHelper.UNKNOWN, None
 
     def _is_ip(self, sourceDomainOrIp):
         """
@@ -134,9 +136,13 @@ class URIHelper:
             self._logger.warning("Error in determining server name of %s : %s", ip, e.message)
             return False
 
-    def _domain_whois(self, domain_name):
+    def domain_whois(self, domain_name):
         """
-        Returns REG or NOT_REG_HOSTED based on a domain registered with GoDaddy or elsewhere
+        Returns a tuple
+        Possible return value for first in tuple could be REG or NOT_REG_HOSTED based on being registered with GoDaddy
+        or elsewhere
+        Possible return value for second in tuple is the creation date of a registered only domain or None if registered
+        elsewhere
         :param domain_name:
         :return:
         """
@@ -146,12 +152,19 @@ class URIHelper:
         try:
             domain = nicclient.whois(domain_name, whois_server, True)
             if "No match" not in domain:
-                return URIHelper.REG
+                try:
+                    # get creation date from whois and format it
+                    creation_date = datetime.strptime(re.search(r'Creation Date:\s?(\S+)', domain).group(1),
+                                                      '%Y-%m-%dT%H:%M:%SZ')
+                    return URIHelper.REG, creation_date
+                except Exception as e:
+                    self._logger.error("Error in determing create date of %s : %s", domain_name, e.message)
+                    return URIHelper.REG, None
             else:
-                return URIHelper.NOT_REG_HOSTED
+                return URIHelper.NOT_REG_HOSTED, None
         except Exception as e:
             self._logger.error("Error in determing whois of %s : %s", domain_name, e.message)
-            return URIHelper.UNKNOWN
+            return URIHelper.UNKNOWN, None
 
     def get_shopper_info(self, domain):
         """
@@ -162,10 +175,10 @@ class URIHelper:
         try:
             doc = ET.fromstring(self._lookup_shopper_info(domain))
             elem = doc.find(".//*[@shopper_id]")
-            return elem.get('shopper_id'), datetime.strptime(elem.get('date_created'), '%m/%d/%Y %I:%M:%S %p')
+            return elem.get('shopper_id'), datetime.strptime(elem.get('date_created'), '%m/%d/%Y %I:%M:%S %p'), elem.get('email'), elem.get('first_name')
         except Exception as e:
             self._logger.error("Unable to lookup shopper info for {}:{}".format(domain, e))
-            return None, None
+            return None, None, None, None
 
     def _lookup_shopper_info(self, domain):
         """
@@ -180,6 +193,8 @@ class URIHelper:
         returnFields = ET.SubElement(shopper_search, "ReturnFields")
         ET.SubElement(returnFields, 'Field', Name='shopper_id')
         ET.SubElement(returnFields, 'Field', Name='date_created')
+        ET.SubElement(returnFields, 'Field', Name='email')
+        ET.SubElement(returnFields, 'Field', Name='first_name')
         xmlstr = ET.tostring(shopper_search, encoding='utf8', method='xml')
         client = Client(self._url, timeout=5)
         return client.service.SearchShoppers(xmlstr)

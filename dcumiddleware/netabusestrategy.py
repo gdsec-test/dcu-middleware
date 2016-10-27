@@ -21,11 +21,11 @@ class NetAbuseStrategy(Strategy):
         # determine if IP is hosted with godaddy
         self._logger.info("Received request {}".format(pformat(data)))
         hosted_status = self._urihelper.get_status(data.get('sourceDomainOrIp'))
-        if hosted_status == URIHelper.HOSTED:
+        if hosted_status[0] == URIHelper.HOSTED:
             status = "HOSTED"
-        elif hosted_status == URIHelper.REG:
+        elif hosted_status[0] == URIHelper.REG:
             status = "REGISTERED"
-        elif hosted_status == URIHelper.NOT_REG_HOSTED:
+        elif hosted_status[0] == URIHelper.NOT_REG_HOSTED:
             status = "FOREIGN"
         else:
             self._logger.warn("Unknown hosted status for incident: {}".format(pformat(data)))

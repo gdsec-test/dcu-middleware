@@ -7,6 +7,7 @@ from dcumiddleware.dcuapi_functions import DCUAPIFunctions
 from dcumiddleware.interfaces.strategy import Strategy
 from dcumiddleware.urihelper import URIHelper
 
+
 class PhishingStrategy(Strategy):
 
     def __init__(self, settings):
@@ -29,11 +30,11 @@ class PhishingStrategy(Strategy):
         # determine if domain is hosted at godaddy
         self._logger.info("Received request {}".format(pformat(data)))
         hosted_status = self._urihelper.get_status(data.get('sourceDomainOrIp'))
-        if hosted_status == URIHelper.HOSTED:
+        if hosted_status[0] == URIHelper.HOSTED:
             status = "HOSTED"
-        elif hosted_status == URIHelper.REG:
+        elif hosted_status[0] == URIHelper.REG:
             status = "REGISTERED"
-        elif hosted_status == URIHelper.NOT_REG_HOSTED:
+        elif hosted_status[0] == URIHelper.NOT_REG_HOSTED:
             status = "FOREIGN"
         else:
             self._logger.warn("Unknown hosted status for incident: {}".format(pformat(data)))
@@ -43,8 +44,12 @@ class PhishingStrategy(Strategy):
         if status in ["FOREIGN", "UNKNOWN"]:
             return self.close_process(data, "unworkable")
 
+        # add domain create date if domain is registered only
+        if status is "REGISTERED" and hosted_status[1] is not None:
+            data['d_create_date'] = hosted_status[1]
+
         # add shopper info if we can find it
-        sid, s_create_date = self._urihelper.get_shopper_info(data.get('sourceDomainOrIp'))
+        sid, s_create_date, _, _ = self._urihelper.get_shopper_info(data.get('sourceDomainOrIp'))
         if sid and s_create_date:
             data['sid'] = sid
             data['s_create_date'] = s_create_date
