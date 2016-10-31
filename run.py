@@ -81,6 +81,8 @@ def hold(data):
     if updated_data.get('hosted_status') == "REGISTERED" and updated_data.get('type') in [db.PHISHING, db.MALWARE]:
         logger.warning("Sending notice to 3rd party hosting provider for ticket {}".format(updated_data.get('ticketId')))
         send_hosting_provider_notice(updated_data)
+        logger.warning("Sending warning to registrant for ticket {}".format(updated_data.get('ticketId')))
+        send_registrant_warning(updated_data)
 
 
 @app.task
