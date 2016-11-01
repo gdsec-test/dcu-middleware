@@ -253,7 +253,7 @@ def send_young_domain_notification(data):
     payload = {'templateNamespaceKey': 'Iris',
                'templateTypeKey': 'DCUNewDomainFraud',
                'substitutionValues': {'ACCOUNT_NUMBER': data.get('sid'),
-                                      'DOMAIN_CREATION_DATE': data.get('s_create_date'),
+                                      'DOMAIN_CREATION_DATE': data.get('d_create_date'),
                                       'DOMAIN': data.get('sourceDomainOrIp'),
                                       'MALICIOUS_ACTIVITY': data.get('type'),
                                       'BRAND_TARGETED': data.get('target'),
