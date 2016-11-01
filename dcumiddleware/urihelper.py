@@ -196,6 +196,9 @@ class URIHelper:
         ET.SubElement(returnFields, 'Field', Name='email')
         ET.SubElement(returnFields, 'Field', Name='first_name')
         xmlstr = ET.tostring(shopper_search, encoding='utf8', method='xml')
+        # The following Fort Knox client will timeout on the dev side, unless a firewall rule is created
+        #  allowing access from dev Rancher, which means no shopper id, account create date, etc when
+        #  running from dev
         client = Client(self._url, timeout=5)
         return client.service.SearchShoppers(xmlstr)
 

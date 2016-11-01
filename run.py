@@ -78,6 +78,14 @@ def hold(data):
     logger.info("Placing {} on review".format(data))
     review = BasicReview(app_settings)
     updated_data = review.place_in_review(data, datetime.utcnow() + timedelta(seconds=app_settings.HOLD_TIME))
+    # updated_data contains all fields from mongo, and looks like:
+    #  {u'ticketId': u'DCU000001081', u'target': u'hsbceub', u'fraud_hold_reason': u'intentionally_malicious',
+    #  u'created': datetime.datetime(2016, 8, 10, 20, 2, 14, 547000),
+    #  u'hold_until': datetime.datetime(2016, 10, 31, 21, 46, 52, 860000), u'phishstory_status': u'OPEN',
+    #  u'hosted_status': u'REGISTERED', u'fraud_hold_until': datetime.datetime(2016, 9, 22, 23, 48, 52, 291000),
+    #  u'source': u'http://leavingscars.com/www/hsbc.co.uk/', u'sourceDomainOrIp': u'leavingscars.com',
+    #  u'proxy': u'United Kingdom', u'last_modified': datetime.datetime(2016, 10, 31, 21, 45, 52, 860000),
+    #  u'_id': u'DCU000001081', u'type': u'PHISHING', u'reporter': u'1054985'}
     if updated_data.get('hosted_status') == "REGISTERED" and updated_data.get('type') in [db.PHISHING, db.MALWARE]:
         logger.warning("Sending notice to 3rd party hosting provider for ticket {}".format(updated_data.get('ticketId')))
         send_hosting_provider_notice(updated_data)
