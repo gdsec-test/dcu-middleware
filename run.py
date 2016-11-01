@@ -78,7 +78,7 @@ def hold(data):
     logger.info("Placing {} on review".format(data))
     review = BasicReview(app_settings)
     updated_data = review.place_in_review(data, datetime.utcnow() + timedelta(seconds=app_settings.HOLD_TIME))
-    # At this point, no shopper info.  updated_data looks like:
+    # updated_data contains all fields from mongo, and looks like:
     #  {u'ticketId': u'DCU000001081', u'target': u'hsbceub', u'fraud_hold_reason': u'intentionally_malicious',
     #  u'created': datetime.datetime(2016, 8, 10, 20, 2, 14, 547000),
     #  u'hold_until': datetime.datetime(2016, 10, 31, 21, 46, 52, 860000), u'phishstory_status': u'OPEN',
