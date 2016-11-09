@@ -8,16 +8,14 @@ from pprint import pformat
 import yaml
 from celery import Celery, chain
 from celery.utils.log import get_task_logger
-
 from dcdatabase.interfaces.phishstorydb import PhishstoryDB as db
 
 from celeryconfig import CeleryConfig
 from dcumiddleware.malwarestrategy import MalwareStrategy
 from dcumiddleware.netabusestrategy import NetAbuseStrategy
 from dcumiddleware.phishingstrategy import PhishingStrategy
-from dcumiddleware.reviews import FraudReview, BasicReview
+from dcumiddleware.reviews import FraudReview
 from dcumiddleware.urihelper import URIHelper
-from dcumiddleware.tickethelper import TicketHelper
 from settings import config_by_name
 
 # Grab the correct settings based on environment
@@ -67,52 +65,6 @@ def process(data):
           link_error=_error_handler.s())()
 
 
-@app.task
-def hold(data):
-    """
-    Places the incident on a basic hold and if the incident is for a registered only domain that is phishing or malware,
-    sends a notice to the 3rd party hosting provider
-    :param data:
-    :return:
-    """
-    logger.info("Placing {} on review".format(data))
-    review = BasicReview(app_settings)
-    updated_data = review.place_in_review(data, datetime.utcnow() + timedelta(seconds=app_settings.HOLD_TIME))
-    # updated_data contains all fields from mongo, and looks like:
-    #  {u'ticketId': u'DCU000001081', u'target': u'hsbceub', u'fraud_hold_reason': u'intentionally_malicious',
-    #  u'created': datetime.datetime(2016, 8, 10, 20, 2, 14, 547000),
-    #  u'hold_until': datetime.datetime(2016, 10, 31, 21, 46, 52, 860000), u'phishstory_status': u'OPEN',
-    #  u'hosted_status': u'REGISTERED', u'fraud_hold_until': datetime.datetime(2016, 9, 22, 23, 48, 52, 291000),
-    #  u'source': u'http://leavingscars.com/www/hsbc.co.uk/', u'sourceDomainOrIp': u'leavingscars.com',
-    #  u'proxy': u'United Kingdom', u'last_modified': datetime.datetime(2016, 10, 31, 21, 45, 52, 860000),
-    #  u'_id': u'DCU000001081', u'type': u'PHISHING', u'reporter': u'1054985'}
-    if updated_data.get('hosted_status') == "REGISTERED" and updated_data.get('type') in [db.PHISHING, db.MALWARE]:
-        logger.warning("Sending notice to 3rd party hosting provider for ticket {}".format(updated_data.get('ticketId')))
-        send_hosting_provider_notice(updated_data)
-        logger.warning("Sending warning to registrant for ticket {}".format(updated_data.get('ticketId')))
-        send_registrant_warning(updated_data)
-
-
-@app.task
-def malicious(data):
-    """
-    Places the incident on a fraud hold, and notifies fraud via email if no holds currently
-    exist for this domain
-    :param data:
-    :return:
-    """
-    logger.info("Marking {} as intentionally malicious".format(data))
-    review = FraudReview(app_settings)
-    urihelper = URIHelper(app_settings)
-    tickethelper = TicketHelper(app_settings)
-    domain = tickethelper.domain_for_ticket(data)
-    fhold = urihelper.fraud_holds_for_domain(domain)
-    if fhold:
-        review.place_in_review(data, fhold, 'intentionally_malicious')
-    else:
-        logger.warning("Sending {} to fraud for being intentionally malicious".format(data))
-        rdata = review.place_in_review(data, datetime.utcnow() + timedelta(seconds=app_settings.HOLD_TIME), 'intentionally_malicious')
-        send_malicious_notification(rdata)
 
 ##### PRIVATE TASKS #####
 
@@ -268,49 +220,3 @@ def send_young_domain_notification(data):
                                       'SANITIZED_URL': data.get('source')}}
     app.send_task('run.sendmail', args=(payload,))
 
-
-def send_malicious_notification(data):
-    """
-    Sends a malicious notification to fraud
-    :param data:
-    :return:
-    """
-    payload = {'templateNamespaceKey': 'Iris',
-               'templateTypeKey': 'DCUSingleClick',
-               'substitutionValues': {'ACCOUNT_NUMBER': data.get('sid'),
-                                      'DOMAIN': data.get('sourceDomainOrIp'),
-                                      'MALICIOUS_ACTIVITY': data.get('type'),
-                                      'BRAND_TARGETED': data.get('target'),
-                                      'SANITIZED_URL': data.get('source')}}
-    app.send_task('run.sendmail', args=(payload,))
-
-
-def send_hosting_provider_notice(data):
-    """
-	Sends a notification to the abuse contact address found for the 3rd party hosting provider of registered domain
-	:param data:
-	:return:
-	"""
-    payload = {'templateNamespaceKey': 'Hosting',
-               'templateTypeKey': 'AbuseRegOnlyToHost',
-               'substitutionValues': {'ACCOUNT_NUMBER': data.get('sid'),
-                                      'DOMAIN': data.get('sourceDomainOrIp'),
-                                      'SANITIZED_URL': data.get('source')}}
-    app.send_task('run.sendmail', args=(payload,))
-
-
-def send_registrant_warning(data):
-    """
-	Sends a notification to the shopper account email address found for the domain
-	:param data:
-	:return:
-	"""
-    payload = {'templateNamespaceKey': 'Hosting',
-               'templateTypeKey': 'AbuseRegOnlyCustomer',
-               'substitutionValues': {'DOMAIN': data.get('sourceDomainOrIp'),
-                                      'SANITIZED_URL': data.get('source'),
-                                      'ACCOUNT_NUMBER': data.get('sid')
-                                      # 'CUSTOMER_NAME_ON_ACCOUNT': data.get('first_name'),
-                                      # 'CUSTOMER_EMAIL': data.get('email'),
-                                      }}
-    app.send_task('run.sendmail', args=(payload,))

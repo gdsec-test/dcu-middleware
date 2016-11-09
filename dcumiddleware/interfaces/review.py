@@ -2,18 +2,15 @@ import abc
 
 from dcdatabase.phishstorymongo import PhishstoryMongo
 
-from dcumiddleware.urihelper import URIHelper
-
 
 class Review(object):
     __metaclass__ = abc.ABCMeta
 
     def __init__(self, settings):
         self._db = PhishstoryMongo(settings)
-        self._urihelper = URIHelper(settings)
 
     @abc.abstractmethod
-    def place_in_review(self, ticket, hold_time, reason = None):
+    def place_in_review(self, ticket, hold_time, reason=None):
         """
         Places a ticket in review until the hold_time
         :param ticket:
