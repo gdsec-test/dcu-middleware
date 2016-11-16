@@ -83,11 +83,9 @@ class TestURIHelper(object):
                                      'shopper_id="54459007"/>' \
                                      '</ShopperSearchReturn>'
         expected_time = datetime.strptime('1/9/2012 7:41:51 PM','%m/%d/%Y %I:%M:%S %p')
-        sid, created, email, first_name = self._urihelper.get_shopper_info('comicsn.beer')
+        sid, created = self._urihelper.get_shopper_info('comicsn.beer')
         assert_equal(sid, "49047180")
         assert_equal(created, expected_time)
-        assert_equal(email, "outlawgames@gmail.com")
-        assert_equal(first_name, "Patrick")
 
     # requires change of test_settings.py KNOX_URL to prod
     # def test_lookup_shopper_info(self):

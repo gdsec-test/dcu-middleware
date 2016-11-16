@@ -49,7 +49,7 @@ class PhishingStrategy(Strategy):
             data['d_create_date'] = hosted_status[1]
 
         # add shopper info if we can find it
-        sid, s_create_date, _, _ = self._urihelper.get_shopper_info(data.get('sourceDomainOrIp'))
+        sid, s_create_date = self._urihelper.get_shopper_info(data.get('sourceDomainOrIp'))
         if sid and s_create_date:
             data['sid'] = sid
             data['s_create_date'] = s_create_date
