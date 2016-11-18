@@ -40,7 +40,7 @@ class URIHelper:
             bad_site = requests.get(url, proxies=self._proxy, auth=(self._authuser, self._authpass), timeout=60)
             if self._authuser and self._authpass:
                 while bad_site.status_code == 401 and bad_site.history and \
-                                bad_site.history[-1].status_code == 301 and retry < 3:
+                                bad_site.history[-1].status_code in [301, 302] and retry < 3:
                     self._logger.warning("Retrying with redirected url {}".format(bad_site.url))
                     bad_site = requests.get(bad_site.url, proxies=self._proxy, auth=(self._authuser, self._authpass),
                                             timeout=60)
