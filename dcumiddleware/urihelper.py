@@ -6,6 +6,7 @@ from datetime import datetime
 
 import requests
 from dcdatabase.phishstorymongo import PhishstoryMongo
+from ipwhois import IPWhois
 from pyvirtualdisplay import Display
 from selenium import webdriver
 from suds.client import Client
@@ -133,8 +134,8 @@ class URIHelper:
             server_domain = server_name_array[len(server_name_array) - 2]
             return server_domain == "secureserver"
         except Exception as e:
-            self._logger.warning("Error in determining server name of %s : %s", ip, e.message)
-            return False
+            self._logger.warning("Error in reverse DNS lookup %s : %s, attempting whois lookup..", ip, e.message)
+            return IPWhois(ip).lookup_rdap().get('network',[]).get('name', None) == 'GO-DADDY-COM-LLC'
 
     def domain_whois(self, domain_name):
         """
