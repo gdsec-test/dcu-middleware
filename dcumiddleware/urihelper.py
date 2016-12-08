@@ -135,7 +135,9 @@ class URIHelper:
             return server_domain == "secureserver"
         except Exception as e:
             self._logger.warning("Error in reverse DNS lookup %s : %s, attempting whois lookup..", ip, e.message)
-            return IPWhois(ip).lookup_rdap().get('network',[]).get('name', None) == 'GO-DADDY-COM-LLC'
+            regex = re.compile('[^a-zA-Z]')
+            name = regex.sub('', IPWhois(ip).lookup_rdap().get('network',[]).get('name', ''))
+            return 'GODADDY' in name.upper()
 
     def domain_whois(self, domain_name):
         """
