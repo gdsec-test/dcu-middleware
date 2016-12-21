@@ -63,7 +63,7 @@ class URIHelper:
         :param url:
         :return:
         """
-        display = Display(visible=0, size=(800, 600))
+        display = Display(visible=0, size=(640, 480))
         display.start()
         browser = webdriver.Firefox()
         data = None
