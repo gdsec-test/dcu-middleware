@@ -74,7 +74,7 @@ class URIHelper:
             sourcecode = browser.page_source.encode('ascii', 'ignore')
             data = (screenshot, sourcecode)
         except Exception as e:
-            self._logger.error("Error while taking snapshot and/or source code for %s: %s", url, e.message)
+            self._logger.error("Error while taking snapshot and/or source code for %s: %s", url, str(e))
         finally:
             browser.quit()
             display.stop()
