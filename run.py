@@ -207,7 +207,7 @@ def refresh_screenshot(ticket):
                                     last_screen_grab=last_screen_grab))
         else:
             logger.error("Unable to refresh screenshot/sourcecode for {}, no data returned".format(ticket))
-    return last_screen_grab, screenshot_id, sourcecode_id
+    return ((datetime.utcnow() - last_screen_grab).total_seconds()), screenshot_id, sourcecode_id
 
 
 ####### HELPER FUNCTIONS #######
