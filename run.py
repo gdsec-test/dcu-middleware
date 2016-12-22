@@ -190,22 +190,24 @@ def _error_handler(self, uuid):
 def refresh_screenshot(ticket):
     dcu_db = db(app_settings)
     ticket_data = dcu_db.get_incident(ticket)
-    sourcecode_id = ticket_data.get('sourcecode_id','')
-    screenshot_id = ticket_data.get('screenshot_id','')
+    sourcecode_id = ticket_data.get('sourcecode_id')
+    screenshot_id = ticket_data.get('screenshot_id')
+    last_screen_grab = ticket_data.get('last_screen_grab', datetime(1970,1,1))
     logger.info('Request screengrab refresh for {}'.format(ticket))
     if ticket_data.get('phishstory_status', '') == 'OPEN' \
-            and ticket_data.get('last_screen_grab', datetime(1970,1,1)) < (datetime.utcnow() - timedelta(minutes=15)):
-        helper = URIHelper(app_settings)
+            and last_screen_grab < (datetime.utcnow() - timedelta(minutes=15)):
         logger.info('Updating screengrab for {}'.format(ticket))
+        helper = URIHelper(app_settings)
         data = helper.get_site_data(ticket_data.get('source'))
         if data:
             screenshot_id, sourcecode_id = dcu_db.add_crits_data(data, ticket_data.get('source'))
+            last_screen_grab=datetime.utcnow()
             dcu_db.update_incident(ticket_data.get('ticketId'),
                                dict(screenshot_id=screenshot_id, sourcecode_id=sourcecode_id,
-                                    last_screen_grab=datetime.utcnow()))
+                                    last_screen_grab=last_screen_grab))
         else:
-            logger.error("Unable to refresh screenshot/sourcecode, no data returned")
-    return screenshot_id, sourcecode_id
+            logger.error("Unable to refresh screenshot/sourcecode for {}, no data returned".format(ticket))
+    return last_screen_grab, screenshot_id, sourcecode_id
 
 
 ####### HELPER FUNCTIONS #######
