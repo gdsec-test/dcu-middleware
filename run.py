@@ -8,7 +8,7 @@ from pprint import pformat
 import yaml
 from celery import Celery, chain
 from celery.utils.log import get_task_logger
-from dcdatabase.interfaces.phishstorydb import PhishstoryDB as db
+from dcdatabase.phishstorymongo import PhishstoryMongo as db
 
 from celeryconfig import CeleryConfig
 from dcumiddleware.malwarestrategy import MalwareStrategy
@@ -65,7 +65,6 @@ def process(data):
           link_error=_error_handler.s())()
 
 
-
 ##### PRIVATE TASKS #####
 
 @app.task
@@ -114,7 +113,8 @@ def _new_domain_check(data):
             else:
                 logger.warning("Sending {} to fraud for young domain investigation".format(data.get('ticketId')))
                 data = review.place_in_review(data.get('ticketId'),
-                                              datetime.utcnow() + timedelta(seconds=app_settings.HOLD_TIME), 'new_domain')
+                                              datetime.utcnow() + timedelta(seconds=app_settings.HOLD_TIME),
+                                              'new_domain')
                 send_young_domain_notification(data)
 
     except Exception as e:
@@ -144,7 +144,8 @@ def _new_fraud_check(data):
             else:
                 logger.warning("Sending {} to fraud for young account investigation".format(data.get('ticketId')))
                 data = review.place_in_review(data.get('ticketId'),
-                                              datetime.utcnow() + timedelta(seconds=app_settings.HOLD_TIME), 'new_account')
+                                              datetime.utcnow() + timedelta(seconds=app_settings.HOLD_TIME),
+                                              'new_account')
                 send_young_account_notification(data)
 
     except Exception as e:
@@ -182,7 +183,31 @@ def _printer(data):
 def _error_handler(self, uuid):
     result = self.app.AsyncResult(uuid)
     print('Task {0} raised exception: {1!r}\n{2!r}'.format(
-          uuid, result.result, result.traceback))
+        uuid, result.result, result.traceback))
+
+
+@app.task
+def refresh_screenshot(ticket):
+    dcu_db = db(app_settings)
+    ticket_data = dcu_db.get_incident(ticket)
+    sourcecode_id = ticket_data.get('sourcecode_id')
+    screenshot_id = ticket_data.get('screenshot_id')
+    last_screen_grab = ticket_data.get('last_screen_grab', datetime(1970,1,1))
+    logger.info('Request screengrab refresh for {}'.format(ticket))
+    if ticket_data.get('phishstory_status', '') == 'OPEN' \
+            and last_screen_grab < (datetime.utcnow() - timedelta(minutes=15)):
+        logger.info('Updating screengrab for {}'.format(ticket))
+        helper = URIHelper(app_settings)
+        data = helper.get_site_data(ticket_data.get('source'))
+        if data:
+            screenshot_id, sourcecode_id = dcu_db.add_crits_data(data, ticket_data.get('source'))
+            last_screen_grab=datetime.utcnow()
+            dcu_db.update_incident(ticket_data.get('ticketId'),
+                               dict(screenshot_id=screenshot_id, sourcecode_id=sourcecode_id,
+                                    last_screen_grab=last_screen_grab))
+        else:
+            logger.error("Unable to refresh screenshot/sourcecode for {}, no data returned".format(ticket))
+    return ((datetime.utcnow() - last_screen_grab).total_seconds()), screenshot_id, sourcecode_id
 
 
 ####### HELPER FUNCTIONS #######
@@ -219,4 +244,3 @@ def send_young_domain_notification(data):
                                       'BRAND_TARGETED': data.get('target'),
                                       'SANITIZED_URL': data.get('source')}}
     app.send_task('run.sendmail', args=(payload,))
-
