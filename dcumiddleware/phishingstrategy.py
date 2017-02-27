@@ -7,6 +7,7 @@ from dcdatabase.phishstorymongo import PhishstoryMongo
 from dcumiddleware.dcuapi_functions import DCUAPIFunctions
 from dcumiddleware.interfaces.strategy import Strategy
 from dcumiddleware.urihelper import URIHelper
+from dcumiddleware.viphelper import CrmClientApi, RegDbAPI, VipClients
 
 
 class PhishingStrategy(Strategy):
@@ -16,6 +17,9 @@ class PhishingStrategy(Strategy):
         self._urihelper = URIHelper(settings)
         self._db = PhishstoryMongo(settings)
         self._api = DCUAPIFunctions(settings)
+        self._premium = CrmClientApi()
+        self._regdb = RegDbAPI()
+        self._vip = VipClients(settings)
 
     def close_process(self, data, close_reason):
         data['close_reason'] = close_reason
@@ -54,6 +58,33 @@ class PhishingStrategy(Strategy):
         if sid and s_create_date:
             data['sid'] = sid
             data['s_create_date'] = s_create_date
+
+            # if shopper is premium, add it to their mongo record
+            premier = self._premium.get_shopper_portfolio_information(sid)
+            if premier is not None:
+                data['premier'] = premier
+
+            # get the number of domains in the shopper account
+            domain_count = self._regdb.get_domain_count_by_shopper_id(sid)
+            if domain_count is not None:
+                data['domain_count'] = domain_count
+
+            # get parent/child reseller api account status
+            reseller_tuple = self._regdb.get_parent_child_shopper_by_domain_name(data.get('sourceDomainOrIp'))
+            if reseller_tuple[0] is not False:
+                data['parent_api_account'] = reseller_tuple[0]
+                data['child_api_account'] = reseller_tuple[1]
+
+            # get blacklist status - DO NOT SUSPEND special shopper accounts
+            if self._vip.query_blacklist(sid):
+                data['blacklist'] = True
+
+            # get blacklist status - DO NOT SUSPEND special domain
+            if self._vip.query_blacklist(data.get('sourceDomainOrIp')):
+                data['blacklist'] = True
+
+        else:
+            data['vip_unconfirmed'] = True
 
         # Add hosted_status to incident
         res = self._urihelper.resolves(data.get('source'))

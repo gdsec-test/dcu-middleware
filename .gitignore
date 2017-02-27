@@ -1,5 +1,6 @@
 .idea
 *.pyc
+*.log
 *.coverage
 tests/cover
 *sublime*
