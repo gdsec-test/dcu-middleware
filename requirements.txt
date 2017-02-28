@@ -9,3 +9,4 @@ suds
 redis
 pyyaml
 ipwhois
+dill

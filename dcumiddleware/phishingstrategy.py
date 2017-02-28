@@ -7,7 +7,7 @@ from dcdatabase.phishstorymongo import PhishstoryMongo
 from dcumiddleware.dcuapi_functions import DCUAPIFunctions
 from dcumiddleware.interfaces.strategy import Strategy
 from dcumiddleware.urihelper import URIHelper
-from dcumiddleware.viphelper import CrmClientApi, RegDbAPI, VipClients
+from dcumiddleware.viphelper import CrmClientApi, RegDbAPI, VipClients, RedisCache
 
 
 class PhishingStrategy(Strategy):
@@ -17,9 +17,10 @@ class PhishingStrategy(Strategy):
         self._urihelper = URIHelper(settings)
         self._db = PhishstoryMongo(settings)
         self._api = DCUAPIFunctions(settings)
-        self._premium = CrmClientApi()
-        self._regdb = RegDbAPI()
-        self._vip = VipClients(settings)
+        _redis = RedisCache(settings)
+        self._premium = CrmClientApi(_redis)
+        self._regdb = RegDbAPI(_redis)
+        self._vip = VipClients(settings, _redis)
 
     def close_process(self, data, close_reason):
         data['close_reason'] = close_reason
@@ -71,7 +72,7 @@ class PhishingStrategy(Strategy):
 
             # get parent/child reseller api account status
             reseller_tuple = self._regdb.get_parent_child_shopper_by_domain_name(data.get('sourceDomainOrIp'))
-            if reseller_tuple[0] is not False:
+            if reseller_tuple[0] != False:
                 data['parent_api_account'] = reseller_tuple[0]
                 data['child_api_account'] = reseller_tuple[1]
 
