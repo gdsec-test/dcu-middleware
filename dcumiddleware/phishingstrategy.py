@@ -7,6 +7,7 @@ from dcdatabase.phishstorymongo import PhishstoryMongo
 from dcumiddleware.dcuapi_functions import DCUAPIFunctions
 from dcumiddleware.interfaces.strategy import Strategy
 from dcumiddleware.urihelper import URIHelper
+from dcumiddleware.viphelper import CrmClientApi, RegDbAPI, VipClients, RedisCache
 
 
 class PhishingStrategy(Strategy):
@@ -16,6 +17,10 @@ class PhishingStrategy(Strategy):
         self._urihelper = URIHelper(settings)
         self._db = PhishstoryMongo(settings)
         self._api = DCUAPIFunctions(settings)
+        _redis = RedisCache(settings)
+        self._premium = CrmClientApi(_redis)
+        self._regdb = RegDbAPI(_redis)
+        self._vip = VipClients(settings, _redis)
 
     def close_process(self, data, close_reason):
         data['close_reason'] = close_reason
@@ -55,6 +60,36 @@ class PhishingStrategy(Strategy):
             data['sid'] = sid
             data['s_create_date'] = s_create_date
 
+            # if shopper is premium, add it to their mongo record
+            premier = self._premium.get_shopper_portfolio_information(sid)
+            if premier is not None:
+                data['premier'] = premier
+
+            # get the number of domains in the shopper account
+            domain_count = self._regdb.get_domain_count_by_shopper_id(sid)
+            if domain_count is not None:
+                data['domain_count'] = domain_count
+
+            # get parent/child reseller api account status
+            # TODO: This code should be moved outside of the (if sid and s_create_date) block, as it is independent
+            reseller_tuple = self._regdb.get_parent_child_shopper_by_domain_name(data.get('sourceDomainOrIp'))
+            if reseller_tuple[0] is not False:
+                data['parent_api_account'] = reseller_tuple[0]
+                data['child_api_account'] = reseller_tuple[1]
+
+            # get blacklist status - DO NOT SUSPEND special shopper accounts
+            if self._vip.query_blacklist(sid):
+                data['blacklist'] = True
+
+            # get blacklist status - DO NOT SUSPEND special domain
+            # TODO: This code should be moved outside of the (if sid and s_create_date) block, as it is independent
+            if self._vip.query_blacklist(data.get('sourceDomainOrIp')):
+                data['blacklist'] = True
+
+        else:
+            # TODO: Implement a better way to determine if the vip status is Unconfirmed
+            data['vip_unconfirmed'] = True
+
         # Add hosted_status to incident
         res = self._urihelper.resolves(data.get('source'))
         if res or data.get('proxy'):
@@ -64,8 +99,11 @@ class PhishingStrategy(Strategy):
                 if res:
                     # Attach crits data if it resolves
                     source = data.get('source')
-                    screenshot_id, sourcecode_id = self._db.add_crits_data(self._urihelper.get_site_data(source), source)
-                    data = self._db.update_incident(iid, dict(screenshot_id=screenshot_id, sourcecode_id=sourcecode_id, last_screen_grab=datetime.utcnow()))
+                    screenshot_id, sourcecode_id = self._db.add_crits_data(self._urihelper.get_site_data(source),
+                                                                           source)
+                    data = self._db.update_incident(iid, dict(screenshot_id=screenshot_id,
+                                                              sourcecode_id=sourcecode_id,
+                                                              last_screen_grab=datetime.utcnow()))
             else:
                 self._logger.error("Unable to insert {} into database".format(iid))
         else:
