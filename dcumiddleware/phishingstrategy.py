@@ -71,8 +71,9 @@ class PhishingStrategy(Strategy):
                 data['domain_count'] = domain_count
 
             # get parent/child reseller api account status
+            # TODO: This code should be moved outside of the (if sid and s_create_date) block, as it is independent
             reseller_tuple = self._regdb.get_parent_child_shopper_by_domain_name(data.get('sourceDomainOrIp'))
-            if reseller_tuple[0] != False:
+            if reseller_tuple[0] is not False:
                 data['parent_api_account'] = reseller_tuple[0]
                 data['child_api_account'] = reseller_tuple[1]
 
@@ -81,10 +82,12 @@ class PhishingStrategy(Strategy):
                 data['blacklist'] = True
 
             # get blacklist status - DO NOT SUSPEND special domain
+            # TODO: This code should be moved outside of the (if sid and s_create_date) block, as it is independent
             if self._vip.query_blacklist(data.get('sourceDomainOrIp')):
                 data['blacklist'] = True
 
         else:
+            # TODO: Implement a better way to determine if the vip status is Unconfirmed
             data['vip_unconfirmed'] = True
 
         # Add hosted_status to incident
@@ -96,8 +99,11 @@ class PhishingStrategy(Strategy):
                 if res:
                     # Attach crits data if it resolves
                     source = data.get('source')
-                    screenshot_id, sourcecode_id = self._db.add_crits_data(self._urihelper.get_site_data(source), source)
-                    data = self._db.update_incident(iid, dict(screenshot_id=screenshot_id, sourcecode_id=sourcecode_id, last_screen_grab=datetime.utcnow()))
+                    screenshot_id, sourcecode_id = self._db.add_crits_data(self._urihelper.get_site_data(source),
+                                                                           source)
+                    data = self._db.update_incident(iid, dict(screenshot_id=screenshot_id,
+                                                              sourcecode_id=sourcecode_id,
+                                                              last_screen_grab=datetime.utcnow()))
             else:
                 self._logger.error("Unable to insert {} into database".format(iid))
         else:
