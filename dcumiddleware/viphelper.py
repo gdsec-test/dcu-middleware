@@ -107,7 +107,9 @@ class VipClients(object):
             except Exception as e:
                 self._logger.error(e.message)
                 query_value = None
-        return bool(query_value)
+        # Since redis holds strings, when reading a redis key, the string "True" or "False" is returned.
+        #  Convert the string to its boolean value and return the boolean value
+        return query_value if isinstance(query_value, bool) else query_value in ["True"]
 
 
 # Cache queries for shoppers and domains to improve performance
