@@ -9,6 +9,78 @@ from test_settings import TestingConfig
 from datetime import datetime
 
 
+"""
+Sample Graphine data:
+{
+  "data": {
+    "domainQuery": {
+      "domain": "yahoo.com",
+      "registrar": {
+        "name": "MarkMonitor, Inc."
+      },
+      "reseller": {
+        "parentChild": "No Parent/Child Info Found"
+      },
+      "host": {
+        "name": "YAHOO"
+      }
+    },
+    "shopperQuery": {
+      "id": "10374993",
+      "shopperid": {
+        "domaincount": "648"
+      },
+      "profile": {
+        "FirstName": "Brett",
+        "LastName": "Meyers",
+        "Email": "bmeyers@godaddy.com",
+        "PhoneExt": "57068",
+        "shopperId": "10374993",
+        "InternalPhoneQueue": "59011",
+        "InternalImageURL": "https://images.secureserver.net/crm/Platinum_Metal.png",
+        "PortfolioTypeID": "1",
+        "PortfolioType": "Premier Services - Platinum",
+        "Vip": "true"
+      }
+    }
+  }
+}
+"""
+
+"""
+Sample Mongo data:
+{
+    "_id" : "DCU000001025",
+    "source" : "http://inc-apple-id-887698123-verification2016-ios.productostrazzo.com/home/index.html",
+    "sourceDomainOrIp" : "productostrazzo.com",
+    "created" : ISODate("2016-05-31T14:34:46.611Z"),
+    "target" : "Apple ID",
+    "reporter" : "129092584",
+    "phishstory_status" : "CLOSED",
+    "ticketId" : "DCU000001025",
+    "type" : "PHISHING",
+    "hosted_status" : "HOSTED",
+    "sourcecode_id" : ObjectId("574da10c3e8295001836b04d"),
+    "last_modified" : ISODate("2016-05-31T14:34:52.945Z"),
+    "screenshot_id" : ObjectId("574da10c3e8295001836b04b"),
+    "close_reason" : "resolved",
+    "closed" : ISODate("2016-06-02T16:52:44.170Z")
+}
+"""
+
+"""
+Sample API data:
+{'info': u'My spam Farm is better than yours...',
+ 'sourceDomainOrIp': u'spam.com',
+ 'ticketId': u'DCU000001053',
+ 'target': u'The spam Brothers',
+ 'reporter': u'bxberry',
+ 'source': u'http://spam.com/thegoodstuff/jonas.php?g=a&itin=1324',
+ 'proxy': u'Must be viewed from an German IP',
+ 'type': u'PHISHING'}
+"""
+
+
 class TestPhishingStrategy:
 
     @classmethod
