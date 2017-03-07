@@ -18,7 +18,7 @@ class CeleryConfig():
     CELERY_ACCEPT_CONTENT = ['json', 'pickle']
     CELERY_IMPORTS = 'run'
     CELERYD_HIJACK_ROOT_LOGGER = False
-    CELERY_RESULT_BACKEND = 'redis://redis:6379'
+    CELERY_RESULT_BACKEND = 'redis://{}:6379'.format(os.getenv("REDIS", "redis"))
     CELERY_DEFAULT_QUEUE = app_settings.APIQUEUE
     CELERY_ACKS_LATE = True
     CELERYD_PREFETCH_MULTIPLIER = 1
