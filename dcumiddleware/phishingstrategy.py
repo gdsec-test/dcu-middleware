@@ -1,4 +1,5 @@
 import logging
+import re
 from datetime import datetime
 from pprint import pformat
 
@@ -34,13 +35,25 @@ class PhishingStrategy(Strategy):
 
     def process(self, data, **kwargs):
         # determine if domain is hosted at godaddy
+        # TODO call to cmapservicehelpf for domain/host info
+
         self._logger.info("Received request {}".format(pformat(data)))
-        hosted_status = self._urihelper.get_status(data.get('sourceDomainOrIp'))
-        if hosted_status[0] == URIHelper.HOSTED:
+
+        # regex to determine if godaddy is the host
+        regex = re.compile('[^a-zA-Z]')
+        host = data['data']['domainQuery']['host']['name']
+        hostname = regex.sub('', host)
+
+        # regex to determine if godaddy is the registrar
+        reg = data['data']['domainQuery']['registrar']['name']
+        registrar = regex.sub('', reg)
+
+        # TODO change following get host info from returned cmap service data
+        if 'GODADDY' in hostname.upper():
             status = "HOSTED"
-        elif hosted_status[0] == URIHelper.REG:
+        elif 'GODADDY' in registrar.upper():
             status = "REGISTERED"
-        elif hosted_status[0] == URIHelper.NOT_REG_HOSTED:
+        elif 'GODADDY' not in hostname.upper() and 'GODADDY' not in registrar.upper():
             status = "FOREIGN"
         else:
             self._logger.warn("Unknown hosted status for incident: {}".format(pformat(data)))
@@ -51,22 +64,28 @@ class PhishingStrategy(Strategy):
             return self.close_process(data, "unworkable")
 
         # add domain create date if domain is registered only
-        if status is "REGISTERED" and hosted_status[1] is not None:
-            data['d_create_date'] = hosted_status[1]
+        # TODO must have domain create date from cmap service, need to update element name - placeholder 'create_date'
+        if status is "REGISTERED":
+            data['d_create_date'] = data['data']['domainQuery']['create_date']
 
         # add shopper info if we can find it
-        sid, s_create_date = self._urihelper.get_shopper_info(data.get('sourceDomainOrIp'))
+        # TODO must have shopper create date from cmap service, need to update element name - placeholder 'create_date'
+        sid = data['data']['shopperQuery']['id']
+        s_create_date = data['data']['shopperQuery']['create_date']
+
         if sid and s_create_date:
             data['sid'] = sid
             data['s_create_date'] = s_create_date
 
             # if shopper is premium, add it to their mongo record
-            premier = self._premium.get_shopper_portfolio_information(sid)
+            # TODO must have shopper VIP status, PortfolioType or, PortfolioTypeID from cmap service, need to update element name - placeholder 'VIP'
+            premier = data['data']['shopperQuery']['profile']['VIP']
             if premier is not None:
                 data['premier'] = premier
 
             # get the number of domains in the shopper account
-            domain_count = self._regdb.get_domain_count_by_shopper_id(sid)
+            # TODO must have shopper domain count from cmap service, need to update element name - placeholder 'domaincount'
+            domain_count = data['data']['shopperQuery']['shopperid']['domaincount']
             if domain_count is not None:
                 data['domain_count'] = domain_count
 
