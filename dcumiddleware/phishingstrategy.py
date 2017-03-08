@@ -91,10 +91,10 @@ class PhishingStrategy(Strategy):
 
             # get parent/child reseller api account status
             # TODO: This code should be moved outside of the (if sid and s_create_date) block, as it is independent
-            reseller_tuple = self._regdb.get_parent_child_shopper_by_domain_name(data.get('sourceDomainOrIp'))
-            if reseller_tuple[0] is not False:
-                data['parent_api_account'] = reseller_tuple[0]
-                data['child_api_account'] = reseller_tuple[1]
+            parentchild = str(data['data']['domainQuery']['reseller']['parentChild']).split(',')
+            if parentchild is not "null":
+                data['parent_api_account'] = parentchild[0].split(':')[1]
+                data['child_api_account'] = parentchild[1].split(':')[1]
 
             # get blacklist status - DO NOT SUSPEND special shopper accounts
             if self._vip.query_blacklist(sid):
