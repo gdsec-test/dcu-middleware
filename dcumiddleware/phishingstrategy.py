@@ -8,9 +8,9 @@ from dcdatabase.phishstorymongo import PhishstoryMongo
 from dcumiddleware.dcuapi_functions import DCUAPIFunctions
 from dcumiddleware.interfaces.strategy import Strategy
 from dcumiddleware.urihelper import URIHelper
+# from dcumiddleware.viphelper import CrmClientApi, RegDbAPI, VipClients, RedisCache
 
 from cmapservicehelper import GrapheneAccess
-# from dcumiddleware.viphelper import CrmClientApi, RegDbAPI, VipClients, RedisCache
 
 
 class PhishingStrategy(Strategy):
@@ -47,7 +47,7 @@ class PhishingStrategy(Strategy):
 
 		# regex to determine if godaddy is the host and registrar
 		regex = re.compile('[^a-zA-Z]')
-		host = merged_data['data']['domainQuery']['host']['name']
+		host = merged_data['data']['domainQuery']['host']['hostNetwork']
 		hostname = regex.sub('', host)
 		reg = merged_data['data']['domainQuery']['registrar']['name']
 		registrar = regex.sub('', reg)
@@ -67,12 +67,10 @@ class PhishingStrategy(Strategy):
 			return self.close_process(data, "unworkable")
 
 		# add domain create date if domain is registered only
-		# TODO must have domain create date from cmap service, need to update element name - placeholder 'dateCreated'
 		if status is "REGISTERED":
-			merged_data['d_create_date'] = merged_data['data']['domainQuery']['dateCreated']
+			merged_data['d_create_date'] = merged_data['data']['domainQuery']['domainCreateDate']['creationDate']
 
 		# add shopper info if we can find it
-		# TODO must have shopper create date from cmap service, need to update element name - placeholder 'dateCreated'
 		sid = merged_data['data']['domainQuery']['shopperByDomain']['shopperId']
 		s_create_date = merged_data['data']['domainQuery']['shopperByDomain']['dateCreated']
 
@@ -81,20 +79,17 @@ class PhishingStrategy(Strategy):
 			merged_data['s_create_date'] = s_create_date
 
 			# if shopper is premium, add it to their mongo record
-			# TODO must have shopper VIP status, PortfolioType or, PortfolioTypeID from cmap service, need to update element name - placeholder 'VIP'
 			premier = merged_data['data']['domainQuery']['profile']['Vip']
-			if premier is not None:
+			if premier:
 				merged_data['premier'] = premier
 
 			# get the number of domains in the shopper account
-			# TODO must have shopper domain count from cmap service, need to update element name - placeholder 'domaincount'
 			domain_count = merged_data['data']['domainQuery']['shopperByDomain']['domainCount']
 			if domain_count is not None:
 				merged_data['domain_count'] = domain_count
 
 			# get parent/child reseller api account status
 			# TODO: This code should be moved outside of the (if sid and s_create_date) block, as it is independent
-			# TODO must have parentChild from cmap service, correct location if needed
 			parentchild = merged_data['data']['domainQuery']['reseller']['parentChild']
 			if 'No Parent/Child Info Found' not in parentchild:
 				parentchild = str(parentchild).split(',')
@@ -102,15 +97,13 @@ class PhishingStrategy(Strategy):
 				merged_data['child_api_account'] = parentchild[1].split(':')[1]
 
 			# get blacklist status - DO NOT SUSPEND special shopper accounts
-			# TODO update Vip data location/name of VIP check for shopper
-			if premier is not None:
-				merged_data['blacklist'] = True
+			# if self._vip.query_blacklist(sid):
+			# 	data['blacklist'] = True
 
 			# get blacklist status - DO NOT SUSPEND special domain
 			# TODO: This code should be moved outside of the (if sid and s_create_date) block, as it is independent
-			# TODO update Vip data location to domain query as this blacklist check is for domain, not shopper?
-			if premier is not None:
-				merged_data['blacklist'] = True
+			# if self._vip.query_blacklist(data.get('sourceDomainOrIp')):
+			# 	data['blacklist'] = True
 
 		else:
 			# TODO: Implement a better way to determine if the vip status is Unconfirmed

@@ -31,6 +31,7 @@ class GrapheneAccess(object):
 				      Vip
 				    }
 				    shopperByDomain {
+				      shopperId
 				      dateCreated
 				      domainCount
 				    }
