@@ -64,7 +64,7 @@ class PhishingStrategy(Strategy):
 
 		merged_data['hosted_status'] = status
 		if status in ["FOREIGN", "UNKNOWN"]:
-			return self.close_process(data, "unworkable")
+			return self.close_process(merged_data, "unworkable")
 
 		# add domain create date if domain is registered only
 		if status is "REGISTERED":
