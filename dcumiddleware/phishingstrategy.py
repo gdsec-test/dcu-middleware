@@ -9,8 +9,9 @@ from dcumiddleware.dcuapi_functions import DCUAPIFunctions
 from dcumiddleware.interfaces.strategy import Strategy
 from dcumiddleware.urihelper import URIHelper
 # from dcumiddleware.viphelper import CrmClientApi, RegDbAPI, VipClients, RedisCache
+from dcumiddleware.viphelper import VipClients, RedisCache
 
-from cmapservicehelper import GrapheneAccess
+from cmapservicehelper import CmapServiceHelper
 
 
 class PhishingStrategy(Strategy):
@@ -20,11 +21,11 @@ class PhishingStrategy(Strategy):
 		self._urihelper = URIHelper(settings)
 		self._db = PhishstoryMongo(settings)
 		self._api = DCUAPIFunctions(settings)
-		self._cmapservice = GrapheneAccess()
-		# _redis = RedisCache(settings)
+		self._cmapservice = CmapServiceHelper()
+		_redis = RedisCache(settings)
 		# self._premium = CrmClientApi(_redis)
 		# self._regdb = RegDbAPI(_redis)
-		# self._vip = VipClients(settings, _redis)
+		self._vip = VipClients(settings, _redis)
 
 	def close_process(self, data, close_reason):
 		data['close_reason'] = close_reason
@@ -41,26 +42,30 @@ class PhishingStrategy(Strategy):
 
 		self._logger.info("Received request {}".format(pformat(data)))
 
-		# TODO call to cmapservicehelpf for domain/host info
 		cmapdata = self._cmapservice.domain_query(data['sourceDomainOrIp'])
-		merged_data = self._cmapservice.api_cmap_merge(data, cmapdata)
 
-		# regex to determine if godaddy is the host and registrar
-		regex = re.compile('[^a-zA-Z]')
-		host = merged_data['data']['domainQuery']['host']['hostNetwork']
-		hostname = regex.sub('', host)
-		reg = merged_data['data']['domainQuery']['registrar']['name']
-		registrar = regex.sub('', reg)
+		status = None
 
-		if 'GODADDY' in hostname.upper():
-			status = "HOSTED"
-		elif 'GODADDY' in registrar.upper():
-			status = "REGISTERED"
-		elif 'GODADDY' not in hostname.upper() and 'GODADDY' not in registrar.upper():
-			status = "FOREIGN"
-		else:
-			self._logger.warn("Unknown hosted status for incident: {}".format(pformat(data)))
+		try:
+			merged_data = self._cmapservice.api_cmap_merge(data, cmapdata)
+
+			# regex to determine if godaddy is the host and registrar
+			regex = re.compile('[^a-zA-Z]')
+			host = merged_data['data']['domainQuery']['host']['hostNetwork']
+			hostname = regex.sub('', host)
+			reg = merged_data['data']['domainQuery']['registrar']['name']
+			registrar = regex.sub('', reg)
+
+			if 'GODADDY' in hostname.upper():
+				status = "HOSTED"
+			elif 'GODADDY' in registrar.upper():
+				status = "REGISTERED"
+			elif 'GODADDY' not in hostname.upper() and 'GODADDY' not in registrar.upper():
+				status = "FOREIGN"
+		except Exception as e:
+			self._logger.warn("Unknown registrar/host status for incident: {}. {}".format(pformat(data), e.message))
 			status = "UNKNOWN"
+			merged_data = data
 
 		merged_data['hosted_status'] = status
 		if status in ["FOREIGN", "UNKNOWN"]:
@@ -97,13 +102,13 @@ class PhishingStrategy(Strategy):
 				merged_data['child_api_account'] = parentchild[1].split(':')[1]
 
 			# get blacklist status - DO NOT SUSPEND special shopper accounts
-			# if self._vip.query_blacklist(sid):
-			# 	data['blacklist'] = True
+			if self._vip.query_blacklist(sid):
+				merged_data['blacklist'] = True
 
 			# get blacklist status - DO NOT SUSPEND special domain
 			# TODO: This code should be moved outside of the (if sid and s_create_date) block, as it is independent
-			# if self._vip.query_blacklist(data.get('sourceDomainOrIp')):
-			# 	data['blacklist'] = True
+			if self._vip.query_blacklist(data.get('sourceDomainOrIp')):
+				merged_data['blacklist'] = True
 
 		else:
 			# TODO: Implement a better way to determine if the vip status is Unconfirmed
