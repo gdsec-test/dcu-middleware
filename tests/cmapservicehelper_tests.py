@@ -55,7 +55,6 @@ class TestCmapServiceHelper:
 									"blacklist": None,
 									"PortfolioType": 'No Premium Services For This Shopper'
 								},
-								"child": None
 							},
 							"blacklist": None
 						}

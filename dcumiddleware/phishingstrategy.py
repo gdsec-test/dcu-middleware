@@ -22,12 +22,12 @@ class PhishingStrategy(Strategy):
 
 	def close_process(self, data, close_reason):
 		data['close_reason'] = close_reason
-		self._db.close_incident(data.get('ticketId'), data)
+		self._db.close_incident(data['ticketId'], data)
 		# Close upstream ticket as well
-		if self._api.close_ticket(data.get('ticketId')):
-			self._logger.info("Ticket {} closed successfully".format(data.get('ticketId')))
+		if self._api.close_ticket(data['ticketId']):
+			self._logger.info("Ticket {} closed successfully".format(data['ticketId']))
 		else:
-			self._logger.warning("Unable to close upstream ticket {}".format(data.get('ticketId')))
+			self._logger.warning("Unable to close upstream ticket {}".format(data['ticketId']))
 		return data
 
 	def process(self, data, **kwargs):
@@ -90,14 +90,14 @@ class PhishingStrategy(Strategy):
 			merged_data['blacklist'] = True
 
 		# Add hosted_status to incident
-		res = self._urihelper.resolves(merged_data.get('source'))
-		if res or merged_data.get('proxy'):
-			iid = self._db.add_new_incident(merged_data.get('ticketId'), merged_data)
+		res = self._urihelper.resolves(merged_data['source'])
+		if res or merged_data['proxy']:
+			iid = self._db.add_new_incident(merged_data['ticketId'], merged_data)
 			if iid:
 				self._logger.info("Incident {} inserted into database".format(iid))
 				if res:
 					# Attach crits data if it resolves
-					source = merged_data.get('source')
+					source = merged_data['source']
 					screenshot_id, sourcecode_id = self._db.add_crits_data(self._urihelper.get_site_data(source),
 																		   source)
 					merged_data = self._db.update_incident(iid, dict(screenshot_id=screenshot_id,
@@ -106,6 +106,6 @@ class PhishingStrategy(Strategy):
 			else:
 				self._logger.error("Unable to insert {} into database".format(iid))
 		else:
-			merged_data = self.close_process(data, "unresolvable")
+			merged_data = self.close_process(merged_data, "unresolvable")
 
 		return merged_data

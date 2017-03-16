@@ -48,7 +48,6 @@ class CmapServiceHelper(object):
 				        blacklist
 				        PortfolioType
 				      }
-				      child
 				    }
 				    blacklist
 				  }

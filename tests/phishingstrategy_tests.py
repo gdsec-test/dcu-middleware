@@ -53,7 +53,6 @@ class TestPhishingStrategy:
 											        "blacklist": None,
 											        "PortfolioType": 'No Premium Services For This Shopper'
 										        },
-										        "child": None
 									        },
 									        "blacklist": None
 								        }
@@ -84,7 +83,6 @@ class TestPhishingStrategy:
 								        "blacklist": None,
 								        "PortfolioType": 'No Premium Services For This Shopper'
 							        },
-							        "child": None
 						        },
 						        "blacklist": None
 					        }
@@ -131,7 +129,6 @@ class TestPhishingStrategy:
 												        "blacklist": None,
 												        "PortfolioType": None
 											        },
-											        "child": None
 										        },
 										        "blacklist": None
 									        }
@@ -162,7 +159,6 @@ class TestPhishingStrategy:
 				                                       "blacklist": None,
 				                                       "PortfolioType": None
 			                                       },
-			                                       "child": None
 		                                       },
 		                                       "blacklist": None
 	                                       }
@@ -211,7 +207,6 @@ class TestPhishingStrategy:
 					        "blacklist": None,
 					        "PortfolioType": None
 				        },
-				        "child": None
 			        },
 			        "blacklist": None
 		        }
@@ -243,7 +238,6 @@ class TestPhishingStrategy:
 				                                       "blacklist": None,
 				                                       "PortfolioType": None
 			                                       },
-			                                       "child": None
 		                                       },
 		                                       "blacklist": None
 	                                       }
@@ -257,83 +251,6 @@ class TestPhishingStrategy:
         assert_true(doc['close_reason'] == 'unworkable')
         assert_true('vip_unconfirmed' not in doc)
         assert_true('blacklist' not in doc)
-
-    @patch.object(MongoHelper, "save_file")
-    @patch.object(URIHelper, "get_site_data")
-    @patch.object(CmapServiceHelper, "api_cmap_merge")
-    @patch.object(CmapServiceHelper, "domain_query")
-    def test_process_proxy(self, domain_query, api_cmap_merge, uri_method, mongo_method):
-        uri_method.return_value = (1,1)
-        mongo_method.return_value = '1'
-        test_record = { 'sourceDomainOrIp': u'comicsn.beer',
-                        'ticketId': u'DCU000001056',
-                        'reporter': u'bxberry',
-                        'source': u'http://comicsn.beer',
-                        'proxy': u'brazil',
-                        'type': u'PHISHING'
-                        }
-        domain_query.return_value = {"data": {
-	        "domainQuery": {
-		        "host": {
-			        "name": "GO-DADDY-COM-LLC"
-		        },
-		        "registrar": {
-			        "name": "GoDaddy.com, LLC",
-			        "createDate": "2014-09-25"
-		        },
-		        "apiReseller": {
-			        "parent": None,
-			        "child": None
-		        },
-		        "shopperInfo": {
-			        "shopperId": "49047180",
-			        "dateCreated": "2012-01-09",
-			        "domainCount": 9,
-			        "vip": {
-				        "blacklist": None,
-				        "PortfolioType": 'No Premium Services For This Shopper'
-			        },
-			        "child": None
-		        },
-		        "blacklist": None
-	        }
-        }}
-
-        api_cmap_merge.return_value = {'sourceDomainOrIp': u'comicsn.beer',
-                                       'ticketId': u'DCU000001056',
-                                       'reporter': u'bxberry',
-                                       'source': u'http://comicsn.beer',
-                                       'proxy': u'brazil',
-                                       'type': u'PHISHING',
-                                       "data": {
-	                                       "domainQuery": {
-		                                       "host": {
-			                                       "hostNetwork": "GO-DADDY-COM-LLC"
-		                                       },
-		                                       "registrar": {
-			                                       "name": "GO-DADDY-COM-LLC"
-		                                       },
-		                                       "domainCreateDate": {
-			                                       "creationDate": "2014/09/25"
-		                                       },
-		                                       "profile": {
-			                                       "Vip": "false"
-		                                       },
-		                                       "shopperByDomain": {
-			                                       "shopperId": "49047180",
-			                                       "dateCreated": "1/9/2012 7:41:51 PM",
-			                                       "domainCount": 9
-		                                       },
-		                                       "reseller": {
-			                                       "parentChild": "No Parent/Child Info Found"
-		                                       }
-	                                       }
-                                       }
-                                       }
-        self._phishing.process(test_record)
-        doc = self._phishing._db.get_incident('DCU000001056')
-        assert_true(doc['ticketId'] == 'DCU000001056')
-        assert_true(doc['proxy'] == 'brazil')
 
     @patch.object(MongoHelper, "save_file")
     @patch.object(URIHelper, "get_site_data")
@@ -369,7 +286,6 @@ class TestPhishingStrategy:
 				        "blacklist": None,
 				        "PortfolioType": 'No Premium Services For This Shopper'
 			        },
-			        "child": None
 		        },
 		        "blacklist": None
 	        }
@@ -401,7 +317,6 @@ class TestPhishingStrategy:
 				                                       "blacklist": None,
 				                                       "PortfolioType": 'No Premium Services For This Shopper'
 			                                       },
-			                                       "child": None
 		                                       },
 		                                       "blacklist": None
 	                                       }
@@ -448,7 +363,6 @@ class TestPhishingStrategy:
 				        "blacklist": True,
 				        "PortfolioType": 'No Premium Services For This Shopper'
 			        },
-			        "child": None
 		        },
 		        "blacklist": True
 	        }
@@ -480,7 +394,6 @@ class TestPhishingStrategy:
 				                                       "blacklist": True,
 				                                       "PortfolioType": 'No Premium Services For This Shopper'
 			                                       },
-			                                       "child": None
 		                                       },
 		                                       "blacklist": True
 	                                       }

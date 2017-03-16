@@ -102,6 +102,7 @@ def _new_domain_check(data):
     try:
         # If the d_create_date(domain create date) is less than x days old, put on review and send to fraud if not
         # already on hold
+        # TODO: add check to make sure its godaddy registered
         if data.get('phishstory_status') == 'OPEN' \
                 and data['data']['domainQuery']['registrar']['createDate'] \
                 and data['data']['domainQuery']['registrar']['createDate'] > datetime.utcnow() - timedelta(days=app_settings.NEW_ACCOUNT):
