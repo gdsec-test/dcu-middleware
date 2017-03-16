@@ -7,7 +7,6 @@ from dcumiddleware.phishingstrategy import PhishingStrategy
 from dcumiddleware.urihelper import URIHelper
 from dcumiddleware.cmapservicehelper import CmapServiceHelper
 from test_settings import TestingConfig
-from dcumiddleware.viphelper import VipClients, RedisCache
 
 
 class TestPhishingStrategy:
@@ -24,13 +23,9 @@ class TestPhishingStrategy:
     @patch.object(URIHelper, "get_site_data")
     @patch.object(CmapServiceHelper, "api_cmap_merge")
     @patch.object(CmapServiceHelper, "domain_query")
-    @patch.object(VipClients, "query_blacklist")
-    @patch.object(RedisCache, "RedisCache")
-    def test_process_hosted(self, rediscache, query_blacklist, domain_query, api_cmap_merge, uri_method, mongo_method):
+    def test_process_hosted(self, domain_query, api_cmap_merge, uri_method, mongo_method):
         uri_method.return_value = (1,1)
         mongo_method.return_value = '1'
-        query_blacklist.return_value = True
-        rediscache.return_value = '1'
         test_record = {'sourceDomainOrIp': u'comicsn.beer',
                        'ticketId': u'DCU000001053',
                        'reporter': u'bxberry',
@@ -38,64 +33,69 @@ class TestPhishingStrategy:
                        'type': u'PHISHING'
                        }
         domain_query.return_value = {"data": {
-		                       "domainQuery": {
-			                       "host": {
-				                       "hostNetwork": "GO-DADDY-COM-LLC"
-			                       },
-			                       "registrar": {
-				                       "name": "GO-DADDY-COM-LLC"
-			                       },
-			                       "domainCreateDate": {
-				                       "creationDate": "2014/09/25"
-			                       },
-			                       "profile": {
-				                       "Vip": "false"
-			                       },
-			                       "shopperByDomain": {
-				                       "shopperId": "49047180",
-				                       "dateCreated": "1/9/2012 7:41:51 PM",
-				                       "domainCount": 9
-			                       },
-			                       "reseller": {
-				                       "parentChild": "No Parent/Child Info Found"
-			                       }
-		                       }
-	                       }
-                       }
+								        "domainQuery": {
+									        "host": {
+										        "name": "GO-DADDY-COM-LLC"
+									        },
+									        "registrar": {
+										        "name": "GoDaddy.com, LLC",
+										        "createDate": "2014-09-25"
+									        },
+									        "apiReseller": {
+										        "parent": None,
+										        "child": None
+									        },
+									        "shopperInfo": {
+										        "shopperId": "49047180",
+										        "dateCreated": "2012-01-09",
+										        "domainCount": 9,
+										        "vip": {
+											        "blacklist": None,
+											        "PortfolioType": 'No Premium Services For This Shopper'
+										        },
+										        "child": None
+									        },
+									        "blacklist": None
+								        }
+							        }}
         api_cmap_merge.return_value = {'sourceDomainOrIp': u'comicsn.beer',
                        'ticketId': u'DCU000001053',
                        'reporter': u'bxberry',
                        'source': u'http://comicsn.beer/uncategorized/casual-gaming-and-the-holidays/',
                        'type': u'PHISHING',
                        "data": {
-		                       "domainQuery": {
-			                       "host": {
-				                       "hostNetwork": "GO-DADDY-COM-LLC"
-			                       },
-			                       "registrar": {
-				                       "name": "GO-DADDY-COM-LLC"
-			                       },
-			                       "domainCreateDate": {
-				                       "creationDate": "2014/09/25"
-			                       },
-			                       "profile": {
-				                       "Vip": "false"
-			                       },
-			                       "shopperByDomain": {
-				                       "shopperId": "49047180",
-				                       "dateCreated": "1/9/2012 7:41:51 PM",
-				                       "domainCount": 9
-			                       },
-			                       "reseller": {
-				                       "parentChild": "No Parent/Child Info Found"
-			                       }
-		                       }
-	                       }
+					        "domainQuery": {
+						        "host": {
+							        "name": "GO-DADDY-COM-LLC"
+						        },
+						        "registrar": {
+							        "name": "GoDaddy.com, LLC",
+							        "createDate": "2014-09-25"
+						        },
+						        "apiReseller": {
+							        "parent": None,
+							        "child": None
+						        },
+						        "shopperInfo": {
+							        "shopperId": "49047180",
+							        "dateCreated": "2012-01-09",
+							        "domainCount": 9,
+							        "vip": {
+								        "blacklist": None,
+								        "PortfolioType": 'No Premium Services For This Shopper'
+							        },
+							        "child": None
+						        },
+						        "blacklist": None
+					        }
+				        }
                        }
         self._phishing.process(test_record)
         doc = self._phishing._db.get_incident('DCU000001053')
         assert_true(doc['ticketId'] == 'DCU000001053')
         assert_true(doc['hosted_status'] == 'HOSTED')
+        assert_true('vip_unconfirmed' not in doc)
+        assert_true('blacklist' not in doc)
 
     @patch.object(MongoHelper, "save_file")
     @patch.object(URIHelper, "get_site_data")
@@ -111,30 +111,31 @@ class TestPhishingStrategy:
                         'type': u'PHISHING'
                         }
         domain_query.return_value = {"data": {
-	        "domainQuery": {
-		        "host": {
-			        "hostNetwork": "GOOGLE-LLC"
-		        },
-		        "registrar": {
-			        "name": "Mark Monitor"
-		        },
-		        "domainCreateDate": {
-			        "creationDate": "2014/09/25"
-		        },
-		        "profile": {
-			        "Vip": "false"
-		        },
-		        "shopperByDomain": {
-			        "shopperId": "49047180",
-			        "dateCreated": "1/9/2012 7:41:51 PM",
-			        "domainCount": 9
-		        },
-		        "reseller": {
-			        "parentChild": "No Parent/Child Info Found"
-		        }
-	        }
-        }
-        }
+									        "domainQuery": {
+										        "host": {
+											        "name": "LVLT-ORG-8-8"
+										        },
+										        "registrar": {
+											        "name": "MarkMonitor, Inc.",
+											        "createDate": "1997-09-15"
+										        },
+										        "apiReseller": {
+											        "parent": None,
+											        "child": None
+										        },
+										        "shopperInfo": {
+											        "shopperId": None,
+											        "dateCreated": None,
+											        "domainCount": 0,
+											        "vip": {
+												        "blacklist": None,
+												        "PortfolioType": None
+											        },
+											        "child": None
+										        },
+										        "blacklist": None
+									        }
+								    }}
         api_cmap_merge.return_value = {'sourceDomainOrIp': u'google.com',
                                        'ticketId': u'DCU000001054',
                                        'reporter': u'bxberry',
@@ -143,34 +144,37 @@ class TestPhishingStrategy:
                                        "data": {
 	                                       "domainQuery": {
 		                                       "host": {
-			                                       "hostNetwork": "GOOGLE-LLC"
+			                                       "name": "LVLT-ORG-8-8"
 		                                       },
 		                                       "registrar": {
-			                                       "name": "Mark Monitor"
+			                                       "name": "MarkMonitor, Inc.",
+			                                       "createDate": "1997-09-15"
 		                                       },
-		                                       "domainCreateDate": {
-			                                       "creationDate": "2014/09/25"
+		                                       "apiReseller": {
+			                                       "parent": None,
+			                                       "child": None
 		                                       },
-		                                       "profile": {
-			                                       "Vip": "false"
+		                                       "shopperInfo": {
+			                                       "shopperId": None,
+			                                       "dateCreated": None,
+			                                       "domainCount": 0,
+			                                       "vip": {
+				                                       "blacklist": None,
+				                                       "PortfolioType": None
+			                                       },
+			                                       "child": None
 		                                       },
-		                                       "shopperByDomain": {
-			                                       "shopperId": "49047180",
-			                                       "dateCreated": "1/9/2012 7:41:51 PM",
-			                                       "domainCount": 9
-		                                       },
-		                                       "reseller": {
-			                                       "parentChild": "No Parent/Child Info Found"
-		                                       }
+		                                       "blacklist": None
 	                                       }
-                                       }
-                                       }
+                                       }}
         self._phishing.process(test_record)
         doc = self._phishing._db.get_incident('DCU000001054')
         assert_true(doc['ticketId'] == 'DCU000001054')
         assert_true(doc['hosted_status'] == 'FOREIGN')
         assert_true(doc['phishstory_status'] == 'CLOSED')
         assert_true(doc['close_reason'] == 'unworkable')
+        assert_true('vip_unconfirmed' not in doc)
+        assert_true('blacklist' not in doc)
 
     @patch.object(MongoHelper, "save_file")
     @patch.object(URIHelper, "get_site_data")
@@ -185,30 +189,33 @@ class TestPhishingStrategy:
                         'source': u'http://',
                         'type': u'PHISHING'
                         }
-        domain_query.return_value = {"data": {
-	        "domainQuery": {
-		        "host": {
-			        "hostNetwork": ""
-		        },
-		        "registrar": {
-			        "name": None
-		        },
-		        "domainCreateDate": {
-			        "creationDate": ""
-		        },
-		        "profile": {
-			        "Vip": "false"
-		        },
-		        "shopperByDomain": {
-			        "shopperId": "",
-			        "dateCreated": "",
-			        "domainCount": ""
-		        },
-		        "reseller": {
-			        "parentChild": ""
+        domain_query.return_value = {
+	        "data": {
+		        "domainQuery": {
+			        "host": {
+				        "name": None
+			        },
+			        "registrar": {
+				        "name": None,
+				        "createDate": None
+			        },
+			        "apiReseller": {
+				        "parent": None,
+				        "child": None
+			        },
+			        "shopperInfo": {
+				        "shopperId": None,
+				        "dateCreated": None,
+				        "domainCount": 0,
+				        "vip": {
+					        "blacklist": None,
+					        "PortfolioType": None
+				        },
+				        "child": None
+			        },
+			        "blacklist": None
 		        }
 	        }
-        }
         }
         api_cmap_merge.return_value = {'sourceDomainOrIp': u'',
                                        'ticketId': u'DCU000001055',
@@ -218,25 +225,27 @@ class TestPhishingStrategy:
                                        "data": {
 	                                       "domainQuery": {
 		                                       "host": {
-				                                    "hostNetwork": ""
-			                                    },
-		                                       "registrar": {
 			                                       "name": None
 		                                       },
-		                                       "domainCreateDate": {
-			                                       "creationDate": ""
+		                                       "registrar": {
+			                                       "name": None,
+			                                       "createDate": None
 		                                       },
-		                                       "profile": {
-			                                       "Vip": ""
+		                                       "apiReseller": {
+			                                       "parent": None,
+			                                       "child": None
 		                                       },
-		                                       "shopperByDomain": {
-			                                       "shopperId": "",
-			                                       "dateCreated": "",
-			                                       "domainCount": ""
+		                                       "shopperInfo": {
+			                                       "shopperId": None,
+			                                       "dateCreated": None,
+			                                       "domainCount": 0,
+			                                       "vip": {
+				                                       "blacklist": None,
+				                                       "PortfolioType": None
+			                                       },
+			                                       "child": None
 		                                       },
-		                                       "reseller": {
-			                                       "parentChild": ""
-		                                       }
+		                                       "blacklist": None
 	                                       }
                                        }
                                        }
@@ -246,6 +255,8 @@ class TestPhishingStrategy:
         assert_true(doc['hosted_status'] == 'UNKNOWN')
         assert_true(doc['phishstory_status'] == 'CLOSED')
         assert_true(doc['close_reason'] == 'unworkable')
+        assert_true('vip_unconfirmed' not in doc)
+        assert_true('blacklist' not in doc)
 
     @patch.object(MongoHelper, "save_file")
     @patch.object(URIHelper, "get_site_data")
@@ -264,28 +275,30 @@ class TestPhishingStrategy:
         domain_query.return_value = {"data": {
 	        "domainQuery": {
 		        "host": {
-			        "hostNetwork": "GO-DADDY-COM-LLC"
-		        },
-		        "registrar": {
 			        "name": "GO-DADDY-COM-LLC"
 		        },
-		        "domainCreateDate": {
-			        "creationDate": "2014/09/25"
+		        "registrar": {
+			        "name": "GoDaddy.com, LLC",
+			        "createDate": "2014-09-25"
 		        },
-		        "profile": {
-			        "Vip": "false"
+		        "apiReseller": {
+			        "parent": None,
+			        "child": None
 		        },
-		        "shopperByDomain": {
+		        "shopperInfo": {
 			        "shopperId": "49047180",
-			        "dateCreated": "1/9/2012 7:41:51 PM",
-			        "domainCount": 9
+			        "dateCreated": "2012-01-09",
+			        "domainCount": 9,
+			        "vip": {
+				        "blacklist": None,
+				        "PortfolioType": 'No Premium Services For This Shopper'
+			        },
+			        "child": None
 		        },
-		        "reseller": {
-			        "parentChild": "No Parent/Child Info Found"
-		        }
+		        "blacklist": None
 	        }
-        }
-        }
+        }}
+
         api_cmap_merge.return_value = {'sourceDomainOrIp': u'comicsn.beer',
                                        'ticketId': u'DCU000001056',
                                        'reporter': u'bxberry',
@@ -320,6 +333,7 @@ class TestPhishingStrategy:
         self._phishing.process(test_record)
         doc = self._phishing._db.get_incident('DCU000001056')
         assert_true(doc['ticketId'] == 'DCU000001056')
+        assert_true(doc['proxy'] == 'brazil')
 
     @patch.object(MongoHelper, "save_file")
     @patch.object(URIHelper, "get_site_data")
@@ -328,64 +342,68 @@ class TestPhishingStrategy:
     def test_process_reg(self, domain_query, api_cmap_merge, uri_method, mongo_method):
         uri_method.return_value = (1,1)
         mongo_method.return_value = '1'
-        test_record = { 'sourceDomainOrIp': u'sapphires3.com',
+        test_record = { 'sourceDomainOrIp': u'comicsn.beer',
                         'ticketId': u'DCU000001057',
                         'reporter': u'bxberry',
-                        'source': u'http://sapphires3.com',
+                        'source': u'http://comicsn.beer',
                         'type': u'PHISHING'
                         }
         domain_query.return_value = {"data": {
 	        "domainQuery": {
 		        "host": {
-			        "hostNetwork": "GOOGLE-LLC"
+			        "name": "LVLT-ORG-8-8"
 		        },
 		        "registrar": {
-			        "name": "GO-DADDY-COM-LLC"
+			        "name": "GoDaddy.com, LLC",
+			        "createDate": "2014-09-25"
 		        },
-		        "domainCreateDate": {
-			        "creationDate": "1/9/2012 7:41:51 PM"
+		        "apiReseller": {
+			        "parent": None,
+			        "child": None
 		        },
-		        "profile": {
-			        "Vip": "false"
-		        },
-		        "shopperByDomain": {
+		        "shopperInfo": {
 			        "shopperId": "49047180",
-			        "dateCreated": "1/9/2012 7:41:51 PM",
-			        "domainCount": 9
+			        "dateCreated": "2012-01-09",
+			        "domainCount": 9,
+			        "vip": {
+				        "blacklist": None,
+				        "PortfolioType": 'No Premium Services For This Shopper'
+			        },
+			        "child": None
 		        },
-		        "reseller": {
-			        "parentChild": "No Parent/Child Info Found"
-		        }
+		        "blacklist": None
 	        }
-        }
-        }
-        api_cmap_merge.return_value = {'sourceDomainOrIp': u'sapphires3.com',
+        }}
+
+        api_cmap_merge.return_value = {'sourceDomainOrIp': u'comicsn.beer',
                                        'ticketId': u'DCU000001057',
                                        'reporter': u'bxberry',
-                                       'source': u'http://sapphires3.com',
+                                       'source': u'http://comicsn.beer',
                                        'type': u'PHISHING',
                                        "data": {
 	                                       "domainQuery": {
 		                                       "host": {
-			                                       "hostNetwork": "GOOGLE-LLC"
+			                                       "name": "LVLT-ORG-8-8"
 		                                       },
 		                                       "registrar": {
-			                                       "name": "GO-DADDY-COM-LLC"
+			                                       "name": "GoDaddy.com, LLC",
+			                                       "createDate": "2014-09-25"
 		                                       },
-		                                       "domainCreateDate": {
-			                                       "creationDate": "1/9/2012 7:41:51 PM"
+		                                       "apiReseller": {
+			                                       "parent": None,
+			                                       "child": None
 		                                       },
-		                                       "profile": {
-			                                       "Vip": "false"
-		                                       },
-		                                       "shopperByDomain": {
+		                                       "shopperInfo": {
 			                                       "shopperId": "49047180",
-			                                       "dateCreated": "1/9/2012 7:41:51 PM",
-			                                       "domainCount": 9
+			                                       "dateCreated": "2012-01-09",
+			                                       "domainCount": 9,
+			                                       "vip": {
+				                                       "blacklist": None,
+				                                       "PortfolioType": 'No Premium Services For This Shopper'
+			                                       },
+			                                       "child": None
 		                                       },
-		                                       "reseller": {
-			                                       "parentChild": "No Parent/Child Info Found"
-		                                       }
+		                                       "blacklist": None
 	                                       }
                                        }
                                        }
@@ -393,4 +411,84 @@ class TestPhishingStrategy:
         doc = self._phishing._db.get_incident('DCU000001057')
         assert_true(doc['ticketId'] == 'DCU000001057')
         assert_true(doc['hosted_status'] == 'REGISTERED')
-        assert_true(doc['d_create_date'] == '1/9/2012 7:41:51 PM')
+        assert_true('vip_unconfirmed' not in doc)
+        assert_true('blacklist' not in doc)
+
+    @patch.object(MongoHelper, "save_file")
+    @patch.object(URIHelper, "get_site_data")
+    @patch.object(CmapServiceHelper, "api_cmap_merge")
+    @patch.object(CmapServiceHelper, "domain_query")
+    def test_process_vip_blacklist(self, domain_query, api_cmap_merge, uri_method, mongo_method):
+        uri_method.return_value = (1,1)
+        mongo_method.return_value = '1'
+        test_record = { 'sourceDomainOrIp': u'comicsn.beer',
+                        'ticketId': u'DCU000001058',
+                        'reporter': u'bxberry',
+                        'source': u'http://comicsn.beer',
+                        'type': u'PHISHING'
+                        }
+        domain_query.return_value = {"data": {
+	        "domainQuery": {
+		        "host": {
+			        "name": "GO-DADDY-COM-LLC"
+		        },
+		        "registrar": {
+			        "name": "GoDaddy.com, LLC",
+			        "createDate": "2014-09-25"
+		        },
+		        "apiReseller": {
+			        "parent": None,
+			        "child": None
+		        },
+		        "shopperInfo": {
+			        "shopperId": None,
+			        "dateCreated": "2012-01-09",
+			        "domainCount": 9,
+			        "vip": {
+				        "blacklist": True,
+				        "PortfolioType": 'No Premium Services For This Shopper'
+			        },
+			        "child": None
+		        },
+		        "blacklist": True
+	        }
+        }
+        }
+        api_cmap_merge.return_value = {'sourceDomainOrIp': u'comicsn.beer',
+                                       'ticketId': u'DCU000001058',
+                                       'reporter': u'bxberry',
+                                       'source': u'http://comicsn.beer',
+                                       'type': u'PHISHING',
+                                       "data": {
+	                                       "domainQuery": {
+		                                       "host": {
+			                                       "name": "GO-DADDY-COM-LLC"
+		                                       },
+		                                       "registrar": {
+			                                       "name": "GoDaddy.com, LLC",
+			                                       "createDate": "2014-09-25"
+		                                       },
+		                                       "apiReseller": {
+			                                       "parent": None,
+			                                       "child": None
+		                                       },
+		                                       "shopperInfo": {
+			                                       "shopperId": None,
+			                                       "dateCreated": "2012-01-09",
+			                                       "domainCount": 9,
+			                                       "vip": {
+				                                       "blacklist": True,
+				                                       "PortfolioType": 'No Premium Services For This Shopper'
+			                                       },
+			                                       "child": None
+		                                       },
+		                                       "blacklist": True
+	                                       }
+                                       }
+                                       }
+        self._phishing.process(test_record)
+        doc = self._phishing._db.get_incident('DCU000001058')
+        assert_true(doc['ticketId'] == 'DCU000001058')
+        assert_true(doc['hosted_status'] == 'HOSTED')
+        assert_true(doc['vip_unconfirmed'] is True)
+        assert_true(doc['blacklist'] is True)

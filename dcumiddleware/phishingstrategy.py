@@ -8,9 +8,6 @@ from dcdatabase.phishstorymongo import PhishstoryMongo
 from dcumiddleware.dcuapi_functions import DCUAPIFunctions
 from dcumiddleware.interfaces.strategy import Strategy
 from dcumiddleware.urihelper import URIHelper
-# from dcumiddleware.viphelper import CrmClientApi, RegDbAPI, VipClients, RedisCache
-from dcumiddleware.viphelper import VipClients, RedisCache
-
 from cmapservicehelper import CmapServiceHelper
 
 
@@ -22,10 +19,6 @@ class PhishingStrategy(Strategy):
 		self._db = PhishstoryMongo(settings)
 		self._api = DCUAPIFunctions(settings)
 		self._cmapservice = CmapServiceHelper()
-		_redis = RedisCache(settings)
-		# self._premium = CrmClientApi(_redis)
-		# self._regdb = RegDbAPI(_redis)
-		self._vip = VipClients(settings, _redis)
 
 	def close_process(self, data, close_reason):
 		data['close_reason'] = close_reason
@@ -38,24 +31,33 @@ class PhishingStrategy(Strategy):
 		return data
 
 	def process(self, data, **kwargs):
-		# determine if domain is hosted at godaddy
+		"""
+		Returns a dictionary that is the combination of the provided abuse API data and cmap service along with
+		additional information based on cmap service data including the hosted/registered status.
+		:param data: dict provided by abuse API
+		:return merged_data: dict of merged abuse API dict and cmap servide dict plus other enriched data
+		"""
 
 		self._logger.info("Received request {}".format(pformat(data)))
 
+		# query cmap service with domain or ip from API data
 		cmapdata = self._cmapservice.domain_query(data['sourceDomainOrIp'])
 
 		status = None
 
+		# determine if domain is hosted at godaddy
 		try:
+			# merge API dict data with cmap service dict data
 			merged_data = self._cmapservice.api_cmap_merge(data, cmapdata)
 
 			# regex to determine if godaddy is the host and registrar
 			regex = re.compile('[^a-zA-Z]')
-			host = merged_data['data']['domainQuery']['host']['hostNetwork']
+			host = merged_data['data']['domainQuery']['host']['name']
 			hostname = regex.sub('', host)
 			reg = merged_data['data']['domainQuery']['registrar']['name']
 			registrar = regex.sub('', reg)
 
+			# set status based on API domain/IP and returned cmap service data
 			if 'GODADDY' in hostname.upper():
 				status = "HOSTED"
 			elif 'GODADDY' in registrar.upper():
@@ -63,56 +65,29 @@ class PhishingStrategy(Strategy):
 			elif 'GODADDY' not in hostname.upper() and 'GODADDY' not in registrar.upper():
 				status = "FOREIGN"
 		except Exception as e:
+			# if cmap service query has a problem with the given domain/IP, status is set to UNKNOWN and merged_data
+			# is set only to API data
 			self._logger.warn("Unknown registrar/host status for incident: {}. {}".format(pformat(data), e.message))
 			status = "UNKNOWN"
 			merged_data = data
 
+		# set hosted status: HOSTED, REGISTERED, FOREIGN, or UNKNOWN
 		merged_data['hosted_status'] = status
+
+		# close incident if it is foreign or unknown
 		if status in ["FOREIGN", "UNKNOWN"]:
 			return self.close_process(merged_data, "unworkable")
 
-		# add domain create date if domain is registered only
-		if status is "REGISTERED":
-			merged_data['d_create_date'] = merged_data['data']['domainQuery']['domainCreateDate']['creationDate']
-
-		# add shopper info if we can find it
-		sid = merged_data['data']['domainQuery']['shopperByDomain']['shopperId']
-		s_create_date = merged_data['data']['domainQuery']['shopperByDomain']['dateCreated']
-
-		if sid and s_create_date:
-			merged_data['sid'] = sid
-			merged_data['s_create_date'] = s_create_date
-
-			# if shopper is premium, add it to their mongo record
-			premier = merged_data['data']['domainQuery']['profile']['Vip']
-			if premier:
-				merged_data['premier'] = premier
-
-			# get the number of domains in the shopper account
-			domain_count = merged_data['data']['domainQuery']['shopperByDomain']['domainCount']
-			if domain_count is not None:
-				merged_data['domain_count'] = domain_count
-
-			# get parent/child reseller api account status
-			# TODO: This code should be moved outside of the (if sid and s_create_date) block, as it is independent
-			parentchild = merged_data['data']['domainQuery']['reseller']['parentChild']
-			if 'No Parent/Child Info Found' not in parentchild:
-				parentchild = str(parentchild).split(',')
-				merged_data['parent_api_account'] = parentchild[0].split(':')[1]
-				merged_data['child_api_account'] = parentchild[1].split(':')[1]
-
-			# get blacklist status - DO NOT SUSPEND special shopper accounts
-			if self._vip.query_blacklist(sid):
-				merged_data['blacklist'] = True
-
-			# get blacklist status - DO NOT SUSPEND special domain
-			# TODO: This code should be moved outside of the (if sid and s_create_date) block, as it is independent
-			if self._vip.query_blacklist(data.get('sourceDomainOrIp')):
-				merged_data['blacklist'] = True
-
-		else:
-			# TODO: Implement a better way to determine if the vip status is Unconfirmed
+		# if no shopper number found then no way to confirm vip status
+		vip = merged_data['data']['domainQuery']['shopperInfo']['shopperId']
+		if vip is None:
 			merged_data['vip_unconfirmed'] = True
+
+		# get blacklist status - DO NOT SUSPEND special shopper accounts & DO NOT SUSPEND special domain
+		shopper_blacklist = merged_data['data']['domainQuery']['shopperInfo']['vip']['blacklist']
+		domain_blacklist = merged_data['data']['domainQuery']['blacklist']
+		if shopper_blacklist is not None or domain_blacklist is not None:
+			merged_data['blacklist'] = True
 
 		# Add hosted_status to incident
 		res = self._urihelper.resolves(merged_data.get('source'))

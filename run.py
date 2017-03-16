@@ -95,15 +95,16 @@ def _catagorize_and_load(data):
 @app.task
 def _new_domain_check(data):
     """
-    This function handles new domain fraud detection
+    This method handles new domain fraud detection
     :param data:
     :return data:
     """
     try:
-        # If the d_create_date(domain create date) is less than x days old, put on review and send to fraud if not already on hold
+        # If the d_create_date(domain create date) is less than x days old, put on review and send to fraud if not
+        # already on hold
         if data.get('phishstory_status') == 'OPEN' \
-                and data.get('d_create_date') \
-                and data.get('d_create_date') > datetime.utcnow() - timedelta(days=app_settings.NEW_ACCOUNT):
+                and data['data']['domainQuery']['registrar']['createDate'] \
+                and data['data']['domainQuery']['registrar']['createDate'] > datetime.utcnow() - timedelta(days=app_settings.NEW_ACCOUNT):
             logger.info("Possible fraud detected on {}".format(pformat(data)))
             review = FraudReview(app_settings)
             urihelper = URIHelper(app_settings)
@@ -126,15 +127,16 @@ def _new_domain_check(data):
 @app.task
 def _new_fraud_check(data):
     """
-    This function handles new account fraud detection
+    This method handles new account fraud detection
     :param data:
     :return data:
     """
     try:
-        # If the s_create_date(shopper create date) is less than x days old, put on review and send to fraud if not already on hold
+        # If the s_create_date(shopper create date) is less than x days old, put on review and send to fraud if not
+        # already on hold
         if data.get('phishstory_status') == 'OPEN' \
-                and data.get('s_create_date') \
-                and data.get('s_create_date') > datetime.utcnow() - timedelta(days=app_settings.NEW_ACCOUNT):
+                and data['data']['domainQuery']['shopperInfo']['dateCreated'] \
+                and data['data']['domainQuery']['shopperInfo']['dateCreated'] > datetime.utcnow() - timedelta(days=app_settings.NEW_ACCOUNT):
             logger.info("Possible fraud detected on {}".format(pformat(data)))
             review = FraudReview(app_settings)
             urihelper = URIHelper(app_settings)
@@ -220,8 +222,8 @@ def send_young_account_notification(data):
    """
     payload = {'templateNamespaceKey': 'Iris',
                'templateTypeKey': 'DCU7days',
-               'substitutionValues': {'ACCOUNT_NUMBER': data.get('sid'),
-                                      'SHOPPER_CREATION_DATE': data.get('s_create_date'),
+               'substitutionValues': {'ACCOUNT_NUMBER': data['data']['domainQuery']['shopperInfo']['shopperId'],
+                                      'SHOPPER_CREATION_DATE': data['data']['domainQuery']['shopperInfo']['dateCreated'],
                                       'DOMAIN': data.get('sourceDomainOrIp'),
                                       'MALICIOUS_ACTIVITY': data.get('type'),
                                       'BRAND_TARGETED': data.get('target'),
@@ -237,8 +239,8 @@ def send_young_domain_notification(data):
    """
     payload = {'templateNamespaceKey': 'Iris',
                'templateTypeKey': 'DCUNewDomainFraud',
-               'substitutionValues': {'ACCOUNT_NUMBER': data.get('sid'),
-                                      'DOMAIN_CREATION_DATE': data.get('d_create_date'),
+               'substitutionValues': {'ACCOUNT_NUMBER': data['data']['domainQuery']['shopperInfo']['shopperId'],
+                                      'DOMAIN_CREATION_DATE': data['data']['domainQuery']['registrar']['createDate'],
                                       'DOMAIN': data.get('sourceDomainOrIp'),
                                       'MALICIOUS_ACTIVITY': data.get('type'),
                                       'BRAND_TARGETED': data.get('target'),

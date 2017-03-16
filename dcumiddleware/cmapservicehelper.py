@@ -30,25 +30,27 @@ class CmapServiceHelper(object):
 				{
 				  domainQuery(domain: "''' + domain + '''") {
 				    host {
-				      hostNetwork
+				      name
 				    }
 				    registrar {
 				      name
+				      createDate
 				    }
-				    domainCreateDate {
-				      creationDate
+				    apiReseller {
+				      parent
+				      child
 				    }
-				    profile {
-				      Vip
-				    }
-				    shopperByDomain {
+				    shopperInfo {
 				      shopperId
 				      dateCreated
 				      domainCount
+				      vip {
+				        blacklist
+				        PortfolioType
+				      }
+				      child
 				    }
-				    reseller {
-				      parentChild
-				    }
+				    blacklist
 				  }
 				}
 				''')
@@ -63,5 +65,3 @@ class CmapServiceHelper(object):
 		"""
 		merged_data = dict(apidata.items() + cmapdata.items())
 		return merged_data
-
-
