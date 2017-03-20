@@ -1,11 +1,13 @@
 from nose.tools import assert_true
 from dcumiddleware.cmapservicehelper import CmapServiceHelper
+from test_settings import TestingConfig
 
 
 class TestCmapServiceHelper:
 
 	def __init__(self):
-		self.cmapservice = CmapServiceHelper()
+		config = TestingConfig()
+		self.cmapservice = CmapServiceHelper(config)
 
 	def test_domain_query(self):
 		domain = "comicsn.beer"
@@ -21,7 +23,6 @@ class TestCmapServiceHelper:
 		assert_true(doc['data']['domainQuery']['shopperInfo']['vip']['blacklist'] is None)
 		assert_true(
 			doc['data']['domainQuery']['shopperInfo']['vip']['PortfolioType'] == 'No Premium Services For This Shopper')
-		assert_true(doc['data']['domainQuery']['shopperInfo']['child'] is None)
 		assert_true(doc['data']['domainQuery']['blacklist'] is None)
 
 	def test_api_cmap_merge(self):
@@ -71,7 +72,6 @@ class TestCmapServiceHelper:
 		assert_true(doc['data']['domainQuery']['shopperInfo']['vip']['blacklist'] is None)
 		assert_true(
 			doc['data']['domainQuery']['shopperInfo']['vip']['PortfolioType'] == 'No Premium Services For This Shopper')
-		assert_true(doc['data']['domainQuery']['shopperInfo']['child'] is None)
 		assert_true(doc['data']['domainQuery']['blacklist'] is None)
 		assert_true(doc['info'] == 'My spam Farm is better than yours...')
 		assert_true(doc['target'] == 'The spam Brothers')

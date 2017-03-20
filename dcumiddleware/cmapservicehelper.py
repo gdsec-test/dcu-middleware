@@ -3,11 +3,11 @@ import json
 
 
 class CmapServiceHelper(object):
-	servicenow_url = None
-	post_headers = {'Content-Type': 'application/graphql'}
+	# servicenow_url = None
 
-	def __init__(self):
-		self.graphene_url = 'http://localhost:5000/graphql'
+	def __init__(self, settings):
+		self._graphene_url = settings.CMAP_SERVICE + '/graphql'
+		self._post_headers = {'Content-Type': 'application/graphql'}
 
 	def cmap_query(self, query):
 		"""
@@ -15,8 +15,9 @@ class CmapServiceHelper(object):
 		:param query:
 		:return query result:
 		"""
+		# TODO : remove print, add loging, add try except
 		print "Fetching {}".format(query)
-		re = requests.post(url=self.graphene_url, headers=self.post_headers, data=query)
+		re = requests.post(url=self._graphene_url, headers=self._post_headers, data=query)
 		return json.loads(re.text)
 
 	def domain_query(self, domain):
@@ -62,5 +63,6 @@ class CmapServiceHelper(object):
 		:param apidata, cmapdata:
 		:return merged_data: dictionary that is the result of merging the api data and cmap data dictionaries
 		"""
+		# TODO : add loging and try/except
 		merged_data = dict(apidata.items() + cmapdata.items())
 		return merged_data
