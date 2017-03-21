@@ -36,6 +36,11 @@ dev: prep
 	DOCKERTAG=dev
 	docker build -t $(DOCKERREPO):dev $(BUILDROOT)
 
+ote: prep
+	@echo "----- building $(REPONAME) ote -----"
+	DOCKERTAG=ote
+	docker build -t $(DOCKERREPO):ote $(BUILDROOT)
+
 clean:
 	@echo "----- cleaning $(REPONAME) app -----"
 	rm -rf $(BUILDROOT)
