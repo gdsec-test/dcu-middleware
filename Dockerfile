@@ -28,7 +28,7 @@ WORKDIR /app
 ADD . /app
 RUN chown -R dcu:dcu /app
 RUN dpkg -i firefox_45.0.2+build1-0ubuntu0.14.04.1_amd64.deb; \
-    apt-get update && apt-get -f -y install;dpkg -i firefox_45.0.2+build1-0ubuntu0.14.04.1_amd64.deb
+    apt-mark hold firefox;apt-get -f -y install;dpkg -i firefox_45.0.2+build1-0ubuntu0.14.04.1_amd64.deb
 
 # pip install private pips staged by Makefile
 RUN for entry in dcdatabase blindAl; \
