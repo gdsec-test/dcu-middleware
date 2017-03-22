@@ -41,7 +41,7 @@ class PhishingStrategy(Strategy):
 		self._logger.info("Received request {}".format(pformat(data)))
 
 		# query cmap service with domain or ip from API data
-		subdomain = data['sourceSubDomain']
+		subdomain = data.get('sourceSubDomain')
 		if subdomain is not None:
 			cmapdata = self._cmapservice.domain_query(subdomain)
 		else:

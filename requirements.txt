@@ -1,5 +1,6 @@
-celery
-selenium==2.53.6
+requests[security]
+celery==4.0.2
+selenium==3.3.1
 PyVirtualDisplay
 python-whois
 requests==2.10.0

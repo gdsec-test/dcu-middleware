@@ -2,7 +2,7 @@
 #
 #
 
-FROM ubuntu:14.04
+FROM ubuntu:16.04
 MAINTAINER DCU ENG <DCUEng@godaddy.com>
 
 RUN groupadd -r dcu && useradd -r -m -g dcu dcu
@@ -11,6 +11,7 @@ RUN groupadd -r dcu && useradd -r -m -g dcu dcu
 RUN apt-get update && \
     apt-get install -y build-essential \
     gcc \
+    firefox=52.0.1+build2-0ubuntu0.16.04.1 \
     libffi-dev \
     libssl-dev \
     python-dev \
@@ -26,9 +27,8 @@ WORKDIR /app
 
 # Move files to new dir
 ADD . /app
+RUN mv geckodriver /bin
 RUN chown -R dcu:dcu /app
-RUN dpkg -i firefox_45.0.2+build1-0ubuntu0.14.04.1_amd64.deb; \
-    apt-mark hold firefox;apt-get -f -y install;dpkg -i firefox_45.0.2+build1-0ubuntu0.14.04.1_amd64.deb
 
 # pip install private pips staged by Makefile
 RUN for entry in dcdatabase blindAl; \
