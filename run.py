@@ -62,8 +62,7 @@ def process(data):
           _new_domain_check.s(),
           _new_fraud_check.s(),
           _check_group.s(),
-          _printer.s(),
-          link_error=_error_handler.s())()
+          _printer.s())()
 
 
 ##### PRIVATE TASKS #####
@@ -192,13 +191,6 @@ def _check_group(data):
 def _printer(data):
     if data:
         logger.info("Successfully processed {}".format(pformat(data)))
-
-
-@app.task(bind=True)
-def _error_handler(self, uuid):
-    result = self.app.AsyncResult(uuid)
-    print('Task {0} raised exception: {1!r}\n{2!r}'.format(
-        uuid, result.result, result.traceback))
 
 
 @app.task
