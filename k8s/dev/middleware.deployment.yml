@@ -29,6 +29,8 @@ spec:
               secretKeyRef:
                 name: amqp-middleware
                 key: password
+          - name: SERVICE_URL
+            value: https://cmapservice.int.dev-godaddy.com
           - name: KEYFILE
             value: /keyfiles/key.txt
           - name: AUTHPASS
