@@ -51,11 +51,11 @@ class TestPhishingStrategy:
 										        "dateCreated": "2012-01-09",
 										        "domainCount": 9,
 										        "vip": {
-											        "blacklist": None,
+											        "blacklist": False,
 											        "PortfolioType": 'No Premium Services For This Shopper'
 										        },
 									        },
-									        "blacklist": None
+									        "blacklist": False
 								        }
 							        }}
         api_cmap_merge.return_value = {'sourceDomainOrIp': u'comicsn.beer',
@@ -82,11 +82,11 @@ class TestPhishingStrategy:
 							        "dateCreated": "2012-01-09",
 							        "domainCount": 9,
 							        "vip": {
-								        "blacklist": None,
+								        "blacklist": False,
 								        "PortfolioType": 'No Premium Services For This Shopper'
 							        },
 						        },
-						        "blacklist": None
+						        "blacklist": False
 					        }
 				        }
                        }
@@ -129,11 +129,11 @@ class TestPhishingStrategy:
 											        "dateCreated": None,
 											        "domainCount": 0,
 											        "vip": {
-												        "blacklist": None,
-												        "PortfolioType": None
+												        "blacklist": False,
+												        "PortfolioType": 'No Premium Services For This Shopper'
 											        },
 										        },
-										        "blacklist": None
+										        "blacklist": False
 									        }
 								    }}
         api_cmap_merge.return_value = {'sourceDomainOrIp': u'google.com',
@@ -160,11 +160,11 @@ class TestPhishingStrategy:
 			                                       "dateCreated": None,
 			                                       "domainCount": 0,
 			                                       "vip": {
-				                                       "blacklist": None,
-				                                       "PortfolioType": None
+				                                       "blacklist": False,
+				                                       "PortfolioType": 'No Premium Services For This Shopper'
 			                                       },
 		                                       },
-		                                       "blacklist": None
+		                                       "blacklist": False
 	                                       }
                                        }}
         self._phishing.process(test_record)
@@ -209,11 +209,11 @@ class TestPhishingStrategy:
 				        "dateCreated": None,
 				        "domainCount": 0,
 				        "vip": {
-					        "blacklist": None,
-					        "PortfolioType": None
+					        "blacklist": False,
+					        "PortfolioType": 'No Premium Services For This Shopper'
 				        },
 			        },
-			        "blacklist": None
+			        "blacklist": False
 		        }
 	        }
         }
@@ -241,11 +241,11 @@ class TestPhishingStrategy:
 			                                       "dateCreated": None,
 			                                       "domainCount": 0,
 			                                       "vip": {
-				                                       "blacklist": None,
-				                                       "PortfolioType": None
+				                                       "blacklist": False,
+				                                       "PortfolioType": 'No Premium Services For This Shopper'
 			                                       },
 		                                       },
-		                                       "blacklist": None
+		                                       "blacklist": False
 	                                       }
                                        }
                                        }
@@ -290,11 +290,11 @@ class TestPhishingStrategy:
 			        "dateCreated": "2012-01-09",
 			        "domainCount": 9,
 			        "vip": {
-				        "blacklist": None,
+				        "blacklist": False,
 				        "PortfolioType": 'No Premium Services For This Shopper'
 			        },
 		        },
-		        "blacklist": None
+		        "blacklist": False
 	        }
         }}
 
@@ -322,11 +322,11 @@ class TestPhishingStrategy:
 			                                       "dateCreated": "2012-01-09",
 			                                       "domainCount": 9,
 			                                       "vip": {
-				                                       "blacklist": None,
+				                                       "blacklist": False,
 				                                       "PortfolioType": 'No Premium Services For This Shopper'
 			                                       },
 		                                       },
-		                                       "blacklist": None
+		                                       "blacklist": False
 	                                       }
                                        }
                                        }
@@ -448,11 +448,11 @@ class TestPhishingStrategy:
 										        "dateCreated": "2012-01-09",
 										        "domainCount": 9,
 										        "vip": {
-											        "blacklist": None,
+											        "blacklist": False,
 											        "PortfolioType": 'No Premium Services For This Shopper'
 										        },
 									        },
-									        "blacklist": None
+									        "blacklist": False
 								        }
 							        }}
         api_cmap_merge.return_value = {'sourceDomainOrIp': u'comicsn.beer',
@@ -479,11 +479,11 @@ class TestPhishingStrategy:
 							        "dateCreated": "2012-01-09",
 							        "domainCount": 9,
 							        "vip": {
-								        "blacklist": None,
+								        "blacklist": False,
 								        "PortfolioType": 'No Premium Services For This Shopper'
 							        },
 						        },
-						        "blacklist": None
+						        "blacklist": False
 					        }
 				        }
                        }
