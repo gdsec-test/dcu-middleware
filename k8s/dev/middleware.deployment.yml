@@ -43,6 +43,8 @@ spec:
             value: middleware-redis.abuse-api-dev.svc.cluster.local
           - name: API
             value: api.abuse-api-dev.svc.cluster.local
+          - name: SELENIUM_URL
+            value: http://selenium-server.abuse-api-dev.svc.cluster.local:4444/wd/hub
           volumeMounts:
           - name: encryption-keys
             mountPath: /keyfiles

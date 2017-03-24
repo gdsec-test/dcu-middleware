@@ -2,7 +2,7 @@ from nose.tools import assert_true
 from dcumiddleware.cmapservicehelper import CmapServiceHelper
 from test_settings import TestingConfig
 from datetime import datetime
-
+from mock import patch
 
 class TestCmapServiceHelper:
 
@@ -10,21 +10,49 @@ class TestCmapServiceHelper:
 		config = TestingConfig()
 		self.cmapservice = CmapServiceHelper(config)
 
-	def test_domain_query(self):
+	@patch.object(CmapServiceHelper, 'domain_query')	
+	def test_domain_query(self, domain_query):
+		domain_query.return_value = {
+			"data": {
+				"domainQuery": {
+				"host": {
+					"name": "GO-DADDY-COM-LLC"
+				},
+				"registrar": {
+					"name": "GoDaddy.com, LLC",
+					"createDate": "2014-09-25"
+				},
+				"apiReseller": {
+					"parent": None,
+					"child": None
+				},
+				"shopperInfo": {
+					"shopperId": "49047180",
+					"dateCreated": "2012-01-10",
+					"domainCount": 9,
+					"vip": {
+					"blacklist": False,
+					"PortfolioType": "No Premium Services For This Shopper"
+					}
+				},
+				"blacklist": False
+				}
+			}
+		}
 		domain = "comicsn.beer"
 		doc = self.cmapservice.domain_query(domain)
 		assert_true(doc['data']['domainQuery']['host']['name'] == 'GO-DADDY-COM-LLC')
 		assert_true(doc['data']['domainQuery']['registrar']['name'] == 'GoDaddy.com, LLC')
-		assert_true(doc['data']['domainQuery']['registrar']['createDate'] == datetime.strptime('2014-09-25', '%Y-%m-%d'))
+		assert_true(doc['data']['domainQuery']['registrar']['createDate'] == '2014-09-25')
 		assert_true(doc['data']['domainQuery']['apiReseller']['parent'] is None)
 		assert_true(doc['data']['domainQuery']['apiReseller']['child'] is None)
 		assert_true(doc['data']['domainQuery']['shopperInfo']['shopperId'] == '49047180')
-		assert_true(doc['data']['domainQuery']['shopperInfo']['dateCreated'] == datetime.strptime('2012-01-09', '%Y-%m-%d'))
+		assert_true(doc['data']['domainQuery']['shopperInfo']['dateCreated'] == '2012-01-10')
 		assert_true(doc['data']['domainQuery']['shopperInfo']['domainCount'] == 9)
-		assert_true(doc['data']['domainQuery']['shopperInfo']['vip']['blacklist'] is True)
+		assert_true(doc['data']['domainQuery']['shopperInfo']['vip']['blacklist'] is False)
 		assert_true(
 			doc['data']['domainQuery']['shopperInfo']['vip']['PortfolioType'] == 'No Premium Services For This Shopper')
-		assert_true(doc['data']['domainQuery']['blacklist'] is True)
+		assert_true(doc['data']['domainQuery']['blacklist'] is False)
 
 	def test_domain_query2(self):
 		doc = self.cmapservice.domain_query(None)

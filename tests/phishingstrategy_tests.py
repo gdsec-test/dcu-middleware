@@ -7,12 +7,14 @@ from dcumiddleware.phishingstrategy import PhishingStrategy
 from dcumiddleware.urihelper import URIHelper
 from dcumiddleware.cmapservicehelper import CmapServiceHelper
 from test_settings import TestingConfig
-
+from mock import patch
 
 class TestPhishingStrategy:
 
     @classmethod
-    def setup_class(cls):
+    @patch.object(URIHelper, '_get_browser')
+    def setup_class(cls, browser):
+        browser.return_value = {}
         config = TestingConfig()
         cls._phishing = PhishingStrategy(config)
         cls._urihelper = URIHelper(config)

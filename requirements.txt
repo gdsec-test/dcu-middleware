@@ -1,7 +1,6 @@
-requests[security]
+requests
 celery==4.0.2
 selenium==3.3.1
-PyVirtualDisplay
 python-whois
 dcdatabase
 blindAl

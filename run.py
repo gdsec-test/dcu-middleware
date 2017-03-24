@@ -75,21 +75,21 @@ def _catagorize_and_load(data):
     :return:
     """
     strategy = None
-    type = data.get('type')
-    if type == db.PHISHING:
+    ctype = data.get('type')
+    if ctype == db.PHISHING:
         strategy = PhishingStrategy(app_settings)
-    elif type == db.MALWARE:
+    elif ctype == db.MALWARE:
         strategy = MalwareStrategy(app_settings)
-    elif type == db.NETABUSE:
+    elif ctype == db.NETABUSE:
         strategy = NetAbuseStrategy(app_settings)
-    elif type == db.SPAM:
+    elif ctype == db.SPAM:
         # PhishingStrategy is currently being used for SPAM as its being processed in the same way
         strategy = PhishingStrategy(app_settings)
 
     if strategy:
         return strategy.process(data)
     else:
-        logger.warning("No strategy available for {}".format(type))
+        logger.warning("No strategy available for {}".format(ctype))
 
 
 @app.task
@@ -195,23 +195,27 @@ def _printer(data):
 
 @app.task
 def refresh_screenshot(ticket):
+    """
+    Refresh the screenshot for the given ticket and update the db
+    :param: ticket
+    """
     dcu_db = db(app_settings)
     ticket_data = dcu_db.get_incident(ticket)
     sourcecode_id = ticket_data.get('sourcecode_id')
     screenshot_id = ticket_data.get('screenshot_id')
-    last_screen_grab = ticket_data.get('last_screen_grab', datetime(1970,1,1))
+    last_screen_grab = ticket_data.get('last_screen_grab', datetime(1970, 1, 1))
     logger.info('Request screengrab refresh for {}'.format(ticket))
     if ticket_data.get('phishstory_status', '') == 'OPEN' \
             and last_screen_grab < (datetime.utcnow() - timedelta(minutes=15)):
         logger.info('Updating screengrab for {}'.format(ticket))
-        helper = URIHelper(app_settings)
-        data = helper.get_site_data(ticket_data.get('source'))
+        urihelper = URIHelper(app_settings)
+        data = urihelper.get_site_data(ticket_data.get('source'))
         if data:
             screenshot_id, sourcecode_id = dcu_db.add_crits_data(data, ticket_data.get('source'))
-            last_screen_grab=datetime.utcnow()
+            last_screen_grab = datetime.utcnow()
             dcu_db.update_incident(ticket_data.get('ticketId'),
-                               dict(screenshot_id=screenshot_id, sourcecode_id=sourcecode_id,
-                                    last_screen_grab=last_screen_grab))
+                                   dict(screenshot_id=screenshot_id, sourcecode_id=sourcecode_id,
+                                        last_screen_grab=last_screen_grab))
         else:
             logger.error("Unable to refresh screenshot/sourcecode for {}, no data returned".format(ticket))
     return ((datetime.utcnow() - last_screen_grab).total_seconds()), screenshot_id, sourcecode_id

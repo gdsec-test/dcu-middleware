@@ -7,12 +7,15 @@ from nose.tools import assert_true
 from dcumiddleware.netabusestrategy import NetAbuseStrategy
 from dcumiddleware.urihelper import URIHelper
 from test_settings import TestingConfig
+from mock import patch
 
 
 class TestNetabuseStrategy:
 
     @classmethod
-    def setup_class(cls):
+    @patch.object(URIHelper, '_get_browser')
+    def setup_class(cls, browser):
+        browser.return_value = {}
         config = TestingConfig()
         cls._netabuse = NetAbuseStrategy(config)
         cls._urihelper = URIHelper(config)

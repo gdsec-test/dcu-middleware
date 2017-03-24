@@ -3,12 +3,12 @@ import re
 import socket
 import xml.etree.ElementTree as ET
 from datetime import datetime
-
+import time
 import requests
 from dcdatabase.phishstorymongo import PhishstoryMongo
 from ipwhois import IPWhois
-from pyvirtualdisplay import Display
 from selenium import webdriver
+from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 from suds.client import Client
 from whois import NICClient
 
@@ -27,6 +27,7 @@ class URIHelper:
         self._authpass = settings.AUTHPASS
         self._db = PhishstoryMongo(settings)
         self._url = settings.KNOX_URL
+        self._selenium_url =settings.SELENIUM_URL
 
     def resolves(self, url):
         """
@@ -63,22 +64,17 @@ class URIHelper:
         :param url:
         :return:
         """
-        display = Display(visible=0, size=(640, 480))
-        display.start()
-        browser = webdriver.Firefox()
         data = None
         try:
-            browser.set_page_load_timeout(30)
+            browser = self._get_browser(self._selenium_url)
             browser.get(url)
             screenshot = browser.get_screenshot_as_png()
             sourcecode = browser.page_source.encode('ascii', 'ignore')
             data = (screenshot, sourcecode)
+            browser.quit()
         except Exception as e:
             self._logger.error("Error while taking snapshot and/or source code for %s: %s", url, str(e))
-        finally:
-            browser.quit()
-            display.stop()
-            return data
+        return data
 
     def get_status(self, sourceDomainOrIp):
         """
@@ -216,3 +212,23 @@ class URIHelper:
                 return domain_ticket[0]['fraud_hold_until']
         except Exception as e:
             self._logger.error("Unable to determine any fraud holds for {}:{}".format(domain, e.message))
+
+    def _get_browser(self, url):
+        """
+        Returns a remote browser for screenshot/source grab
+        :parmam: selenium url
+        :return:
+        """
+        try:
+            capabilites = DesiredCapabilities.CHROME.copy()
+            capabilites['chromeOptions'] = dict(args=['--disable-gpu',
+                                                      '--disable-impl-side-painting',
+                                                      '--disable-gpu-sandbox',
+                                                      '--disable-accelerated-2d-canvas',
+                                                      '--disable-accelerated-jpeg-decoding',
+                                                      '--no-sandbox'])
+            browser =webdriver.Remote(command_executor=url, desired_capabilities=capabilites)
+            return browser
+        except Exception as e:
+            self._logger.error("Exception creating browser {}".format(e.message))
+
