@@ -3,7 +3,7 @@ import re
 import socket
 import xml.etree.ElementTree as ET
 from datetime import datetime
-import time
+
 import requests
 from dcdatabase.phishstorymongo import PhishstoryMongo
 from ipwhois import IPWhois
@@ -228,6 +228,7 @@ class URIHelper:
                                                       '--disable-accelerated-jpeg-decoding',
                                                       '--no-sandbox'])
             browser =webdriver.Remote(command_executor=url, desired_capabilities=capabilites)
+            browser.set_page_load_timeout(10)
             return browser
         except Exception as e:
             self._logger.error("Exception creating browser {}".format(e.message))
