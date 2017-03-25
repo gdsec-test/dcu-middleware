@@ -13,9 +13,7 @@ from mock import patch
 class TestNetabuseStrategy:
 
     @classmethod
-    @patch.object(URIHelper, '_get_browser')
-    def setup_class(cls, browser):
-        browser.return_value = {}
+    def setup_class(cls):
         config = TestingConfig()
         cls._netabuse = NetAbuseStrategy(config)
         cls._urihelper = URIHelper(config)

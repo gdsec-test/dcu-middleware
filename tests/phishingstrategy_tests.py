@@ -12,9 +12,7 @@ from mock import patch
 class TestPhishingStrategy:
 
     @classmethod
-    @patch.object(URIHelper, '_get_browser')
-    def setup_class(cls, browser):
-        browser.return_value = {}
+    def setup_class(cls):
         config = TestingConfig()
         cls._phishing = PhishingStrategy(config)
         cls._urihelper = URIHelper(config)
