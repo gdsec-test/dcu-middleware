@@ -18,14 +18,6 @@ spec:
           name: "k8s-artifactory-creds"
       containers:
         -
-          name: "selenium"
-          imagePullPolicy: "Always"
-          image: "selenium/standalone-chrome"
-          ports:
-          -
-            containerPort: 4444
-            protocol: "TCP"
-        -
           name: "middleware"
           imagePullPolicy: "Always"
           image: "artifactory.secureserver.net:10014/docker-dcu-local/dcumiddleware:ote-k8s"

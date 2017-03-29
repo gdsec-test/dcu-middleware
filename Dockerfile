@@ -2,18 +2,25 @@
 #
 #
 
-FROM alpine:3.5
+FROM ubuntu:16.10
 MAINTAINER DCU ENG <DCUEng@godaddy.com>
 
-RUN addgroup -S dcu && adduser -H -S -G dcu dcu
+RUN groupadd -r dcu && useradd -r -m -g dcu dcu
 
 # apt-get installs
-RUN apk update && apk add --no-cache \
-    build-base \
+RUN apt-get update && \
+    apt-get install -y build-essential \
+    fontconfig \
+    gcc \
     libffi-dev \
-    openssl-dev \
+    libssl-dev \
     python-dev \
-    py-pip 
+    python-pip \
+    curl
+
+RUN cd /usr/local/share && \
+curl -L https://bitbucket.org/ariya/phantomjs/downloads/phantomjs-2.1.1-linux-x86_64.tar.bz2 | tar xj && \
+ln -s /usr/local/share/phantomjs-2.1.1-linux-x86_64/bin/phantomjs /usr/bin/phantomjs
 
 # Make directory for middleware
 RUN mkdir -p /app
@@ -31,6 +38,16 @@ RUN for entry in dcdatabase blindAl; \
     done
 
 RUN pip install --compile -r requirements.txt
-RUN rm -rf private_pips
 
-ENTRYPOINT ["/app/run.sh"]
+# cleanup
+RUN apt-get remove --purge -y build-essential \
+    gcc \
+    libffi-dev \
+    libssl-dev \
+    python-dev && \
+    rm -rf /var/lib/apt/lists/* && \
+    rm -rf /app/private_pips
+
+USER dcu
+
+CMD ["/usr/local/bin/celery", "-A", "run", "worker", "-l", "INFO"]

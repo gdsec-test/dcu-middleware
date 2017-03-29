@@ -8,7 +8,6 @@ import requests
 from dcdatabase.phishstorymongo import PhishstoryMongo
 from ipwhois import IPWhois
 from selenium import webdriver
-from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 from suds.client import Client
 from whois import NICClient
 
@@ -27,7 +26,6 @@ class URIHelper:
         self._authpass = settings.AUTHPASS
         self._db = PhishstoryMongo(settings)
         self._url = settings.KNOX_URL
-        self._selenium_url =settings.SELENIUM_URL
 
     def resolves(self, url):
         """
@@ -66,7 +64,8 @@ class URIHelper:
         """
         data = None
         try:
-            browser = self._get_browser(self._selenium_url)
+            browser = webdriver.PhantomJS()
+            browser.set_page_load_timeout(10)
             browser.get(url)
             screenshot = browser.get_screenshot_as_png()
             sourcecode = browser.page_source.encode('ascii', 'ignore')
@@ -212,24 +211,3 @@ class URIHelper:
                 return domain_ticket[0]['fraud_hold_until']
         except Exception as e:
             self._logger.error("Unable to determine any fraud holds for {}:{}".format(domain, e.message))
-
-    def _get_browser(self, url):
-        """
-        Returns a remote browser for screenshot/source grab
-        :parmam: selenium url
-        :return:
-        """
-        try:
-            capabilites = DesiredCapabilities.CHROME.copy()
-            capabilites['chromeOptions'] = dict(args=['--disable-gpu',
-                                                      '--disable-impl-side-painting',
-                                                      '--disable-gpu-sandbox',
-                                                      '--disable-accelerated-2d-canvas',
-                                                      '--disable-accelerated-jpeg-decoding',
-                                                      '--no-sandbox'])
-            browser =webdriver.Remote(command_executor=url, desired_capabilities=capabilites)
-            browser.set_page_load_timeout(10)
-            return browser
-        except Exception as e:
-            self._logger.error("Exception creating browser {}".format(e.message))
-
