@@ -18,6 +18,14 @@ spec:
           name: "k8s-artifactory-creds"
       containers:
         -
+          name: "selenium"
+          imagePullPolicy: "Always"
+          image: "selenium/standalone-chrome"
+          ports:
+          -
+            containerPort: 4444
+            protocol: "TCP"
+        -
           name: "middleware"
           imagePullPolicy: "Always"
           image: "artifactory.secureserver.net:10014/docker-dcu-local/dcumiddleware:ote-k8s"
@@ -48,8 +56,6 @@ spec:
             value: middleware-redis.abuse-api-ote.svc.cluster.local
           - name: API
             value: api.abuse-api-ote.svc.cluster.local
-          - name: SELENIUM_URL
-            value: http://selenium-server.abuse-api-ote.svc.cluster.local:4444/wd/hub
           volumeMounts:
           - name: encryption-keys
             mountPath: /keyfiles
