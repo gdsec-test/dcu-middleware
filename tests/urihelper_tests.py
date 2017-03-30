@@ -12,10 +12,8 @@ from test_settings import TestingConfig
 class TestURIHelper(object):
 
     @classmethod
-    @patch.object(URIHelper, '_get_browser')
-    def setup(cls, browser):
+    def setup(cls):
         logging.getLogger('suds').setLevel(logging.INFO)
-        browser.return_value = {}
         app_settings = TestingConfig()
         cls._urihelper = URIHelper(app_settings)
         # replace collection with mock
