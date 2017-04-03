@@ -30,7 +30,7 @@ spec:
                 name: amqp-middleware
                 key: password
           - name: SERVICE_URL
-            value: https://cmapservice.int.ote-godaddy.com
+            value: http://cmap-service.abuse-api-ote.svc.cluster.local:5000
           - name: KEYFILE
             value: /keyfiles/key.txt
           - name: AUTHPASS
