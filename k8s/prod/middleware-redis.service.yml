@@ -1,0 +1,18 @@
+---
+  kind: "Service"
+  apiVersion: "v1"
+  metadata:
+    labels:
+      app: "middleware-redis"
+    # this name is accessible via cluster DNS
+    # ("middleware-redis" or "middleware-redis.<namespace>.svc.cluster.local")
+    name: "middleware-redis"
+    namespace: abuse-api-prod
+  spec:
+    ports:
+      -
+        name: "middleware-redis"
+        port: 6379
+        targetPort: 6379
+    selector:
+      app: "middleware-redis"
