@@ -33,11 +33,6 @@ spec:
             value: http://cmap-service.abuse-api-prod.svc.cluster.local:5000
           - name: KEYFILE
             value: /keyfiles/key.txt
-          - name: AUTHPASS
-            valueFrom:
-              secretKeyRef:
-                name: dcu-proxy-auth
-                key: password
           - name: DBPASS
             valueFrom:
               secretKeyRef:

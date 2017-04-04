@@ -21,9 +21,6 @@ class URIHelper:
 
     def __init__(self, settings):
         self._logger = logging.getLogger(__name__)
-        self._proxy = settings.PROXY
-        self._authuser = settings.AUTHUSER
-        self._authpass = settings.AUTHPASS
         self._db = PhishstoryMongo(settings)
         self._url = settings.KNOX_URL
 
@@ -35,16 +32,8 @@ class URIHelper:
         NOTE: If we are using auth, requests library will not resend auth on a redirect (will result in a 401),
         so we need to manually check for one and re-issue the get with the redirected url and the auth credentials
         """
-        retry = 0
         try:
-            bad_site = requests.get(url, proxies=self._proxy, auth=(self._authuser, self._authpass), timeout=60)
-            if self._authuser and self._authpass:
-                while bad_site.status_code == 401 and bad_site.history and \
-                                bad_site.history[-1].status_code in [301, 302] and retry < 3:
-                    self._logger.warning("Retrying with redirected url {}".format(bad_site.url))
-                    bad_site = requests.get(bad_site.url, proxies=self._proxy, auth=(self._authuser, self._authpass),
-                                            timeout=60)
-                    retry += 1
+            bad_site = requests.get(url, timeout=60)
             status = str(bad_site.status_code)
             if status[0] in ["1", "2", "3"]:
                 return True
