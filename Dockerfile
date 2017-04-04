@@ -2,7 +2,7 @@
 #
 #
 
-FROM ubuntu:14.04
+FROM ubuntu:16.10
 MAINTAINER DCU ENG <DCUEng@godaddy.com>
 
 RUN groupadd -r dcu && useradd -r -m -g dcu dcu
@@ -10,14 +10,17 @@ RUN groupadd -r dcu && useradd -r -m -g dcu dcu
 # apt-get installs
 RUN apt-get update && \
     apt-get install -y build-essential \
+    fontconfig \
     gcc \
     libffi-dev \
     libssl-dev \
     python-dev \
     python-pip \
-    xvfb
+    curl
 
-RUN Xvfb :1 -screen 0 1024x768x16 &> xvfb.log  &
+RUN cd /usr/local/share && \
+curl -L https://bitbucket.org/ariya/phantomjs/downloads/phantomjs-2.1.1-linux-x86_64.tar.bz2 | tar xj && \
+ln -s /usr/local/share/phantomjs-2.1.1-linux-x86_64/bin/phantomjs /usr/bin/phantomjs
 
 # Make directory for middleware
 RUN mkdir -p /app
@@ -27,8 +30,6 @@ WORKDIR /app
 # Move files to new dir
 ADD . /app
 RUN chown -R dcu:dcu /app
-RUN dpkg -i firefox_45.0.2+build1-0ubuntu0.14.04.1_amd64.deb; \
-    apt-get update && apt-get -f -y install;dpkg -i firefox_45.0.2+build1-0ubuntu0.14.04.1_amd64.deb
 
 # pip install private pips staged by Makefile
 RUN for entry in dcdatabase blindAl; \
@@ -45,8 +46,7 @@ RUN apt-get remove --purge -y build-essential \
     libssl-dev \
     python-dev && \
     rm -rf /var/lib/apt/lists/* && \
-    rm -rf /app/private_pips && \
-    rm -rf /app/*.deb
+    rm -rf /app/private_pips
 
 USER dcu
 

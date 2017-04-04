@@ -1,5 +1,6 @@
 import logging
 import logging.config
+import re
 import logging.handlers
 import os
 from datetime import datetime, timedelta
@@ -61,8 +62,7 @@ def process(data):
           _new_domain_check.s(),
           _new_fraud_check.s(),
           _check_group.s(),
-          _printer.s(),
-          link_error=_error_handler.s())()
+          _printer.s())()
 
 
 ##### PRIVATE TASKS #####
@@ -75,35 +75,48 @@ def _catagorize_and_load(data):
     :return:
     """
     strategy = None
-    type = data.get('type')
-    if type == db.PHISHING:
+    ctype = data.get('type')
+    if ctype == db.PHISHING:
         strategy = PhishingStrategy(app_settings)
-    elif type == db.MALWARE:
+    elif ctype == db.MALWARE:
         strategy = MalwareStrategy(app_settings)
-    elif type == db.NETABUSE:
+    elif ctype == db.NETABUSE:
         strategy = NetAbuseStrategy(app_settings)
-    elif type == db.SPAM:
+    elif ctype == db.SPAM:
         # PhishingStrategy is currently being used for SPAM as its being processed in the same way
         strategy = PhishingStrategy(app_settings)
 
     if strategy:
         return strategy.process(data)
     else:
-        logger.warning("No strategy available for {}".format(type))
+        logger.warning("No strategy available for {}".format(ctype))
 
 
 @app.task
 def _new_domain_check(data):
     """
-    This function handles new domain fraud detection
+    This method handles new domain fraud detection
     :param data:
     :return data:
     """
     try:
-        # If the d_create_date(domain create date) is less than x days old, put on review and send to fraud if not already on hold
+        # If the d_create_date(domain create date) is less than x days old, put on review and send to fraud if not
+        # already on hold
+
+        # regex to determine if GoDaddy is the registrar based on cmap service data
+        regex = re.compile('[^a-zA-Z]')
+        reg = data['data']['domainQuery']['registrar']['name']
+        registrar = regex.sub('', reg) if reg is not None else None
+        godaddy = False
+        if 'GODADDY' in registrar.upper():
+            godaddy = True
+
+        domain_create_date = data['data']['domainQuery']['registrar']['createDate']
+
         if data.get('phishstory_status') == 'OPEN' \
-                and data.get('d_create_date') \
-                and data.get('d_create_date') > datetime.utcnow() - timedelta(days=app_settings.NEW_ACCOUNT):
+                and godaddy is True \
+                and domain_create_date \
+		        and domain_create_date > datetime.utcnow() - timedelta(days=app_settings.NEW_ACCOUNT):
             logger.info("Possible fraud detected on {}".format(pformat(data)))
             review = FraudReview(app_settings)
             urihelper = URIHelper(app_settings)
@@ -126,15 +139,16 @@ def _new_domain_check(data):
 @app.task
 def _new_fraud_check(data):
     """
-    This function handles new account fraud detection
+    This method handles new account fraud detection
     :param data:
     :return data:
     """
     try:
-        # If the s_create_date(shopper create date) is less than x days old, put on review and send to fraud if not already on hold
+        # If the s_create_date(shopper create date) is less than x days old, put on review and send to fraud if not
+        # already on hold
         if data.get('phishstory_status') == 'OPEN' \
-                and data.get('s_create_date') \
-                and data.get('s_create_date') > datetime.utcnow() - timedelta(days=app_settings.NEW_ACCOUNT):
+                and data['data']['domainQuery']['shopperInfo']['dateCreated'] \
+                and data['data']['domainQuery']['shopperInfo']['dateCreated'] > datetime.utcnow() - timedelta(days=app_settings.NEW_ACCOUNT):
             logger.info("Possible fraud detected on {}".format(pformat(data)))
             review = FraudReview(app_settings)
             urihelper = URIHelper(app_settings)
@@ -179,32 +193,29 @@ def _printer(data):
         logger.info("Successfully processed {}".format(pformat(data)))
 
 
-@app.task(bind=True)
-def _error_handler(self, uuid):
-    result = self.app.AsyncResult(uuid)
-    print('Task {0} raised exception: {1!r}\n{2!r}'.format(
-        uuid, result.result, result.traceback))
-
-
 @app.task
 def refresh_screenshot(ticket):
+    """
+    Refresh the screenshot for the given ticket and update the db
+    :param: ticket
+    """
     dcu_db = db(app_settings)
     ticket_data = dcu_db.get_incident(ticket)
     sourcecode_id = ticket_data.get('sourcecode_id')
     screenshot_id = ticket_data.get('screenshot_id')
-    last_screen_grab = ticket_data.get('last_screen_grab', datetime(1970,1,1))
+    last_screen_grab = ticket_data.get('last_screen_grab', datetime(1970, 1, 1))
     logger.info('Request screengrab refresh for {}'.format(ticket))
     if ticket_data.get('phishstory_status', '') == 'OPEN' \
             and last_screen_grab < (datetime.utcnow() - timedelta(minutes=15)):
         logger.info('Updating screengrab for {}'.format(ticket))
-        helper = URIHelper(app_settings)
-        data = helper.get_site_data(ticket_data.get('source'))
+        urihelper = URIHelper(app_settings)
+        data = urihelper.get_site_data(ticket_data.get('source'))
         if data:
             screenshot_id, sourcecode_id = dcu_db.add_crits_data(data, ticket_data.get('source'))
-            last_screen_grab=datetime.utcnow()
+            last_screen_grab = datetime.utcnow()
             dcu_db.update_incident(ticket_data.get('ticketId'),
-                               dict(screenshot_id=screenshot_id, sourcecode_id=sourcecode_id,
-                                    last_screen_grab=last_screen_grab))
+                                   dict(screenshot_id=screenshot_id, sourcecode_id=sourcecode_id,
+                                        last_screen_grab=last_screen_grab))
         else:
             logger.error("Unable to refresh screenshot/sourcecode for {}, no data returned".format(ticket))
     return ((datetime.utcnow() - last_screen_grab).total_seconds()), screenshot_id, sourcecode_id
@@ -220,8 +231,8 @@ def send_young_account_notification(data):
    """
     payload = {'templateNamespaceKey': 'Iris',
                'templateTypeKey': 'DCU7days',
-               'substitutionValues': {'ACCOUNT_NUMBER': data.get('sid'),
-                                      'SHOPPER_CREATION_DATE': data.get('s_create_date'),
+               'substitutionValues': {'ACCOUNT_NUMBER': data['data']['domainQuery']['shopperInfo']['shopperId'],
+                                      'SHOPPER_CREATION_DATE': data['data']['domainQuery']['shopperInfo']['dateCreated'],
                                       'DOMAIN': data.get('sourceDomainOrIp'),
                                       'MALICIOUS_ACTIVITY': data.get('type'),
                                       'BRAND_TARGETED': data.get('target'),
@@ -237,8 +248,8 @@ def send_young_domain_notification(data):
    """
     payload = {'templateNamespaceKey': 'Iris',
                'templateTypeKey': 'DCUNewDomainFraud',
-               'substitutionValues': {'ACCOUNT_NUMBER': data.get('sid'),
-                                      'DOMAIN_CREATION_DATE': data.get('d_create_date'),
+               'substitutionValues': {'ACCOUNT_NUMBER': data['data']['domainQuery']['shopperInfo']['shopperId'],
+                                      'DOMAIN_CREATION_DATE': data['data']['domainQuery']['registrar']['createDate'],
                                       'DOMAIN': data.get('sourceDomainOrIp'),
                                       'MALICIOUS_ACTIVITY': data.get('type'),
                                       'BRAND_TARGETED': data.get('target'),

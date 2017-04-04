@@ -1,0 +1,34 @@
+---
+apiVersion: "extensions/v1beta1"
+kind: "Deployment"
+metadata:
+  name: "middleware-redis"
+  namespace: "abuse-api-dev"
+  labels:
+    app: "middleware-redis"
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: "middleware-redis"
+    spec:
+      imagePullSecrets:
+        -
+          name: "k8s-artifactory-creds"
+
+      containers:
+        -
+          name: "redis"
+          imagePullPolicy: "Always"
+          image: "redis"
+          ports:
+            -
+              containerPort: 6379
+              protocol: "TCP"
+          livenessProbe:
+            exec:
+              command:
+              - sh
+              - -c 
+              - "redis-cli ping"

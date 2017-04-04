@@ -10,6 +10,7 @@ from test_settings import TestingConfig
 
 
 class TestURIHelper(object):
+
     @classmethod
     def setup(cls):
         logging.getLogger('suds').setLevel(logging.INFO)
@@ -27,16 +28,6 @@ class TestURIHelper(object):
         assert_true(true_data)
         false_data = self._urihelper.resolves('http://www.nonononononononononono.com/')
         assert_true(false_data is False)
-
-    def test_get_site_data(self):
-        site_data = self._urihelper.get_site_data('http://comicsn.beer')
-        screenshot = str(site_data[0])
-        sourcecode = site_data[1]
-        assert_true(screenshot[1] == 'P' and screenshot[2] == 'N' and screenshot[3] == 'G' and sourcecode is not None)
-        site_data_2 = self._urihelper.get_site_data('http://')
-        screenshot_2 = site_data_2[0]
-        sourcecode_2 = site_data_2[1]
-        assert_true(screenshot_2 is None and sourcecode_2 is None)
 
     def test_get_status(self):
         hosted_domain_data = self._urihelper.get_status('comicsn.beer')

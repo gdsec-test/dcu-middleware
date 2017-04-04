@@ -1,0 +1,55 @@
+---
+apiVersion: "extensions/v1beta1"
+kind: "Deployment"
+metadata:
+  name: "middleware"
+  namespace: "abuse-api-dev"
+  labels:
+    app: "middleware"
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: "middleware"
+    spec:
+      imagePullSecrets:
+        -
+          name: "k8s-artifactory-creds"
+      containers:
+        -
+          name: "middleware"
+          imagePullPolicy: "Always"
+          image: "artifactory.secureserver.net:10014/docker-dcu-local/dcumiddleware:dev-k8s"
+          env:
+          - name: sysenv
+            value: dev
+          - name: BROKER_PASS
+            valueFrom:
+              secretKeyRef:
+                name: amqp-middleware
+                key: password
+          - name: SERVICE_URL
+            value: http://cmap-service.abuse-api-dev.svc.cluster.local:5000
+          - name: KEYFILE
+            value: /keyfiles/key.txt
+          - name: AUTHPASS
+            valueFrom:
+              secretKeyRef:
+                name: svc-knox
+                key: password
+          # redis used for a CELERY backend
+          - name: REDIS
+            value: middleware-redis.abuse-api-dev.svc.cluster.local
+          - name: API
+            value: api.abuse-api-dev.svc.cluster.local
+          volumeMounts:
+          - name: encryption-keys
+            mountPath: /keyfiles
+            readOnly: true
+
+      volumes:
+        - name: encryption-keys
+          secret:
+            secretName: encryption-key-files
+
