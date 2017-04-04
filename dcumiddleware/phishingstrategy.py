@@ -56,9 +56,9 @@ class PhishingStrategy(Strategy):
 
 			# regex to determine if godaddy is the host and registrar
 			regex = re.compile('[^a-zA-Z]')
-			host = merged_data['data']['domainQuery']['host']['name']
+			host = merged_data.get('data', {}).get('domainQuery', {}).get('host', {}).get('name', None)
 			hostname = regex.sub('', host) if host is not None else None
-			reg = merged_data['data']['domainQuery']['registrar']['name']
+			reg = merged_data.get('data', {}).get('domainQuery', {}).get('registrar', {}).get('name', None)
 			registrar = regex.sub('', reg) if reg is not None else None
 
 			# set status based on API domain/IP and returned cmap service data
@@ -86,19 +86,19 @@ class PhishingStrategy(Strategy):
 			return self.close_process(merged_data, "unworkable")
 
 		# if no shopper number found then no way to confirm vip status
-		vip = merged_data['data']['domainQuery']['shopperInfo']['shopperId']
+		vip = merged_data.get('data', {}).get('domainQuery', {}).get('shopperInfo', {}).get('shopperId', None)
 		if vip is None:
 			merged_data['vip_unconfirmed'] = True
 
 		# get blacklist status - DO NOT SUSPEND special shopper accounts & DO NOT SUSPEND special domain
-		shopper_blacklist = merged_data['data']['domainQuery']['shopperInfo']['vip']['blacklist']
-		domain_blacklist = merged_data['data']['domainQuery']['blacklist']
+		shopper_blacklist = merged_data.get('data', {}).get('domainQuery', {}).get('shopperInfo', {}).get('vip', {}).get('blacklist', True)
+		domain_blacklist = merged_data.get('data', {}).get('domainQuery', {}).get('blacklist', True)
 		if shopper_blacklist is True or domain_blacklist is True:
 			merged_data['blacklist'] = True
 
 		# Add hosted_status to incident
-		res = self._urihelper.resolves(merged_data['source'])
-		if res or merged_data['proxy']:
+		res = self._urihelper.resolves(merged_data.get('source', False))
+		if res or merged_data.get('proxy', False):
 			iid = self._db.add_new_incident(merged_data['ticketId'], merged_data)
 			if iid:
 				self._logger.info("Incident {} inserted into database".format(iid))
@@ -108,8 +108,8 @@ class PhishingStrategy(Strategy):
 					screenshot_id, sourcecode_id = self._db.add_crits_data(self._urihelper.get_site_data(source),
 																		   source)
 					merged_data = self._db.update_incident(iid, dict(screenshot_id=screenshot_id,
-															  sourcecode_id=sourcecode_id,
-															  last_screen_grab=datetime.utcnow()))
+																	 sourcecode_id=sourcecode_id,
+																	 last_screen_grab=datetime.utcnow()))
 			else:
 				self._logger.error("Unable to insert {} into database".format(iid))
 		else:
