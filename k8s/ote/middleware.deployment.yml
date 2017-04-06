@@ -47,7 +47,7 @@ spec:
           - name: REDIS
             value: middleware-redis.abuse-api-ote.svc.cluster.local
           - name: API
-            value: api.abuse-api-ote.svc.cluster.local
+            value: http://api.abuse-api-ote.svc.cluster.local:5000/v1/abuse/tickets
           volumeMounts:
           - name: encryption-keys
             mountPath: /keyfiles
