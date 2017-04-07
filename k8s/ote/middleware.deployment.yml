@@ -21,6 +21,12 @@ spec:
           name: "middleware"
           imagePullPolicy: "Always"
           image: "artifactory.secureserver.net:10014/docker-dcu-local/dcumiddleware:ote-k8s"
+          livenessProbe:
+            exec:
+              command:
+                - '/app/health.sh'
+            initialDelaySeconds: 10
+            periodSeconds: 10
           env:
           - name: sysenv
             value: ote
