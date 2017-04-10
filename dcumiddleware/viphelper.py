@@ -57,9 +57,9 @@ class RegDbAPI(object):
             xml_query = '<request><shopper shopperid="{}"/></request>'.format(shopper_id)
             xml_response = self._client.service.GetDomainCountByShopperID(xml_query)
             match = re.search('domaincount="(\d+)"', xml_response)
-            query_value = int(match.group(1))
+            query_value = match.group(1)
             self._redis_cache.set_value(redis_key, query_value)
-        return query_value
+        return int(query_value)
 
     def get_parent_child_shopper_by_domain_name(self, domain_name):
         redis_key = '{}-parentchild'.format(domain_name)
@@ -107,7 +107,9 @@ class VipClients(object):
             except Exception as e:
                 self._logger.error(e.message)
                 query_value = None
-        return query_value
+        # Since redis holds strings, when reading a redis key, the string "True" or "False" is returned.
+        #  Convert the string to its boolean value and return the boolean value
+        return query_value if isinstance(query_value, bool) else query_value in ["True"]
 
 
 # Cache queries for shoppers and domains to improve performance
