@@ -20,7 +20,7 @@ spec:
         -
           name: "middleware"
           imagePullPolicy: "Always"
-          image: "artifactory.secureserver.net:10014/docker-dcu-local/dcumiddleware:prod-k8s"
+          image: "artifactory.secureserver.net:10014/docker-dcu-local/dcumiddleware:prod"
           livenessProbe:
             exec:
               command:
