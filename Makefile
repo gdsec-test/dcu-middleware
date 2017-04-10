@@ -1,12 +1,13 @@
 REPONAME=infosec-dcu/dcumiddleware
 BUILDROOT=$(HOME)/dockerbuild/$(REPONAME)
 DOCKERREPO=artifactory.secureserver.net:10014/docker-dcu-local/dcumiddleware
+DATE=$(shell date)
 
 # libraries we need to stage for pip to install inside Docker build
 PRIVATE_PIPS=git@github.secureserver.net:ITSecurity/dcdatabase.git \
 git@github.secureserver.net:ITSecurity/blindAl.git
 
-.PHONY: prep dev stage prod clean
+.PHONY: prep dev stage prod ote clean prod-deploy ote-deploy dev-deploy
 
 all: prep dev
 
@@ -21,11 +22,6 @@ prep:
 	# copy the app code to the build root
 	cp -rp ./* $(BUILDROOT)
 
-prod: prep
-	@echo "----- building $(REPONAME) prod -----"
-	DOCKERTAG=prod
-	docker build -t $(DOCKERREPO):prod $(BUILDROOT)
-
 stage: prep
 	@echo "----- building $(REPONAME) stage -----"
 	DOCKERTAG=stage
@@ -33,26 +29,33 @@ stage: prep
 
 dev: prep
 	@echo "----- building $(REPONAME) dev -----"
-	DOCKERTAG=dev
+	sed -ie 's/THIS_STRING_IS_REPLACED_DURING_BUILD/$(DATE)/g' $(BUILDROOT)/k8s/dev/middleware.deployment.yml
 	docker build -t $(DOCKERREPO):dev $(BUILDROOT)
 
 ote: prep
 	@echo "----- building $(REPONAME) ote -----"
-	DOCKERTAG=ote
+	sed -ie 's/THIS_STRING_IS_REPLACED_DURING_BUILD/$(DATE)/g' $(BUILDROOT)/k8s/ote/middleware.deployment.yml
 	docker build -t $(DOCKERREPO):ote $(BUILDROOT)
 
-dev-k8s: prep
-	@echo "----- building $(REPONAME) dev-k8s -----"
-	docker build -t $(DOCKERREPO):dev-k8s $(BUILDROOT)
+prod: prep
+	@echo "----- building $(REPONAME) prod -----"
+	sed -ie 's/THIS_STRING_IS_REPLACED_DURING_BUILD/$(DATE)/g' $(BUILDROOT)/k8s/prod/middleware.deployment.yml
+	docker build -t $(DOCKERREPO):prod $(BUILDROOT)
 
-ote-k8s: prep
-	@echo "----- building $(REPONAME) ote-k8s -----"
-	docker build -t $(DOCKERREPO):ote-k8s $(BUILDROOT)
+dev-deploy: dev
+	@echo "----- deploying $(REPONAME) to dev -----"
+	docker push $(DOCKERREPO):dev
+	kubectl --context dev apply -f $(BUILDROOT)/k8s/dev/middleware.deployment.yml --record
 
-prod-k8s: prep
-	@echo "----- building $(REPONAME) prod-k8s -----"
-	docker build -t $(DOCKERREPO):prod-k8s $(BUILDROOT)
+ote-deploy: ote
+	@echo "----- deploying $(REPONAME) to ote -----"
+	docker push $(DOCKERREPO):ote
+	kubectl --context ote apply -f $(BUILDROOT)/k8s/ote/middleware.deployment.yml --record
 
+prod-deploy: prod
+	@echo "----- deploying $(REPONAME) to prod -----"
+	docker push $(DOCKERREPO):prod
+	kubectl --context prod apply -f $(BUILDROOT)/k8s/prod/middleware.deployment.yml --record
 
 clean:
 	@echo "----- cleaning $(REPONAME) app -----"
