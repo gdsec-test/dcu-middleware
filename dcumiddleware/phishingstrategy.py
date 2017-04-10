@@ -64,7 +64,7 @@ class PhishingStrategy(Strategy):
             # set status based on API domain/IP and returned cmap service data
             if hostname and 'GODADDY' in hostname.upper():
                 status = "HOSTED"
-            elif registrar and 'GODADDY' in registrar.upper():
+            elif registrar and re.search(r'(?:GODADDY|WILDWESTDOMAINS)', registrar.upper()):
                 status = "REGISTERED"
             elif hostname is None or registrar is None:
                 self._logger.warn("Unknown registrar/host status for incident: {}.".format(data['ticketId']))
