@@ -61,9 +61,10 @@ class URIHelper:
             screenshot = browser.get_screenshot_as_png()
             sourcecode = browser.page_source.encode('ascii', 'ignore')
             data = (screenshot, sourcecode)
-            browser.quit()
         except Exception as e:
             self._logger.error("Error while taking snapshot and/or source code for %s: %s", url, str(e))
+        finally:
+            browser.quit()
         return data
 
     def get_status(self, sourceDomainOrIp):
