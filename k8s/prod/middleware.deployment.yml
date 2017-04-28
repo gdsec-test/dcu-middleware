@@ -21,6 +21,11 @@ spec:
           name: "middleware"
           imagePullPolicy: "Always"
           image: "artifactory.secureserver.net:10014/docker-dcu-local/dcumiddleware:prod"
+          resources:
+            requests:
+              memory: "300Mi"
+            limits:
+              memory: "512Mi"
           livenessProbe:
             exec:
               command:
