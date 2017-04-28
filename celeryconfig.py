@@ -22,7 +22,6 @@ class CeleryConfig():
     CELERY_DEFAULT_QUEUE = app_settings.APIQUEUE
     CELERY_ACKS_LATE = True
     CELERYD_PREFETCH_MULTIPLIER = 1
-    CELERYD_MAX_TASKS_PER_CHILD = 100  # TODO temporary
     CELERY_QUEUES = (
         Queue(app_settings.APIQUEUE, Exchange(app_settings.APIQUEUE), routing_key=app_settings.APIQUEUE),
     )
