@@ -1,5 +1,6 @@
 import requests
 import logging
+from requests import sessions
 
 
 class DCUAPIFunctions:
@@ -23,11 +24,12 @@ class DCUAPIFunctions:
         }
         data = False
         try:
-            r = requests.patch('{}/{}'.format(self._url, ticket_id), json=payload, headers=self._header)
-            if r.status_code == 204:
-                data = True
-            else:
-                self._logger.warning("Unable to update ticket {} {}".format(ticket_id, r.content))
+            with sessions.Session() as session:
+                r = session.request(method='PATCH', url='{}/{}'.format(self._url, ticket_id), json=payload, headers=self._header)
+                if r.status_code == 204:
+                    data = True
+                else:
+                    self._logger.warning("Unable to update ticket {} {}".format(ticket_id, r.content))
         except Exception as e:
             self._logger.error("Exception while updating ticket {} {}".format(ticket_id, e.message))
         finally:

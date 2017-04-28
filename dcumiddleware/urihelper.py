@@ -10,6 +10,7 @@ from ipwhois import IPWhois
 from selenium import webdriver
 from suds.client import Client
 from whois import NICClient
+from requests import sessions
 
 
 class URIHelper:
@@ -33,14 +34,15 @@ class URIHelper:
         so we need to manually check for one and re-issue the get with the redirected url and the auth credentials
         """
         try:
-            bad_site = requests.get(url, timeout=60)
-            status = str(bad_site.status_code)
-            if status[0] in ["1", "2", "3"]:
-                return True
-            elif status == "406":
-                return True
-            else:
-                return False
+            with sessions.Session() as session:
+                bad_site = session.request(method='GET', url=url, timeout=60)
+                status = str(bad_site.status_code)
+                if status[0] in ["1", "2", "3"]:
+                    return True
+                elif status == "406":
+                    return True
+                else:
+                    return False
         except Exception as e:
             self._logger.error("Error in determining if url resolves %s : %s", url, e.message)
             return False
