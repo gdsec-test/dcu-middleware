@@ -1,8 +1,9 @@
 import logging
 import re
+import psutil
 import socket
 import xml.etree.ElementTree as ET
-from datetime import datetime
+from datetime import datetime, timedelta
 
 import requests
 from dcdatabase.phishstorymongo import PhishstoryMongo
@@ -53,6 +54,7 @@ class URIHelper:
         :param url:
         :return:
         """
+        self._cleanup_old_phantomjs_processes()
         data = None
         try:
             browser = webdriver.PhantomJS()
@@ -87,7 +89,7 @@ class URIHelper:
                     ip = socket.gethostbyname(sourceDomainOrIp)
                 except socket.gaierror:
                     # Add www if not present, else remove and try again
-                    domain = 'www.'+ sourceDomainOrIp if sourceDomainOrIp[:4] != 'www.' else sourceDomainOrIp[4:]
+                    domain = 'www.' + sourceDomainOrIp if sourceDomainOrIp[:4] != 'www.' else sourceDomainOrIp[4:]
                     ip = socket.gethostbyname(domain)
                 if ip == '0.0.0.0':
                     raise Exception("Invalid Host")
@@ -123,7 +125,7 @@ class URIHelper:
         except Exception as e:
             self._logger.warning("Error in reverse DNS lookup %s : %s, attempting whois lookup..", ip, e.message)
             regex = re.compile('[^a-zA-Z]')
-            name = regex.sub('', IPWhois(ip).lookup_rdap().get('network',[]).get('name', ''))
+            name = regex.sub('', IPWhois(ip).lookup_rdap().get('network', []).get('name', ''))
             return 'GODADDY' in name.upper()
 
     def domain_whois(self, domain_name):
@@ -203,3 +205,20 @@ class URIHelper:
                 return domain_ticket[0]['fraud_hold_until']
         except Exception as e:
             self._logger.error("Unable to determine any fraud holds for {}:{}".format(domain, e.message))
+
+    def _cleanup_old_phantomjs_processes(self):
+        """
+        Phantomjs has a nasty bug that leaves processes laying around
+        after they have been quit from. This causes a memory leak. This
+        function will kill off any processes that have been lying around
+        for 10 mins or more
+        """
+        try:
+            for proc in psutil.process_iter():
+                if proc.name() == 'phantomjs':
+                    p = psutil.Process(proc.pid)
+                    date = datetime.fromtimestamp(p.create_time())
+                    if date < datetime.utcnow() - timedelta(minutes=10):
+                        p.terminate()
+        except Exception as e:
+            self._logger.error("Unbale to remove old phantomjs processes {}".format(e))
