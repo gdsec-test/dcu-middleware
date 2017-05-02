@@ -25,7 +25,7 @@ spec:
             requests:
               memory: "300Mi"
             limits:
-              memory: "512Mi"
+              memory: "1024Mi"
           livenessProbe:
             exec:
               command:

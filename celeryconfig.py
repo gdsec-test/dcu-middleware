@@ -27,8 +27,8 @@ class CeleryConfig():
     )
 
     CELERY_ROUTES = {
-       'run.group': {'queue': app_settings.COMPACTORQUEUE},
-       'run.sendmail': {'queue': app_settings.MAILQUEUE}
+        'run.group': {'queue': app_settings.COMPACTORQUEUE},
+        'run.sendmail': {'queue': app_settings.MAILQUEUE}
     }
 
     def __init__(self):

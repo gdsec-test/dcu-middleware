@@ -1,8 +1,10 @@
 import logging
 import re
+import psutil
 import socket
 import xml.etree.ElementTree as ET
-from datetime import datetime
+import signal
+from datetime import datetime, timedelta
 
 import requests
 from dcdatabase.phishstorymongo import PhishstoryMongo
@@ -10,6 +12,7 @@ from ipwhois import IPWhois
 from selenium import webdriver
 from suds.client import Client
 from whois import NICClient
+from requests import sessions
 
 
 class URIHelper:
@@ -33,14 +36,15 @@ class URIHelper:
         so we need to manually check for one and re-issue the get with the redirected url and the auth credentials
         """
         try:
-            bad_site = requests.get(url, timeout=60)
-            status = str(bad_site.status_code)
-            if status[0] in ["1", "2", "3"]:
-                return True
-            elif status == "406":
-                return True
-            else:
-                return False
+            with sessions.Session() as session:
+                bad_site = session.request(method='GET', url=url, timeout=60)
+                status = str(bad_site.status_code)
+                if status[0] in ["1", "2", "3"]:
+                    return True
+                elif status == "406":
+                    return True
+                else:
+                    return False
         except Exception as e:
             self._logger.error("Error in determining if url resolves %s : %s", url, e.message)
             return False
@@ -59,10 +63,12 @@ class URIHelper:
             screenshot = browser.get_screenshot_as_png()
             sourcecode = browser.page_source.encode('ascii', 'ignore')
             data = (screenshot, sourcecode)
-            browser.quit()
+            return data
         except Exception as e:
             self._logger.error("Error while taking snapshot and/or source code for %s: %s", url, str(e))
-        return data
+        finally:
+            browser.service.process.send_signal(signal.SIGTERM)
+            browser.quit()
 
     def get_status(self, sourceDomainOrIp):
         """
@@ -84,7 +90,7 @@ class URIHelper:
                     ip = socket.gethostbyname(sourceDomainOrIp)
                 except socket.gaierror:
                     # Add www if not present, else remove and try again
-                    domain = 'www.'+ sourceDomainOrIp if sourceDomainOrIp[:4] != 'www.' else sourceDomainOrIp[4:]
+                    domain = 'www.' + sourceDomainOrIp if sourceDomainOrIp[:4] != 'www.' else sourceDomainOrIp[4:]
                     ip = socket.gethostbyname(domain)
                 if ip == '0.0.0.0':
                     raise Exception("Invalid Host")
@@ -120,7 +126,7 @@ class URIHelper:
         except Exception as e:
             self._logger.warning("Error in reverse DNS lookup %s : %s, attempting whois lookup..", ip, e.message)
             regex = re.compile('[^a-zA-Z]')
-            name = regex.sub('', IPWhois(ip).lookup_rdap().get('network',[]).get('name', ''))
+            name = regex.sub('', IPWhois(ip).lookup_rdap().get('network', []).get('name', ''))
             return 'GODADDY' in name.upper()
 
     def domain_whois(self, domain_name):
@@ -200,3 +206,20 @@ class URIHelper:
                 return domain_ticket[0]['fraud_hold_until']
         except Exception as e:
             self._logger.error("Unable to determine any fraud holds for {}:{}".format(domain, e.message))
+
+    def _cleanup_old_phantomjs_processes(self):
+        """
+        Phantomjs has a nasty bug that leaves processes laying around
+        after they have been quit from. This causes a memory leak. This
+        function will kill off any processes that have been lying around
+        for 10 mins or more
+        """
+        try:
+            for proc in psutil.process_iter():
+                if proc.name() == 'phantomjs':
+                    p = psutil.Process(proc.pid)
+                    date = datetime.fromtimestamp(p.create_time())
+                    if date < datetime.utcnow() - timedelta(minutes=10):
+                        p.terminate()
+        except Exception as e:
+            self._logger.error("Unbale to remove old phantomjs processes {}".format(e))
