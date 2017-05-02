@@ -3,6 +3,7 @@ import re
 import psutil
 import socket
 import xml.etree.ElementTree as ET
+import signal
 from datetime import datetime, timedelta
 
 import requests
@@ -54,7 +55,6 @@ class URIHelper:
         :param url:
         :return:
         """
-        self._cleanup_old_phantomjs_processes()
         data = None
         try:
             browser = webdriver.PhantomJS()
@@ -63,11 +63,12 @@ class URIHelper:
             screenshot = browser.get_screenshot_as_png()
             sourcecode = browser.page_source.encode('ascii', 'ignore')
             data = (screenshot, sourcecode)
+            return data
         except Exception as e:
             self._logger.error("Error while taking snapshot and/or source code for %s: %s", url, str(e))
         finally:
+            browser.service.process.send_signal(signal.SIGTERM)
             browser.quit()
-        return data
 
     def get_status(self, sourceDomainOrIp):
         """
