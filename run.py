@@ -105,18 +105,23 @@ def _new_domain_check(data):
 
         # regex to determine if GoDaddy is the registrar based on cmap service data
         regex = re.compile('[^a-zA-Z]')
-        reg = data['data']['domainQuery']['registrar']['name']
+
+        # exit the function if data is not a dictionary type
+        if not isinstance(data, dict):
+            raise ValueError('data is not a dictionary')
+
+        reg = data.get('data', {}).get('domainQuery', {}).get('registrar', {}).get('name', None)
         registrar = regex.sub('', reg) if reg is not None else None
         godaddy = False
+        domain_create_date = False
         if 'GODADDY' in registrar.upper():
             godaddy = True
-
-        domain_create_date = data['data']['domainQuery']['registrar']['createDate']
-
-        if data.get('phishstory_status') == 'OPEN' \
+            domain_create_date = data.get('data', {}).get('domainQuery', {}).get('registrar', {}).get('createDate',
+                                                                                                      False)
+        if data.get('phishstory_status', '') == 'OPEN' \
                 and godaddy is True \
                 and domain_create_date \
-		        and domain_create_date > datetime.utcnow() - timedelta(days=app_settings.NEW_ACCOUNT):
+                and domain_create_date > datetime.utcnow() - timedelta(days=app_settings.NEW_ACCOUNT):
             logger.info("Possible fraud detected on {}".format(pformat(data)))
             review = FraudReview(app_settings)
             urihelper = URIHelper(app_settings)
@@ -144,11 +149,15 @@ def _new_fraud_check(data):
     :return data:
     """
     try:
+        date_created = data.get('data', {}).get('domainQuery', {}).get('shopperInfo', {}).get('dateCreated', False)
+        # exit the function if the dateCreated field cannot be located
+        if not date_created:
+            raise ValueError("dateCreated field was not found within the data dictionary")
+
         # If the s_create_date(shopper create date) is less than x days old, put on review and send to fraud if not
         # already on hold
         if data.get('phishstory_status') == 'OPEN' \
-                and data['data']['domainQuery']['shopperInfo']['dateCreated'] \
-                and data['data']['domainQuery']['shopperInfo']['dateCreated'] > datetime.utcnow() - timedelta(days=app_settings.NEW_ACCOUNT):
+                and date_created > (datetime.utcnow() - timedelta(days=app_settings.NEW_ACCOUNT)):
             logger.info("Possible fraud detected on {}".format(pformat(data)))
             review = FraudReview(app_settings)
             urihelper = URIHelper(app_settings)
@@ -229,15 +238,25 @@ def send_young_account_notification(data):
    :param data:
    :return:
    """
-    payload = {'templateNamespaceKey': 'Iris',
-               'templateTypeKey': 'DCU7days',
-               'substitutionValues': {'ACCOUNT_NUMBER': data['data']['domainQuery']['shopperInfo']['shopperId'],
-                                      'SHOPPER_CREATION_DATE': data['data']['domainQuery']['shopperInfo']['dateCreated'],
-                                      'DOMAIN': data.get('sourceDomainOrIp'),
-                                      'MALICIOUS_ACTIVITY': data.get('type'),
-                                      'BRAND_TARGETED': data.get('target'),
-                                      'SANITIZED_URL': data.get('source')}}
-    app.send_task('run.sendmail', args=(payload,))
+    try:
+        account_number = data.get('data', {}).get('domainQuery', {}).get('shopperInfo', {}).get('shopperId', None)
+        creation_date = data.get('data', {}).get('domainQuery', {}).get('shopperInfo', {}).get('dateCreated', None)
+        if account_number is None:
+            raise ValueError("account number was not provided")
+        if creation_date is None:
+            raise ValueError("shopper creation date was not provided")
+
+        payload = {'templateNamespaceKey': 'Iris',
+                   'templateTypeKey': 'DCU7days',
+                   'substitutionValues': {'ACCOUNT_NUMBER': account_number,
+                                          'SHOPPER_CREATION_DATE': creation_date,
+                                          'DOMAIN': data.get('sourceDomainOrIp'),
+                                          'MALICIOUS_ACTIVITY': data.get('type'),
+                                          'BRAND_TARGETED': data.get('target'),
+                                          'SANITIZED_URL': data.get('source')}}
+        app.send_task('run.sendmail', args=(payload,))
+    except Exception as e:
+        logger.error("Unable to send young account notification: %s" % e.message)
 
 
 def send_young_domain_notification(data):
@@ -246,12 +265,22 @@ def send_young_domain_notification(data):
    :param data:
    :return:
    """
-    payload = {'templateNamespaceKey': 'Iris',
-               'templateTypeKey': 'DCUNewDomainFraud',
-               'substitutionValues': {'ACCOUNT_NUMBER': data['data']['domainQuery']['shopperInfo']['shopperId'],
-                                      'DOMAIN_CREATION_DATE': data['data']['domainQuery']['registrar']['createDate'],
-                                      'DOMAIN': data.get('sourceDomainOrIp'),
-                                      'MALICIOUS_ACTIVITY': data.get('type'),
-                                      'BRAND_TARGETED': data.get('target'),
-                                      'SANITIZED_URL': data.get('source')}}
-    app.send_task('run.sendmail', args=(payload,))
+    try:
+        account_number = data.get('data', {}).get('domainQuery', {}).get('shopperInfo', {}).get('shopperId', None)
+        creation_date = data.get('data', {}).get('domainQuery', {}).get('registrar', {}).get('createDate', None)
+        if account_number is None:
+            raise ValueError("account number was not provided")
+        if creation_date is None:
+            raise ValueError("domain creation date was not provided")
+
+        payload = {'templateNamespaceKey': 'Iris',
+                   'templateTypeKey': 'DCUNewDomainFraud',
+                   'substitutionValues': {'ACCOUNT_NUMBER': account_number,
+                                          'DOMAIN_CREATION_DATE': creation_date,
+                                          'DOMAIN': data.get('sourceDomainOrIp'),
+                                          'MALICIOUS_ACTIVITY': data.get('type'),
+                                          'BRAND_TARGETED': data.get('target'),
+                                          'SANITIZED_URL': data.get('source')}}
+        app.send_task('run.sendmail', args=(payload,))
+    except Exception as e:
+        logger.error("Unable to send young domain notification: %s" % e.message)

@@ -44,7 +44,12 @@ spec:
           - name: AUTHPASS
             valueFrom:
               secretKeyRef:
-                name: svc-knox
+                name: dcu-proxy-auth
+                key: password
+          - name: DBPASS
+            valueFrom:
+              secretKeyRef:
+                name: db-middleware
                 key: password
           # redis used for a CELERY backend
           - name: REDIS
