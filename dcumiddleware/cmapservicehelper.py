@@ -60,12 +60,17 @@ class CmapServiceHelper(object):
                 }
               }
               blacklist
+              alexaRank
             }
           }
           ''')
             query_result = self.cmap_query(query, domain)
-            query_result['data']['domainQuery']['registrar']['createDate'] = self._date_time_format(query_result['data']['domainQuery']['registrar']['createDate'])
-            query_result['data']['domainQuery']['shopperInfo']['dateCreated'] = self._date_time_format(query_result['data']['domainQuery']['shopperInfo']['dateCreated'])
+            reg_create_date = query_result.get('data', {}).get('domainQuery', {}).get('registrar', {}).get(
+                'createDate', None)
+            query_result['data']['domainQuery']['registrar']['createDate'] = self._date_time_format(reg_create_date)
+            shp_create_date = query_result.get('data', {}).get('domainQuery', {}).get('shopperInfo', {}).get(
+                'createDate', None)
+            query_result['data']['domainQuery']['shopperInfo']['dateCreated'] = self._date_time_format(shp_create_date)
             return query_result
         except Exception as e:
             self._logger.error("Unable to complete domain query for : {}. {}".
@@ -74,17 +79,18 @@ class CmapServiceHelper(object):
 
     def _date_time_format(self, date):
         """
-        Returns date/time formated object
+        Returns date/time formatted object
         :param date:
         :return iso_date:
         """
         try:
+            if not isinstance(date, datetime):
+                raise ValueError("date provided is not a datetime type")
             iso_date = datetime.strptime(date, '%Y-%m-%d')
             return iso_date
         except Exception as e:
             self._logger.error(
-                "Unable to format date string to ISO date object: {}. {}".
-                format(date, e.message))
+                "Unable to format date string to ISO date object: {}. {}".format(date, e.message))
             return date
 
     def api_cmap_merge(self, apidata, cmapdata):
