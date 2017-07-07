@@ -60,6 +60,7 @@ class CmapServiceHelper(object):
                 }
               }
               blacklist
+              alexaRank
             }
           }
           ''')
