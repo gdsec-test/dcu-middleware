@@ -105,11 +105,13 @@ class PhishingStrategy(Strategy):
                 if res:
                     # Attach crits data if it resolves
                     source = merged_data['source']
-                    screenshot_id, sourcecode_id = self._db.add_crits_data(self._urihelper.get_site_data(source),
-                                                                           source)
+                    screenshot, sourcecode = self._urihelper.get_site_data(source)
+                    target = 'GoDaddy' if self._urihelper.gd_phish(sourcecode) else merged_data.get('target', '')
+                    screenshot_id, sourcecode_id = self._db.add_crits_data((screenshot, sourcecode), source)
                     merged_data = self._db.update_incident(iid, dict(screenshot_id=screenshot_id,
                                                                      sourcecode_id=sourcecode_id,
-                                                                     last_screen_grab=datetime.utcnow()))
+                                                                     last_screen_grab=datetime.utcnow(),
+                                                                     target=target))
             else:
                 self._logger.error("Unable to insert {} into database".format(iid))
         else:
