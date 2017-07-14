@@ -104,7 +104,7 @@ class PhishingStrategy(Strategy):
                 self._logger.info("Incident {} inserted into database".format(iid))
                 if res:
                     # Attach crits data if it resolves
-                    source = merged_data['source']
+                    source = merged_data.get('source', None)
                     screenshot, sourcecode = self._urihelper.get_site_data(source)
                     target = 'GoDaddy' if self._urihelper.gd_phish(sourcecode) else merged_data.get('target', '')
                     screenshot_id, sourcecode_id = self._db.add_crits_data((screenshot, sourcecode), source)
