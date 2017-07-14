@@ -21,11 +21,31 @@ class URIHelper:
     REG = 2
     NOT_REG_HOSTED = 3
     UNKNOWN = -1
+    GD_PHISH = [
+        re.compile('(rebrand-bg-image\.jpg|bg-pass\.png)'),
+        re.compile('Sign in'),
+        re.compile('\.wsimg\.com'),
+        re.compile('\$\( *\'form\[id=login-form\]\' *\)\.attr\( *\'action\''),
+        re.compile('GoDaddy Operating Company, LLC')
+    ]
 
     def __init__(self, settings):
         self._logger = logging.getLogger(__name__)
         self._db = PhishstoryMongo(settings)
         self._url = settings.KNOX_URL
+
+    def gd_phish(self, source_code):
+        """
+        Detects if the given sourcecode is attempting to phish GoDaddy
+        :return: True if at least 2 of the GD_PHISH regexes match the given sourcecode
+        """
+        match = []
+        try:
+            match = [y.search(source_code) for y in self.GD_PHISH]
+            match = filter(None, match)
+        except Exception as e:
+            self._logger.error("Unable to determine if sourcecdode is a GD_PHISH:%s", e)
+        return len(match) > 1
 
     def resolves(self, url):
         """
