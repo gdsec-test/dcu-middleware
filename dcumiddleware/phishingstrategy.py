@@ -40,61 +40,22 @@ class PhishingStrategy(Strategy):
 
         self._logger.info("Received request {}".format(pformat(data)))
 
-        # query cmap service with domain or ip from API data
-        subdomain = data.get('sourceSubDomain')
-        if subdomain is not None:
-            cmapdata = self._cmapservice.domain_query(subdomain)
-        else:
-            cmapdata = self._cmapservice.domain_query(data['sourceDomainOrIp'])
-
-        status = None
-
-        # determine if domain is hosted at godaddy
-        try:
-            # merge API dict data with cmap service dict data
-            merged_data = self._cmapservice.api_cmap_merge(data, cmapdata)
-
-            # regex to determine if godaddy is the host and registrar
-            regex = re.compile('[^a-zA-Z]')
-            host = merged_data.get('data', {}).get('domainQuery', {}).get('host', {}).get('name', None)
-            hostname = regex.sub('', host) if host is not None else None
-            reg = merged_data.get('data', {}).get('domainQuery', {}).get('registrar', {}).get('name', None)
-            registrar = regex.sub('', reg) if reg is not None else None
-
-            # set status based on API domain/IP and returned cmap service data
-            if hostname and 'GODADDY' in hostname.upper():
-                status = "HOSTED"
-            elif registrar and re.search(r'(?:GODADDY|WILDWESTDOMAINS)', registrar.upper()):
-                status = "REGISTERED"
-            elif hostname is None or registrar is None:
-                self._logger.warn("Unknown registrar/host status for incident: {}.".format(data['ticketId']))
-                status = "UNKNOWN"
-            elif 'GODADDY' not in hostname.upper() and 'GODADDY' not in registrar.upper():
-                status = "FOREIGN"
-        except Exception as e:
-            # if cmap service query has a problem with the given domain/IP, status is set to UNKNOWN and merged_data
-            # is set only to API data
-            self._logger.warn("Unknown registrar/host status for incident: {}. {}".format(pformat(data), e.message))
-            status = "UNKNOWN"
-            merged_data = data
+        # Retrieve the cmap data and merge it with the data obtained from the API
+        cmapdata = self._get_cmap_data(data)
+        merged_data = self._merge_cmap_data(data, cmapdata)
 
         # set hosted status: HOSTED, REGISTERED, FOREIGN, or UNKNOWN
-        merged_data['hosted_status'] = status
+        merged_data['hosted_status'] = self._get_hosted_status(merged_data)
 
-        # close incident if it is foreign or unknown
-        if status in ["FOREIGN", "UNKNOWN"]:
+        # close incident if it is unknown
+        if merged_data['hosted_status'] == "UNKNOWN":
             return self.close_process(merged_data, "unworkable")
 
         # if no shopper number found then no way to confirm vip status
-        vip = merged_data.get('data', {}).get('domainQuery', {}).get('shopperInfo', {}).get('shopperId', None)
-        if vip is None:
-            merged_data['vip_unconfirmed'] = True
+        merged_data['vip_unconfirmed'] = self.is_unconfirmed_vip(merged_data)
 
         # get blacklist status - DO NOT SUSPEND special shopper accounts & DO NOT SUSPEND special domain
-        shopper_blacklist = merged_data.get('data', {}).get('domainQuery', {}).get('shopperInfo', {}).get('vip', {}).get('blacklist', True)
-        domain_blacklist = merged_data.get('data', {}).get('domainQuery', {}).get('blacklist', True)
-        if shopper_blacklist is True or domain_blacklist is True:
-            merged_data['blacklist'] = True
+        merged_data['blacklist'] = self.is_blacklisted(merged_data)
 
         # Add hosted_status to incident
         res = self._urihelper.resolves(merged_data.get('source', False))
@@ -115,6 +76,87 @@ class PhishingStrategy(Strategy):
             else:
                 self._logger.error("Unable to insert {} into database".format(iid))
         else:
-            merged_data = self.close_process(merged_data, "unresolvable")
+            merged_data = self.close_process(merged_data, "unworkable") if merged_data['hosted_status'] == 'FOREIGN' \
+                else self.close_process(merged_data, "unresolvable")
 
         return merged_data
+
+    def _get_cmap_data(self, data):
+        """
+        Returns a dictionary that is the result of querying the Domain Query CMAP Service with either
+        the sourceSubDomain or with the sourceDomainOrIp.
+        :param data:
+        :return:
+        """
+        subdomain = data.get('sourceSubDomain')
+        return self._cmapservice.domain_query(subdomain) if subdomain is not None \
+            else self._cmapservice.domain_query(data['sourceDomainOrIp'])
+
+    def _merge_cmap_data(self, data, cmapdata):
+        """
+        Returns a merged dictionary that represents data obtained from the API as well as data obtained from CMAP.
+        If unable to merge with CMAP data, the original data will be returned with an unkown hosted status.
+        :param data:
+        :param cmapdata:
+        :return:
+        """
+        try:
+            # merge API dict data with cmap service dict data
+            merged_data = self._cmapservice.api_cmap_merge(data, cmapdata)
+        except Exception as e:
+            # if cmap service query has a problem with the given domain/IP, status is set to UNKNOWN and merged_data
+            # is set only to API data
+            self._logger.warn("Unknown registrar/host status for incident: {}. {}".format(pformat(data), e.message))
+            merged_data = data
+            merged_data['hosted_status'] = "UNKNOWN"
+        return merged_data
+
+    def _get_hosted_status(self, data):
+        """
+        Returns the hosted status of a particular domain. Status may be HOSTED, REGISTERED, UNKNOWN, or FOREIGN.
+        :param data:
+        :return:
+        """
+        status = None
+
+        # regex to determine if godaddy is the host and registrar
+        regex = re.compile('[^a-zA-Z]')
+        host = data.get('data', {}).get('domainQuery', {}).get('host', {}).get('name', None)
+        hostname = regex.sub('', host) if host is not None else None
+        reg = data.get('data', {}).get('domainQuery', {}).get('registrar', {}).get('name', None)
+        registrar = regex.sub('', reg) if reg is not None else None
+
+        # set status based on API domain/IP and returned cmap service data
+        if hostname and 'GODADDY' in hostname.upper():
+            status = "HOSTED"
+        elif registrar and re.search(r'(?:GODADDY|WILDWESTDOMAINS)', registrar.upper()):
+            status = "REGISTERED"
+        elif hostname is None or registrar is None:
+            self._logger.warn("Unknown registrar/host status for incident: {}.".format(data['ticketId']))
+            status = "UNKNOWN"
+        # Need to break this out. If we receive a non-hosted non-registered domain that is GD-targetted we want to
+        # do something with it
+        elif 'GODADDY' not in hostname.upper() and 'GODADDY' not in registrar.upper():
+            status = "FOREIGN"
+
+        # return hosted status: HOSTED, REGISTERED, FOREIGN, or UNKNOWN
+        return status
+
+    def is_blacklisted(self, data):
+        """
+        Returns a Boolean that represents whether or not a shopper or a domain is blacklisted.
+        :param data:
+        :return:
+        """
+        shopper_blacklist = data.get('data', {}).get('domainQuery', {}).get('shopperInfo', {}).get('vip', {}).get('blacklist', True)
+        domain_blacklist = data.get('data', {}).get('domainQuery', {}).get('blacklist', True)
+
+        return shopper_blacklist is True or domain_blacklist is True
+
+    def is_unconfirmed_vip(self, data):
+        """
+        Returns a Boolean representing whether or not a shopper has an unconfirmed VIP status or not.
+        :param data:
+        :return:
+        """
+        return data.get('data', {}).get('domainQuery', {}).get('shopperInfo', {}).get('shopperId', None) is None
