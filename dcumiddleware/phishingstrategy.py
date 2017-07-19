@@ -44,6 +44,12 @@ class PhishingStrategy(Strategy):
         cmapdata = self._get_cmap_data(data)
         merged_data = self._merge_cmap_data(data, cmapdata)
 
+        # if no shopper number found then no way to confirm vip status
+        merged_data['vip_unconfirmed'] = self.is_unconfirmed_vip(merged_data)
+
+        # get blacklist status - DO NOT SUSPEND special shopper accounts & DO NOT SUSPEND special domain
+        merged_data['blacklist'] = self.is_blacklisted(merged_data)
+
         screenshot, sourcecode, source, target = '', '', '', ''
         res = self._urihelper.resolves(merged_data.get('source', False))
         if res or merged_data.get('proxy', False):
@@ -53,6 +59,7 @@ class PhishingStrategy(Strategy):
                 screenshot, sourcecode = self._urihelper.get_site_data(source)
                 target = 'GoDaddy' if self._urihelper.gd_phish(sourcecode) else merged_data.get('target', '')
         else:
+            merged_data['hosted_status'] = "UNKNOWN"
             return self.close_process(merged_data, "unresolvable")
 
         # set hosted status: HOSTED, REGISTERED, FOREIGN, or UNKNOWN
@@ -62,15 +69,10 @@ class PhishingStrategy(Strategy):
         if merged_data['hosted_status'] == "UNKNOWN":
             return self.close_process(merged_data, "unworkable")
 
-        # if no shopper number found then no way to confirm vip status
-        merged_data['vip_unconfirmed'] = self.is_unconfirmed_vip(merged_data)
-
-        # get blacklist status - DO NOT SUSPEND special shopper accounts & DO NOT SUSPEND special domain
-        merged_data['blacklist'] = self.is_blacklisted(merged_data)
-
         # At this point we have a site that resolves/proxied and is either a FOREIGN site targeting GoDaddy or any
         # variation of a workable hosted status. Create an entry, and if the site resolves, add crits data.
-        if merged_data['hosted_status'] == 'FOREIGN' and target == 'GoDaddy' or merged_data['hosted_status'] is not None:
+        if (merged_data['hosted_status'] == 'FOREIGN' and target == 'GoDaddy') \
+                or merged_data['hosted_status'] in ["HOSTED", "REGISTERED"]:
             iid = self._db.add_new_incident(merged_data['ticketId'], merged_data)
             if iid:
                 self._logger.info("Incident {} inserted into database".format(iid))
