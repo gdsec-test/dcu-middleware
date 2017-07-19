@@ -119,12 +119,7 @@ class PhishingStrategy(Strategy):
         """
         status = None
 
-        # regex to determine if godaddy is the host and registrar
-        regex = re.compile('[^a-zA-Z]')
-        host = data.get('data', {}).get('domainQuery', {}).get('host', {}).get('name', None)
-        hostname = regex.sub('', host) if host is not None else None
-        reg = data.get('data', {}).get('domainQuery', {}).get('registrar', {}).get('name', None)
-        registrar = regex.sub('', reg) if reg is not None else None
+        hostname, registrar = self.parse_hostname_and_registrar(data)
 
         # set status based on API domain/IP and returned cmap service data
         if hostname and 'GODADDY' in hostname.upper():
@@ -134,13 +129,27 @@ class PhishingStrategy(Strategy):
         elif hostname is None or registrar is None:
             self._logger.warn("Unknown registrar/host status for incident: {}.".format(data['ticketId']))
             status = "UNKNOWN"
-        # Need to break this out. If we receive a non-hosted non-registered domain that is GD-targetted we want to
-        # do something with it
         elif 'GODADDY' not in hostname.upper() and 'GODADDY' not in registrar.upper():
             status = "FOREIGN"
 
-        # return hosted status: HOSTED, REGISTERED, FOREIGN, or UNKNOWN
         return status
+
+    def parse_hostname_and_registrar(self, data):
+        """
+        Returns the host and registrar as a tuple from the data provided.
+        :param data:
+        :return:
+        """
+
+        # regex to determine if godaddy is the host and registrar
+        regex = re.compile('[^a-zA-Z]')
+
+        host = data.get('data', {}).get('domainQuery', {}).get('host', {}).get('name', None)
+        hostname = regex.sub('', host) if host is not None else None
+        reg = data.get('data', {}).get('domainQuery', {}).get('registrar', {}).get('name', None)
+        registrar = regex.sub('', reg) if reg is not None else None
+
+        return hostname, registrar
 
     def is_blacklisted(self, data):
         """
