@@ -44,6 +44,17 @@ class PhishingStrategy(Strategy):
         cmapdata = self._get_cmap_data(data)
         merged_data = self._merge_cmap_data(data, cmapdata)
 
+        screenshot, sourcecode, source, target = '', '', '', ''
+        res = self._urihelper.resolves(merged_data.get('source', False))
+        if res or merged_data.get('proxy', False):
+            if res:
+                # Attach crits data if it resolves
+                source = merged_data.get('source', None)
+                screenshot, sourcecode = self._urihelper.get_site_data(source)
+                target = 'GoDaddy' if self._urihelper.gd_phish(sourcecode) else merged_data.get('target', '')
+        else:
+            return self.close_process(merged_data, "unresolvable")
+
         # set hosted status: HOSTED, REGISTERED, FOREIGN, or UNKNOWN
         merged_data['hosted_status'] = self._get_hosted_status(merged_data)
 
@@ -57,17 +68,13 @@ class PhishingStrategy(Strategy):
         # get blacklist status - DO NOT SUSPEND special shopper accounts & DO NOT SUSPEND special domain
         merged_data['blacklist'] = self.is_blacklisted(merged_data)
 
-        # Add hosted_status to incident
-        res = self._urihelper.resolves(merged_data.get('source', False))
-        if res or merged_data.get('proxy', False):
+        # At this point we have a site that resolves/proxied and is either a FOREIGN site targeting GoDaddy or any
+        # variation of a workable hosted status. Create an entry, and if the site resolves, add crits data.
+        if merged_data['hosted_status'] == 'FOREIGN' and target == 'GoDaddy' or merged_data['hosted_status'] is not None:
             iid = self._db.add_new_incident(merged_data['ticketId'], merged_data)
             if iid:
                 self._logger.info("Incident {} inserted into database".format(iid))
                 if res:
-                    # Attach crits data if it resolves
-                    source = merged_data.get('source', None)
-                    screenshot, sourcecode = self._urihelper.get_site_data(source)
-                    target = 'GoDaddy' if self._urihelper.gd_phish(sourcecode) else merged_data.get('target', '')
                     screenshot_id, sourcecode_id = self._db.add_crits_data((screenshot, sourcecode), source)
                     merged_data = self._db.update_incident(iid, dict(screenshot_id=screenshot_id,
                                                                      sourcecode_id=sourcecode_id,
@@ -76,8 +83,7 @@ class PhishingStrategy(Strategy):
             else:
                 self._logger.error("Unable to insert {} into database".format(iid))
         else:
-            merged_data = self.close_process(merged_data, "unworkable") if merged_data['hosted_status'] == 'FOREIGN' \
-                else self.close_process(merged_data, "unresolvable")
+            merged_data = self.close_process(merged_data, "unworkable")
 
         return merged_data
 
@@ -89,26 +95,22 @@ class PhishingStrategy(Strategy):
         :return:
         """
         subdomain = data.get('sourceSubDomain')
-        return self._cmapservice.domain_query(subdomain) if subdomain is not None \
+        return self._cmapservice.domain_query(subdomain) if subdomain \
             else self._cmapservice.domain_query(data['sourceDomainOrIp'])
 
     def _merge_cmap_data(self, data, cmapdata):
         """
         Returns a merged dictionary that represents data obtained from the API as well as data obtained from CMAP.
-        If unable to merge with CMAP data, the original data will be returned with an unkown hosted status.
+        If unable to merge with CMAP data, the original data will be returned with an unknown hosted status.
         :param data:
         :param cmapdata:
         :return:
         """
-        try:
-            # merge API dict data with cmap service dict data
-            merged_data = self._cmapservice.api_cmap_merge(data, cmapdata)
-        except Exception as e:
-            # if cmap service query has a problem with the given domain/IP, status is set to UNKNOWN and merged_data
-            # is set only to API data
-            self._logger.warn("Unknown registrar/host status for incident: {}. {}".format(pformat(data), e.message))
-            merged_data = data
+        merged_data = self._cmapservice.api_cmap_merge(data, cmapdata)
+
+        if merged_data == data:
             merged_data['hosted_status'] = "UNKNOWN"
+            self._logger.warn("Unknown registrar/host status for incident: {}.".format(pformat(data)))
         return merged_data
 
     def _get_hosted_status(self, data):
