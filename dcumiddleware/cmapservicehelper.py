@@ -86,8 +86,7 @@ class CmapServiceHelper(object):
         try:
             if not isinstance(date, datetime):
                 raise ValueError("date provided is not a datetime type")
-            iso_date = datetime.strptime(date, '%Y-%m-%d')
-            return iso_date
+            return datetime.strptime(date, '%Y-%m-%d')
         except Exception as e:
             self._logger.error(
                 "Unable to format date string to ISO date object: {}. {}".format(date, e.message))
@@ -101,8 +100,7 @@ class CmapServiceHelper(object):
         :return merged_data: dictionary that is the result of merging the api data and cmap data dictionaries
         """
         try:
-            merged_data = dict(apidata.items() + cmapdata.items())
-            return merged_data
+            return dict(apidata.items() + cmapdata.items())
         except Exception as e:
             self._logger.error(
                 "Unable to merge API and CMAP service dictionaries: {}. {}".
