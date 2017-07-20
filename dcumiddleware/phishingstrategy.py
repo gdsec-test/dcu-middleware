@@ -59,7 +59,7 @@ class PhishingStrategy(Strategy):
                 target = 'GoDaddy' if self._urihelper.gd_phish(sourcecode) else merged_data.get('target', '')
         else:
             merged_data['hosted_status'] = self.UNKNOWN
-            self._logger.warn("Unable to resolve incident {} at {}").format(merged_data['ticketId'], source)
+            self._logger.warn("Unable to resolve incident {} at {}".format(merged_data['ticketId'], source))
             return self.close_process(merged_data, self.UNRESOLVABLE)
 
         # set hosted status: HOSTED, REGISTERED, FOREIGN, or UNKNOWN
