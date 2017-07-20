@@ -54,25 +54,25 @@ class PhishingStrategy(Strategy):
         res = self._urihelper.resolves(merged_data.get('source', False))
         if res or merged_data.get('proxy', False):
             if res:
-                # Attach crits data if it resolves
                 source = merged_data.get('source', None)
                 screenshot, sourcecode = self._urihelper.get_site_data(source)
                 target = 'GoDaddy' if self._urihelper.gd_phish(sourcecode) else merged_data.get('target', '')
         else:
-            merged_data['hosted_status'] = "UNKNOWN"
-            return self.close_process(merged_data, "unresolvable")
+            merged_data['hosted_status'] = self.UNKNOWN
+            self._logger.warn("Unable to resolve incident {} at {}").format(merged_data['ticketId'], source)
+            return self.close_process(merged_data, self.UNRESOLVABLE)
 
         # set hosted status: HOSTED, REGISTERED, FOREIGN, or UNKNOWN
         merged_data['hosted_status'] = self._get_hosted_status(merged_data)
 
         # close incident if it is unknown
-        if merged_data['hosted_status'] == "UNKNOWN":
-            return self.close_process(merged_data, "unworkable")
+        if merged_data['hosted_status'] == self.UNKNOWN:
+            return self.close_process(merged_data, self.UNWORKABLE)
 
         # At this point we have a site that resolves/proxied and is either a FOREIGN site targeting GoDaddy or any
         # variation of a workable hosted status. Create an entry, and if the site resolves, add crits data.
-        if (merged_data['hosted_status'] == 'FOREIGN' and target == 'GoDaddy') \
-                or merged_data['hosted_status'] in ["HOSTED", "REGISTERED"]:
+        if (merged_data['hosted_status'] == self.FOREIGN and target == 'GoDaddy') \
+                or merged_data['hosted_status'] in [self.HOSTED, self.REGISTERED]:
             iid = self._db.add_new_incident(merged_data['ticketId'], merged_data)
             if iid:
                 self._logger.info("Incident {} inserted into database".format(iid))
@@ -85,7 +85,7 @@ class PhishingStrategy(Strategy):
             else:
                 self._logger.error("Unable to insert {} into database".format(iid))
         else:
-            merged_data = self.close_process(merged_data, "unworkable")
+            merged_data = self.close_process(merged_data, self.UNWORKABLE)
 
         return merged_data
 
@@ -111,7 +111,7 @@ class PhishingStrategy(Strategy):
         merged_data = self._cmapservice.api_cmap_merge(data, cmapdata)
 
         if merged_data == data:
-            merged_data['hosted_status'] = "UNKNOWN"
+            merged_data['hosted_status'] = self.UNKNOWN
             self._logger.warn("Unknown registrar/host status for incident: {}.".format(pformat(data)))
         return merged_data
 
@@ -127,13 +127,14 @@ class PhishingStrategy(Strategy):
 
         # set status based on API domain/IP and returned cmap service data
         if hostname and 'GODADDY' in hostname.upper():
-            status = "HOSTED"
+            status = self.HOSTED
         elif registrar and re.search(r'(?:GODADDY|WILDWESTDOMAINS)', registrar.upper()):
-            status = "REGISTERED"
+            status = self.REGISTERED
         elif hostname is None or registrar is None:
             self._logger.warn("Unknown registrar/host status for incident: {}.".format(data['ticketId']))
-            status = "UNKNOWN"
+            status = self.UNKNOWN
         elif 'GODADDY' not in hostname.upper() and 'GODADDY' not in registrar.upper():
-            status = "FOREIGN"
+            self._logger.warn("Foreign registrar and host status for incident: {}.".format(data['ticketId']))
+            status = self.FOREIGN
 
         return status
