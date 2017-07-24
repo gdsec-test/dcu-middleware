@@ -17,36 +17,40 @@ class NetAbuseStrategy(Strategy):
         self._db = PhishstoryMongo(settings)
         self._api = DCUAPIFunctions(settings)
 
+    def close_process(self, data, close_reason):
+        data['close_reason'] = close_reason
+        self._db.close_incident(data['ticketId'], data)
+        # Close upstream ticket as well
+        if self._api.close_ticket(data['ticketId']):
+            self._logger.info("Ticket {} closed successfully".format(data['ticketId']))
+        else:
+            self._logger.warning("Unable to close upstream ticket {}".format(data['ticketId']))
+        return data
+
     def process(self, data, **kwargs):
         # determine if IP is hosted with godaddy
         self._logger.info("Received request {}".format(pformat(data)))
         hosted_status = self._urihelper.get_status(data.get('sourceDomainOrIp'))
         if hosted_status[0] == URIHelper.HOSTED:
-            status = "HOSTED"
+            status = self.HOSTED
         elif hosted_status[0] == URIHelper.REG:
-            status = "REGISTERED"
+            status = self.REGISTERED
         elif hosted_status[0] == URIHelper.NOT_REG_HOSTED:
-            status = "FOREIGN"
+            status = self.FOREIGN
         else:
             self._logger.warn("Unknown hosted status for incident: {}".format(pformat(data)))
-            status = "UNKNOWN"
+            status = self.UNKNOWN
 
         # Add hosted_status attribute to incident
         data['hosted_status'] = status
         # save the incident to the database
-        if status is "HOSTED":
+        if status is self.HOSTED:
             iid = self._db.add_new_incident(data.get('ticketId'), data)
             if iid:
                 self._logger.info("Incident {} inserted into database".format(iid))
             else:
                 self._logger.error("Unable to insert {} into database".format(iid))
         else:
-            data['close_reason'] = "not_hosted"
-            self._db.close_incident(data.get('ticketId'), data)
-            # Close upstream ticket as well
-            if self._api.close_ticket(data.get('ticketId')):
-                self._logger.info("Ticket {} closed successfully".format(data.get('ticketId')))
-            else:
-                self._logger.warning("Unable to close upstream ticket {}".format(data.get('ticketId')))
+            data = self.close_process(data, "not_hosted")
 
         return data

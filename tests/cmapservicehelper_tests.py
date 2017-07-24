@@ -118,7 +118,7 @@ class TestCmapServiceHelper:
 		assert_true(doc2['type'] == 'PHISHING')
 
 	def test_date_time_format(self):
-		date = self.cmapservice._date_time_format('2012-01-09')
+		date = self.cmapservice._date_time_format(datetime.strptime('09-01-2012', '%d-%m-%Y'))
 		assert_true(date == datetime.strptime('2012-01-09', '%Y-%m-%d'))
 		date2 = self.cmapservice._date_time_format('fail')
 		assert_true(date2 == 'fail')
