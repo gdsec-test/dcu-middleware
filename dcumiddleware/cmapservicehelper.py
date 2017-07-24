@@ -1,8 +1,8 @@
-import requests
-from requests import sessions
 import json
-from datetime import datetime
 import logging
+
+from datetime import datetime
+from requests import sessions
 
 
 class CmapServiceHelper(object):
