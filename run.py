@@ -1,7 +1,7 @@
 import re
 import os
 import yaml
-import logging.handlers
+import logging.config
 
 from datetime import datetime, timedelta
 from pprint import pformat
@@ -127,7 +127,7 @@ def refresh_screenshot(ticket):
     if ticket_data.get('phishstory_status', '') == 'OPEN' \
             and last_screen_grab < (datetime.utcnow() - timedelta(minutes=15)):
         logger.info('Updating screengrab for {}'.format(ticket))
-        urihelper = URIHelper(app_settings)
+        urihelper = URIHelper()
         data = urihelper.get_site_data(ticket_data.get('source'))
         if data:
             screenshot_id, sourcecode_id = dcu_db.add_crits_data(data, ticket_data.get('source'))

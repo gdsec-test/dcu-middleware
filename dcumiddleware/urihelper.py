@@ -1,16 +1,13 @@
 import logging
 import signal
 
-from dcdatabase.phishstorymongo import PhishstoryMongo
 from selenium import webdriver
 
 
 class URIHelper:
 
-    def __init__(self, settings):
+    def __init__(self):
         self._logger = logging.getLogger(__name__)
-        self._db = PhishstoryMongo(settings)
-        self._url = settings.KNOX_URL
 
     def get_site_data(self, url):
         """

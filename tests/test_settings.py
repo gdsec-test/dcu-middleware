@@ -13,8 +13,5 @@ class TestingConfig():
     COLLECTION = 'test'
     API_UPDATE_URL = None
     API_TOKEN = None
-    KNOX_URL = 'https://shopper.test.glbt1.gdg/WSCgdShopper/WSCgdShopper.dll?Handler=GenWSCgdShopperWSDL'
-    # KNOX_URL = 'http://shopper.prod.mesa1.gdg/WSCgdShopper/WSCgdShopper.dll?Handler=GenWSCgdShopperWSDL'  # Prod
-    HOLD_TIME = 86400
     CMAP_SERVICE = 'http://localhost:5000'
     SELENIUM_URL = 'http://localhost:4444/wd/hub'
