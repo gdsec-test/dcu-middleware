@@ -13,6 +13,7 @@ from celeryconfig import CeleryConfig
 from settings import config_by_name
 from dcumiddleware.urihelper import URIHelper
 from dcumiddleware.cmapservicehelper import CmapServiceHelper
+from dcumiddleware.routinghelper import RoutingHelper
 from dcdatabase.phishstorymongo import PhishstoryMongo as db
 
 
@@ -86,15 +87,12 @@ def _route_to_brand_services(data):
     :param data:
     :return:
     """
-    brand = data.get('brand', None)
-    if brand == 'GODADDY': # route to GoDaddy brand services
-        pass
-    elif brand == 'EMEA': # route to EMEA brand services
-        pass
-    elif brand == 'HAINAN': #route to HAINAN brand services
-        pass
-    else: #Probably route to GoDaddy and have us handle this
-        logger.warning("No brand available for {}. Default routing to GoDaddy".format(data))
+    routing_helper = RoutingHelper()
+    brands = data.get('brands', ['GoDaddy']) # If we aren't given any brands, default route to GoDaddy
+
+    for brand in brands: #aware of the type here. Should be 'brand' but suggesting making this a list.
+        routing_helper.route(brand, data)
+        logger.info("Routing {} to {} to be processed by brand services.".format(data, brand))
     return data
 
 @app.task
@@ -104,6 +102,16 @@ def _check_godaddy_phish(data):
      :param data:
      :return:
      """
+     urihelper = URIHelper(app_settings)
+     res = urihelper.resolves(data.get('source', False))
+     if res or data.get('proxy', False):
+         if res:
+             source = data.get('source', None)
+             screenshot, sourcecode = urihelper.get_site_data(source)
+             data['target'] = 'GoDaddy' if urihelper.gd_phish(sourcecode) else data.get('target', '')
+
+     else:
+         logger.warn("Unable to resolve incident {}.".format(data['ticketId']))
      return data
 
 @app.task
