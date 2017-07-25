@@ -75,7 +75,8 @@ class URIHelper:
         :param url:
         :return:
         """
-        data = None
+        data = (None, None)
+        browser = None
         try:
             browser = webdriver.PhantomJS()
             browser.set_page_load_timeout(10)
@@ -86,9 +87,11 @@ class URIHelper:
             return data
         except Exception as e:
             self._logger.error("Error while taking snapshot and/or source code for %s: %s", url, str(e))
+            return data
         finally:
-            browser.service.process.send_signal(signal.SIGTERM)
-            browser.quit()
+            if browser:
+                browser.service.process.send_signal(signal.SIGTERM)
+                browser.quit()
 
     def get_status(self, sourceDomainOrIp):
         """
