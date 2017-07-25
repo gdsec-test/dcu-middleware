@@ -1,5 +1,3 @@
-import logging
-import logging.config
 import re
 import os
 import yaml
@@ -58,6 +56,7 @@ def process(data):
     :return:
     """
     chain(_load_and_enrich_data.s(data),
+          _add_data_to_database.s(),
           _route_to_brand_services.s(),
           _printer.s())()
 
@@ -80,6 +79,16 @@ def _load_and_enrich_data(data):
 
     # return the result of merging the CMap data with data gathered from the API
     return cmap_helper.api_cmap_merge(data, cmap_data)
+
+
+@app.task
+def _add_data_to_database(data):
+    iid = db(app_settings).add_new_incident(data['ticketId'], data)
+    if iid:
+        logger.info("Incident {} inserted into the database.".format(iid))
+    else:
+        logger.error("Unable to insert {} into the database.".format(iid))
+    return data
 
 
 @app.task
