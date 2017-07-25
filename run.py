@@ -1,5 +1,6 @@
 import logging
 import logging.config
+import re
 import os
 import yaml
 import logging.handlers
@@ -57,11 +58,11 @@ def process(data):
     :return:
     """
     chain(_load_and_enrich_data.s(data),
-          _check_godaddy_phish.s(),
           _route_to_brand_services.s(),
           _printer.s())()
 
 ##### PRIVATE TASKS #####
+
 
 @app.task
 def _load_and_enrich_data(data):
@@ -75,10 +76,11 @@ def _load_and_enrich_data(data):
     # Retreive CMAP data from CMapServiceHelper
     subdomain = data.get('sourceSubDomain')
     cmap_data = cmap_helper.domain_query(subdomain) if subdomain \
-         else cmap_helper.domain_query(data['sourceDomainOrIp'])
+        else cmap_helper.domain_query(data['sourceDomainOrIp'])
 
     # return the result of merging the CMap data with data gathered from the API
     return cmap_helper.api_cmap_merge(data, cmap_data)
+
 
 @app.task
 def _route_to_brand_services(data):
@@ -87,37 +89,18 @@ def _route_to_brand_services(data):
     :param data:
     :return:
     """
-    routing_helper = RoutingHelper()
-    brands = data.get('brands', ['GoDaddy']) # If we aren't given any brands, default route to GoDaddy
+    routing_helper = RoutingHelper(app_settings)
+    hostname, registrar = _parse_hostname_and_registrar(data)
+    routing_helper.route(hostname, registrar, data)
 
-    for brand in brands: #aware of the type here. Should be 'brand' but suggesting making this a list.
-        routing_helper.route(brand, data)
-        logger.info("Routing {} to {} to be processed by brand services.".format(data, brand))
     return data
 
-@app.task
-def _check_godaddy_phish(data):
-     """
-     Placedholder in case we decided to have the middleware check whether or not a particular domain is a GD Phish
-     :param data:
-     :return:
-     """
-     urihelper = URIHelper(app_settings)
-     res = urihelper.resolves(data.get('source', False))
-     if res or data.get('proxy', False):
-         if res:
-             source = data.get('source', None)
-             screenshot, sourcecode = urihelper.get_site_data(source)
-             data['target'] = 'GoDaddy' if urihelper.gd_phish(sourcecode) else data.get('target', '')
-
-     else:
-         logger.warn("Unable to resolve incident {}.".format(data['ticketId']))
-     return data
 
 @app.task
 def _printer(data):
     if data:
         logger.info("Successfully processed {}".format(pformat(data)))
+
 
 # This task may get moved to another service but for now is being used by PhishNet to update screenshots.
 @app.task
@@ -146,3 +129,17 @@ def refresh_screenshot(ticket):
         else:
             logger.error("Unable to refresh screenshot/sourcecode for {}, no data returned".format(ticket))
     return ((datetime.utcnow() - last_screen_grab).total_seconds()), screenshot_id, sourcecode_id
+
+
+#### Private Helper Utilities ####
+
+
+def _parse_hostname_and_registrar(data):
+    regex = re.compile('[^a-zA-Z]')
+
+    host = data.get('data', {}).get('domainQuery', {}).get('host', {}).get('name', None)
+    hostname = regex.sub('', host) if host is not None else None
+    reg = data.get('data', {}).get('domainQuery', {}).get('registrar', {}).get('name', None)
+    registrar = regex.sub('', reg) if reg is not None else None
+
+    return hostname, registrar
