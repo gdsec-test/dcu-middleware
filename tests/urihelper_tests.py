@@ -1,8 +1,5 @@
 import logging
 
-from mock import patch
-from nose.tools import assert_true, assert_equal, assert_false
-
 from dcumiddleware.urihelper import URIHelper
 
 WHOIS_DATA = '''

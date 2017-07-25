@@ -10,7 +10,7 @@ from settings import config_by_name
 app_settings = config_by_name[os.getenv('sysenv') or 'dev']
 
 
-class CeleryConfig():
+class CeleryConfig:
     BROKER_TRANSPORT = 'pyamqp'
     BROKER_USE_SSL = True
     CELERY_TASK_SERIALIZER = 'pickle'

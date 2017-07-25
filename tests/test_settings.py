@@ -1,7 +1,7 @@
 import logging
 
 
-class TestingConfig():
+class TestingConfig:
     LOGLEVEL = logging.INFO
     PROXY = None
     AUTHUSER = None

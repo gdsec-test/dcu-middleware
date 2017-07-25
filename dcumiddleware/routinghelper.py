@@ -17,7 +17,8 @@ class RoutingHelper:
     def route(self, hostname, registrar, data):
         """
         Responsible for looking up the appropriate Brand Routing Helper and passing along the data to be routed.
-        :param brand:
+        :param hostname:
+        :param registrar:
         :param data:
         :return:
         """
@@ -28,7 +29,8 @@ class RoutingHelper:
 
         if registrar and registrar in self._brands:
             self._logger.info("Ticket {} is registered with {} routing to {} brand service.".format(data['ticketId'],
-                                                                                                registrar, registrar))
+                                                                                                    registrar,
+                                                                                                    registrar))
             self._brands.get(registrar).route(data)
 
 
