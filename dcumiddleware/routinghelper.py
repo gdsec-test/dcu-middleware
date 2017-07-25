@@ -1,6 +1,7 @@
 import logging
 
-from dcumiddleware.interfaces.brandroutinghelper import BrandRoutingHelper
+from celery import Celery
+from celeryconfig import CeleryConfig
 
 
 class RoutingHelper:
@@ -10,9 +11,10 @@ class RoutingHelper:
 
     def __init__(self, settings):
         self._logger = logging.getLogger(__name__)
-        self._brands = {'GODADDY': GoDaddyRoutingHelper(settings),
-                        'EMEA': EMEARoutingHelper(settings),
-                        'HAINAIN': HainainRoutingHelper(settings)}
+        self._capp = Celery().config_from_object(CeleryConfig())
+        self._brands = {'GODADDY': 'run.process_gd',
+                        'EMEA': 'run.process_emea',
+                        'HAINAIN': 'run.process_hainain'}
 
     def route(self, hostname, registrar, data):
         """
@@ -22,49 +24,34 @@ class RoutingHelper:
         :param data:
         :return:
         """
-        if hostname and hostname in self._brands:
-            self._logger.info("Ticket {} is hosted with {} routing to {} brand service.".format(data['ticketId'],
-                                                                                                hostname, hostname))
-            self._brands.get(hostname).route(data)
+        hosted_by_brand = hostname in self._brands
+        registered_by_brand = registrar in self._brands
+        same_host_and_registrar = hostname == registrar
 
-        if registrar and registrar in self._brands:
-            self._logger.info("Ticket {} is registered with {} routing to {} brand service.".format(data['ticketId'],
-                                                                                                    registrar,
-                                                                                                    registrar))
-            self._brands.get(registrar).route(data)
+        if not registrar and not hostname:
+            self._route_to_brand('GODADDY', data)
+        elif not registrar or not hostname:
+            if not registrar:
+                if hosted_by_brand:
+                    self._route_to_brand(hostname, data)
+            else:
+                if registered_by_brand:
+                    self._route_to_brand(registrar, data)
+        else:
+            # If we have the same registrar and host don't route two tickets/workflows.
+            if same_host_and_registrar and hosted_by_brand:
+                self._route_to_brand(hostname, data)
+            elif (same_host_and_registrar and not hosted_by_brand) or (not hosted_by_brand and not registered_by_brand):
+                self._route_to_brand(hostname, data)
+            else:
+                if hosted_by_brand:
+                    self._route_to_brand(hostname, data)
+                if registered_by_brand:
+                    self._route_to_brand(registrar, data)
 
-
-class GoDaddyRoutingHelper(BrandRoutingHelper):
-    """
-    GoDaddy specific Brand Services routing logic
-    """
-
-    def __init__(self, settings):
-        self._logger = logging.getLogger(__name__)
-
-    def route(self, data):
-        pass
-
-
-class EMEARoutingHelper(BrandRoutingHelper):
-    """
-    EMEA specific Brand Services routing logic
-    """
-
-    def __init__(self, settings):
-        self._logger = logging.getLogger(__name__)
-
-    def route(self, data):
-        pass
-
-
-class HainainRoutingHelper(BrandRoutingHelper):
-    """
-    Hainain specific Brand Services routing logic
-    """
-
-    def __init__(self, settings):
-        self._logger = logging.getLogger(__name__)
-
-    def route(self, data):
-        pass
+    def _route_to_brand(self, service, data):
+        try:
+            self._logger.info("Routing {} to {} brand services".format(data['ticketId'], service))
+            self._capp.send_task(self._brands.get(service), data) #This is temporary and needs to be moved
+        except Exception as e:
+            self._logger.error("Error trying to route ticket to GoDaddy brand services: {}".format(e.message))

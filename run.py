@@ -83,9 +83,11 @@ def _load_and_enrich_data(data):
 
 @app.task
 def _add_data_to_database(data):
-    iid = db(app_settings).add_new_incident(data['ticketId'], data)
+    dcu_db = db(app_settings)
+    iid = dcu_db.add_new_incident(data['ticketId'], data)
     if iid:
         logger.info("Incident {} inserted into the database.".format(iid))
+        dcu_db.update_incident(iid, {'phishstory_status': 'PROCESSING'})
     else:
         logger.error("Unable to insert {} into the database.".format(iid))
     return data
