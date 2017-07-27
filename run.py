@@ -87,6 +87,7 @@ def _add_data_to_database(data):
     iid = dcu_db.add_new_incident(data['ticketId'], data)
     if iid:
         logger.info("Incident {} inserted into the database.".format(iid))
+        # Put the ticket in an intermediary stage while it is being processed by brand services.
         dcu_db.update_incident(iid, {'phishstory_status': 'PROCESSING'})
     else:
         logger.error("Unable to insert {} into the database.".format(iid))
@@ -100,7 +101,7 @@ def _route_to_brand_services(data):
     :param data:
     :return:
     """
-    routing_helper = RoutingHelper(app_settings)
+    routing_helper = RoutingHelper()
     hostname, registrar = _parse_hostname_and_registrar(data)
     routing_helper.route(hostname, registrar, data)
 
