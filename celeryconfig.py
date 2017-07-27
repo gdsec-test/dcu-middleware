@@ -23,10 +23,8 @@ class CeleryConfig:
     CELERY_ACKS_LATE = True
     CELERYD_PREFETCH_MULTIPLIER = 1
     CELERY_QUEUES = (
-        Queue(app_settings.APIQUEUE, Exchange(app_settings.APIQUEUE), routing_key=app_settings.APIQUEUE),
-        Queue(app_settings.GDBRANDSERVICESQUEUE, Exchange(app_settings.GDBRANDSERVICESQUEUE), routing_key=app_settings.GDBRANDSERVICESQUEUE),
-        Queue(app_settings.EMEABRANDSERVICESQUEUE, Exchange(app_settings.EMEABRANDSERVICESQUEUE), routing_key=app_settings.EMEABRANDSERVICESQUEUE),
-        Queue(app_settings.HAINAINBRANDSERVICESQUEUE, Exchange(app_settings.HAINAINBRANDSERVICESQUEUE), routing_key=app_settings.HAINAINBRANDSERVICESQUEUE))
+        Queue(app_settings.APIQUEUE, Exchange(app_settings.APIQUEUE), routing_key=app_settings.APIQUEUE)
+    )
 
     CELERY_ROUTES = {
         'run.process_gd': {'queue': app_settings.GDBRANDSERVICESQUEUE, 'routing_key': app_settings.GDBRANDSERVICESQUEUE},
