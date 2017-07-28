@@ -3,14 +3,12 @@ import os
 import yaml
 import logging.config
 
-from datetime import datetime, timedelta
 from pprint import pformat
 from celery import Celery, chain
 from celery.utils.log import get_task_logger
 
 from celeryconfig import CeleryConfig
 from settings import config_by_name
-from dcumiddleware.urihelper import URIHelper
 from dcumiddleware.cmapservicehelper import CmapServiceHelper
 from dcumiddleware.routinghelper import RoutingHelper
 from dcdatabase.phishstorymongo import PhishstoryMongo as db
@@ -112,35 +110,6 @@ def _route_to_brand_services(data):
 def _printer(data):
     if data:
         logger.info("Successfully processed {}".format(pformat(data)))
-
-
-# This task may get moved to another service but for now is being used by PhishNet to update screenshots.
-@app.task
-def refresh_screenshot(ticket):
-    """
-    Refresh the screenshot for the given ticket and update the db
-    :param: ticket
-    """
-    dcu_db = db(app_settings)
-    ticket_data = dcu_db.get_incident(ticket)
-    sourcecode_id = ticket_data.get('sourcecode_id')
-    screenshot_id = ticket_data.get('screenshot_id')
-    last_screen_grab = ticket_data.get('last_screen_grab', datetime(1970, 1, 1))
-    logger.info('Request screengrab refresh for {}'.format(ticket))
-    if ticket_data.get('phishstory_status', '') == 'OPEN' \
-            and last_screen_grab < (datetime.utcnow() - timedelta(minutes=15)):
-        logger.info('Updating screengrab for {}'.format(ticket))
-        urihelper = URIHelper()
-        data = urihelper.get_site_data(ticket_data.get('source'))
-        if data:
-            screenshot_id, sourcecode_id = dcu_db.add_crits_data(data, ticket_data.get('source'))
-            last_screen_grab = datetime.utcnow()
-            dcu_db.update_incident(ticket_data.get('ticketId'),
-                                   dict(screenshot_id=screenshot_id, sourcecode_id=sourcecode_id,
-                                        last_screen_grab=last_screen_grab))
-        else:
-            logger.error("Unable to refresh screenshot/sourcecode for {}, no data returned".format(ticket))
-    return ((datetime.utcnow() - last_screen_grab).total_seconds()), screenshot_id, sourcecode_id
 
 
 #### Private Helper Utilities ####
