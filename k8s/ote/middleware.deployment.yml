@@ -41,21 +41,11 @@ spec:
             value: http://cmap-service.abuse-api-ote.svc.cluster.local:5000
           - name: KEYFILE
             value: /keyfiles/key.txt
-          - name: AUTHPASS
-            valueFrom:
-              secretKeyRef:
-                name: dcu-proxy-auth
-                key: password
           - name: DBPASS
             valueFrom:
               secretKeyRef:
                 name: db-middleware
                 key: password
-          # redis used for a CELERY backend
-          - name: REDIS
-            value: middleware-redis.abuse-api-ote.svc.cluster.local
-          - name: API
-            value: http://api.abuse-api-ote.svc.cluster.local:5000/v1/abuse/tickets
           volumeMounts:
           - name: encryption-keys
             mountPath: /keyfiles
