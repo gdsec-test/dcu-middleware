@@ -1,17 +1,14 @@
 import logging
 
-from celery import Celery
-from celeryconfig import CeleryConfig
-
 
 class RoutingHelper:
     """
     Responsible for all routing responsibilities to the brand services.
     """
 
-    def __init__(self):
+    def __init__(self, capp):
         self._logger = logging.getLogger(__name__)
-        self._capp = Celery().config_from_object(CeleryConfig())
+        self._capp = capp
         self._brands = {'GODADDY': 'run.process_gd',
                         'EMEA': 'run.process_emea',
                         'HAINAIN': 'run.process_hainain'}
@@ -65,6 +62,6 @@ class RoutingHelper:
     def _route_to_brand(self, service, data):
         try:
             self._logger.info("Routing {} to {} brand services".format(data['ticketId'], service))
-            self._capp.send_task(self._brands.get(service), data)
+            self._capp.send_task(self._brands.get(service), (data,))
         except Exception as e:
             self._logger.error("Error trying to route ticket to {} brand services: {}".format(service, e.message))

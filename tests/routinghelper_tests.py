@@ -1,9 +1,8 @@
-import celeryconfig
-
 from nose.tools import assert_true
 from mock import patch
-from celery import Celery
 
+from celery import Celery
+from celeryconfig import CeleryConfig
 from dcumiddleware.routinghelper import RoutingHelper
 
 
@@ -11,9 +10,7 @@ class TestRoutingHelper:
 
     @classmethod
     def setup(cls):
-        cls._routing_helper = RoutingHelper()
-        cls._capp = celeryconfig.CeleryConfig()
-        cls._routing_helper._capp = cls._capp
+        cls._routing_helper = RoutingHelper(Celery().config_from_object(CeleryConfig))
 
     @patch.object(Celery, 'send_task')
     def test_route_no_host_no_registrar(self, send_task):

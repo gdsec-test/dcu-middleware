@@ -65,16 +65,18 @@ class CmapServiceHelper(object):
           }
           ''')
             query_result = self.cmap_query(query, domain)
+
             reg_create_date = query_result.get('data', {}).get('domainQuery', {}).get('registrar', {}).get(
                 'createDate', None)
             query_result['data']['domainQuery']['registrar']['createDate'] = self._date_time_format(reg_create_date)
+
             shp_create_date = query_result.get('data', {}).get('domainQuery', {}).get('shopperInfo', {}).get(
-                'createDate', None)
+                'dateCreated', None)
             query_result['data']['domainQuery']['shopperInfo']['dateCreated'] = self._date_time_format(shp_create_date)
+
             return query_result
         except Exception as e:
-            self._logger.error("Unable to complete domain query for : {}. {}".
-                               format(domain, e.message))
+            self._logger.error("Unable to complete domain query for : {}. {}".format(domain, e.message))
             return None
 
     def _date_time_format(self, date):
@@ -84,8 +86,6 @@ class CmapServiceHelper(object):
         :return iso_date:
         """
         try:
-            if not isinstance(date, datetime):
-                raise ValueError("date provided is not a datetime type")
             return datetime.strptime(date, '%Y-%m-%d')
         except Exception as e:
             self._logger.error(
