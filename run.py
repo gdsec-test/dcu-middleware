@@ -71,9 +71,9 @@ def _load_and_enrich_data(data):
     cmap_helper = CmapServiceHelper(app_settings)
 
     # Retreive CMAP data from CMapServiceHelper
-    subdomain = data.get('sourceSubDomain')
+    subdomain = data.get('sourceSubDomain', None)
     cmap_data = cmap_helper.domain_query(subdomain) if subdomain \
-        else cmap_helper.domain_query(data['sourceDomainOrIp'])
+        else cmap_helper.domain_query(data.get('sourceDomainOrIp', None))
 
     # return the result of merging the CMap data with data gathered from the API
     return cmap_helper.api_cmap_merge(data, cmap_data)
@@ -82,7 +82,7 @@ def _load_and_enrich_data(data):
 @app.task
 def _add_data_to_database(data):
     dcu_db = db(app_settings)
-    iid = dcu_db.add_new_incident(data['ticketId'], data)
+    iid = dcu_db.add_new_incident(data.get('ticketId', None), data)
     if iid:
         logger.info("Incident {} inserted into the database.".format(iid))
         # Put the ticket in an intermediary stage while it is being processed by brand services.

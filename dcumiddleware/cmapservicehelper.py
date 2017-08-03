@@ -65,6 +65,9 @@ class CmapServiceHelper(object):
           ''')
         query_result = self.cmap_query(query, domain)
 
+        if not isinstance(query_result, dict):
+            query_result = dict()
+
         reg_create_date = query_result.get('data', {}).get('domainQuery', {}).get('registrar', {}).get(
             'createDate', None)
         query_result['data']['domainQuery']['registrar']['createDate'] = self._date_time_format(reg_create_date)

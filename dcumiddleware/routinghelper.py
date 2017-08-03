@@ -5,13 +5,13 @@ class RoutingHelper:
     """
     Responsible for all routing responsibilities to the brand services.
     """
+    _brands = {'GODADDY': 'run.process_gd',
+               'EMEA': 'run.process_emea',
+               'HAINAIN': 'run.process_hainain'}
 
     def __init__(self, capp):
         self._logger = logging.getLogger(__name__)
         self._capp = capp
-        self._brands = {'GODADDY': 'run.process_gd',
-                        'EMEA': 'run.process_emea',
-                        'HAINAIN': 'run.process_hainain'}
 
     def route(self, hostname, registrar, data):
         """
