@@ -1,2 +1,4 @@
-dcu-middleware:
-  image: artifactory.secureserver.net:10014/docker-dcu-local/dcumiddleware:dev
+redis:
+  image: redis
+  ports:
+    - 6379:6379

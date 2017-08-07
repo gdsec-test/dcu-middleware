@@ -1,23 +1,18 @@
-import logging
-import logging.config
 import re
-import logging.handlers
 import os
-from datetime import datetime, timedelta
-from pprint import pformat
-
 import yaml
+import logging.config
+
+from pprint import pformat
 from celery import Celery, chain
 from celery.utils.log import get_task_logger
-from dcdatabase.phishstorymongo import PhishstoryMongo as db
 
 from celeryconfig import CeleryConfig
-from dcumiddleware.malwarestrategy import MalwareStrategy
-from dcumiddleware.netabusestrategy import NetAbuseStrategy
-from dcumiddleware.phishingstrategy import PhishingStrategy
-from dcumiddleware.reviews import FraudReview
-from dcumiddleware.urihelper import URIHelper
 from settings import config_by_name
+from dcumiddleware.cmapservicehelper import CmapServiceHelper
+from dcumiddleware.routinghelper import RoutingHelper
+from dcdatabase.phishstorymongo import PhishstoryMongo as db
+
 
 # Grab the correct settings based on environment
 app_settings = config_by_name[os.getenv('sysenv') or 'dev']()
@@ -58,142 +53,57 @@ def process(data):
     :param data:
     :return:
     """
-    chain(_catagorize_and_load.s(data),
-          _new_domain_check.s(),
-          _new_fraud_check.s(),
-          _check_group.s(),
+    chain(_load_and_enrich_data.s(data),
+          _add_data_to_database.s(),
+          _route_to_brand_services.s(),
           _printer.s())()
-
 
 ##### PRIVATE TASKS #####
 
+
 @app.task
-def _catagorize_and_load(data):
+def _load_and_enrich_data(data):
     """
-    Processes data from the dcumiddleware queue.
+    Loads the data from CMAP and merges it with information gained from CMAP Service
     :param data:
     :return:
     """
-    strategy = None
-    ctype = data.get('type')
-    if ctype == db.PHISHING:
-        strategy = PhishingStrategy(app_settings)
-    elif ctype == db.MALWARE:
-        strategy = MalwareStrategy(app_settings)
-    elif ctype == db.NETABUSE:
-        strategy = NetAbuseStrategy(app_settings)
-    elif ctype == db.SPAM:
-        # PhishingStrategy is currently being used for SPAM as its being processed in the same way
-        strategy = PhishingStrategy(app_settings)
+    cmap_helper = CmapServiceHelper(app_settings)
 
-    if strategy:
-        return strategy.process(data)
+    # Retreive CMAP data from CMapServiceHelper
+    subdomain = data.get('sourceSubDomain', None)
+    cmap_data = cmap_helper.domain_query(subdomain) if subdomain \
+        else cmap_helper.domain_query(data.get('sourceDomainOrIp', None))
+
+    # return the result of merging the CMap data with data gathered from the API
+    return cmap_helper.api_cmap_merge(data, cmap_data)
+
+
+@app.task
+def _add_data_to_database(data):
+    dcu_db = db(app_settings)
+    iid = dcu_db.add_new_incident(data.get('ticketId', None), data)
+    if iid:
+        logger.info("Incident {} inserted into the database.".format(iid))
+        # Put the ticket in an intermediary stage while it is being processed by brand services.
+        data = dcu_db.update_incident(iid, dict(phishstory_status='PROCESSING'))
     else:
-        logger.warning("No strategy available for {}".format(ctype))
+        logger.error("Unable to insert {} into the database.".format(iid))
+    return data
 
 
 @app.task
-def _new_domain_check(data):
+def _route_to_brand_services(data):
     """
-    This method handles new domain fraud detection
-    :param data:
-    :return data:
-    """
-    try:
-        # If the d_create_date(domain create date) is less than x days old, put on review and send to fraud if not
-        # already on hold
-
-        # regex to determine if GoDaddy is the registrar based on cmap service data
-        regex = re.compile('[^a-zA-Z]')
-
-        # exit the function if data is not a dictionary type
-        if not isinstance(data, dict):
-            raise ValueError('data is not a dictionary')
-
-        reg = data.get('data', {}).get('domainQuery', {}).get('registrar', {}).get('name', None)
-        registrar = regex.sub('', reg) if reg is not None else None
-        godaddy = False
-        domain_create_date = False
-        if 'GODADDY' in registrar.upper():
-            godaddy = True
-            domain_create_date = data.get('data', {}).get('domainQuery', {}).get('registrar', {}).get('createDate',
-                                                                                                      False)
-        if data.get('phishstory_status', '') == 'OPEN' \
-                and godaddy is True \
-                and domain_create_date \
-                and domain_create_date > datetime.utcnow() - timedelta(days=app_settings.NEW_ACCOUNT):
-            logger.info("Possible fraud detected on {}".format(pformat(data)))
-            review = FraudReview(app_settings)
-            urihelper = URIHelper(app_settings)
-            fhold = urihelper.fraud_holds_for_domain(data.get('sourceDomainOrIp'))
-            if fhold:
-                data = review.place_in_review(data.get('ticketId'), fhold, 'new_domain')
-            else:
-                logger.warning("Sending {} to fraud for young domain investigation".format(data.get('ticketId')))
-                data = review.place_in_review(data.get('ticketId'),
-                                              datetime.utcnow() + timedelta(seconds=app_settings.HOLD_TIME),
-                                              'new_domain')
-                send_young_domain_notification(data)
-
-    except Exception as e:
-        logger.error("Unable to perform new domain check {}:{}".format(pformat(data), e.message))
-    finally:
-        return data
-
-
-@app.task
-def _new_fraud_check(data):
-    """
-    This method handles new account fraud detection
-    :param data:
-    :return data:
-    """
-    try:
-        date_created = data.get('data', {}).get('domainQuery', {}).get('shopperInfo', {}).get('dateCreated', False)
-        # exit the function if the dateCreated field cannot be located
-        if not date_created:
-            raise ValueError("dateCreated field was not found within the data dictionary")
-
-        # If the s_create_date(shopper create date) is less than x days old, put on review and send to fraud if not
-        # already on hold
-        if data.get('phishstory_status') == 'OPEN' \
-                and date_created > (datetime.utcnow() - timedelta(days=app_settings.NEW_ACCOUNT)):
-            logger.info("Possible fraud detected on {}".format(pformat(data)))
-            review = FraudReview(app_settings)
-            urihelper = URIHelper(app_settings)
-            fhold = urihelper.fraud_holds_for_domain(data.get('sourceDomainOrIp'))
-            if fhold:
-                data = review.place_in_review(data.get('ticketId'), fhold, 'new_account')
-            else:
-                logger.warning("Sending {} to fraud for young account investigation".format(data.get('ticketId')))
-                data = review.place_in_review(data.get('ticketId'),
-                                              datetime.utcnow() + timedelta(seconds=app_settings.HOLD_TIME),
-                                              'new_account')
-                send_young_account_notification(data)
-
-    except Exception as e:
-        logger.error("Unable to perform new fraud check {}:{}".format(pformat(data), e.message))
-    finally:
-        return data
-
-
-@app.task
-def _check_group(data):
-    """
-    Send to grouper for any open hosted phishing tickets
+    Routes data to the appropriate Brand Service to be processed further
     :param data:
     :return:
     """
-    try:
-        if data.get('hosted_status') == 'HOSTED' \
-                and data.get('type') == db.PHISHING \
-                and data.get('phishstory_status') == 'OPEN':
-            logger.info("Sending {} to grouper".format(data.get('ticketId')))
-            app.send_task('run.group', args=(data.get('ticketId'),), serializer='json')
-    except Exception as e:
-        logger.error("Unable to check data for grouping {}:{}".format(pformat(data), e.message))
-    finally:
-        return data
+    routing_helper = RoutingHelper(app)
+    hostname, registrar = _parse_hostname_and_registrar(data)
+    routing_helper.route(hostname, registrar, data)
+
+    return data
 
 
 @app.task
@@ -202,85 +112,15 @@ def _printer(data):
         logger.info("Successfully processed {}".format(pformat(data)))
 
 
-@app.task
-def refresh_screenshot(ticket):
-    """
-    Refresh the screenshot for the given ticket and update the db
-    :param: ticket
-    """
-    dcu_db = db(app_settings)
-    ticket_data = dcu_db.get_incident(ticket)
-    sourcecode_id = ticket_data.get('sourcecode_id')
-    screenshot_id = ticket_data.get('screenshot_id')
-    last_screen_grab = ticket_data.get('last_screen_grab', datetime(1970, 1, 1))
-    logger.info('Request screengrab refresh for {}'.format(ticket))
-    if ticket_data.get('phishstory_status', '') == 'OPEN' \
-            and last_screen_grab < (datetime.utcnow() - timedelta(minutes=15)):
-        logger.info('Updating screengrab for {}'.format(ticket))
-        urihelper = URIHelper(app_settings)
-        data = urihelper.get_site_data(ticket_data.get('source'))
-        if data:
-            screenshot_id, sourcecode_id = dcu_db.add_crits_data(data, ticket_data.get('source'))
-            last_screen_grab = datetime.utcnow()
-            dcu_db.update_incident(ticket_data.get('ticketId'),
-                                   dict(screenshot_id=screenshot_id, sourcecode_id=sourcecode_id,
-                                        last_screen_grab=last_screen_grab))
-        else:
-            logger.error("Unable to refresh screenshot/sourcecode for {}, no data returned".format(ticket))
-    return ((datetime.utcnow() - last_screen_grab).total_seconds()), screenshot_id, sourcecode_id
+#### Private Helper Utilities ####
 
 
-####### HELPER FUNCTIONS #######
+def _parse_hostname_and_registrar(data):
+    regex = re.compile('[^a-zA-Z]')
 
-def send_young_account_notification(data):
-    """
-   Sends a young account notification to fraud
-   :param data:
-   :return:
-   """
-    try:
-        account_number = data.get('data', {}).get('domainQuery', {}).get('shopperInfo', {}).get('shopperId', None)
-        creation_date = data.get('data', {}).get('domainQuery', {}).get('shopperInfo', {}).get('dateCreated', None)
-        if account_number is None:
-            raise ValueError("account number was not provided")
-        if creation_date is None:
-            raise ValueError("shopper creation date was not provided")
+    host = data.get('data', {}).get('domainQuery', {}).get('host', {}).get('name', None)
+    hostname = regex.sub('', host) if host is not None else None
+    reg = data.get('data', {}).get('domainQuery', {}).get('registrar', {}).get('name', None)
+    registrar = regex.sub('', reg) if reg is not None else None
 
-        payload = {'templateNamespaceKey': 'Iris',
-                   'templateTypeKey': 'DCU7days',
-                   'substitutionValues': {'ACCOUNT_NUMBER': account_number,
-                                          'SHOPPER_CREATION_DATE': creation_date,
-                                          'DOMAIN': data.get('sourceDomainOrIp'),
-                                          'MALICIOUS_ACTIVITY': data.get('type'),
-                                          'BRAND_TARGETED': data.get('target'),
-                                          'SANITIZED_URL': data.get('source')}}
-        app.send_task('run.sendmail', args=(payload,))
-    except Exception as e:
-        logger.error("Unable to send young account notification: %s" % e.message)
-
-
-def send_young_domain_notification(data):
-    """
-   Sends a young domain notification to fraud
-   :param data:
-   :return:
-   """
-    try:
-        account_number = data.get('data', {}).get('domainQuery', {}).get('shopperInfo', {}).get('shopperId', None)
-        creation_date = data.get('data', {}).get('domainQuery', {}).get('registrar', {}).get('createDate', None)
-        if account_number is None:
-            raise ValueError("account number was not provided")
-        if creation_date is None:
-            raise ValueError("domain creation date was not provided")
-
-        payload = {'templateNamespaceKey': 'Iris',
-                   'templateTypeKey': 'DCUNewDomainFraud',
-                   'substitutionValues': {'ACCOUNT_NUMBER': account_number,
-                                          'DOMAIN_CREATION_DATE': creation_date,
-                                          'DOMAIN': data.get('sourceDomainOrIp'),
-                                          'MALICIOUS_ACTIVITY': data.get('type'),
-                                          'BRAND_TARGETED': data.get('target'),
-                                          'SANITIZED_URL': data.get('source')}}
-        app.send_task('run.sendmail', args=(payload,))
-    except Exception as e:
-        logger.error("Unable to send young domain notification: %s" % e.message)
+    return hostname, registrar

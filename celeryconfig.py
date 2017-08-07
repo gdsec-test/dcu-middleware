@@ -10,7 +10,7 @@ from settings import config_by_name
 app_settings = config_by_name[os.getenv('sysenv') or 'dev']
 
 
-class CeleryConfig():
+class CeleryConfig:
     BROKER_TRANSPORT = 'pyamqp'
     BROKER_USE_SSL = True
     CELERY_TASK_SERIALIZER = 'pickle'
@@ -18,7 +18,6 @@ class CeleryConfig():
     CELERY_ACCEPT_CONTENT = ['json', 'pickle']
     CELERY_IMPORTS = 'run'
     CELERYD_HIJACK_ROOT_LOGGER = False
-    CELERY_RESULT_BACKEND = 'redis://{}:6379'.format(os.getenv("REDIS", "redis"))
     CELERY_DEFAULT_QUEUE = app_settings.APIQUEUE
     CELERY_ACKS_LATE = True
     CELERYD_PREFETCH_MULTIPLIER = 1
@@ -27,8 +26,9 @@ class CeleryConfig():
     )
 
     CELERY_ROUTES = {
-        'run.group': {'queue': app_settings.COMPACTORQUEUE},
-        'run.sendmail': {'queue': app_settings.MAILQUEUE}
+        'run.process_gd': {'queue': app_settings.GDBRANDSERVICESQUEUE, 'routing_key': app_settings.GDBRANDSERVICESQUEUE},
+        'run.process_emea': {'queue': app_settings.EMEABRANDSERVICESQUEUE, 'routing_key': app_settings.EMEABRANDSERVICESQUEUE},
+        'run.process_hainain': {'queue': app_settings.HAINAINBRANDSERVICESQUEUE, 'routing_key': app_settings.HAINAINBRANDSERVICESQUEUE}
     }
 
     def __init__(self):
