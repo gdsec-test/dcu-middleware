@@ -15,48 +15,113 @@ class TestCmapServiceHelper:
         domain_query.return_value = {
             "data": {
                 "domainQuery": {
-                    "host": {
-                        "name": "GO-DADDY-COM-LLC"
-                    },
-                    "registrar": {
-                        "name": "GoDaddy.com, LLC",
-                        "createDate": "2014-09-25"
-                    },
+                    "alexaRank": 999999,
                     "apiReseller": {
-                        "parent": None,
-                        "child": None
+                        "child": None,
+                        "parent": None
                     },
-                    "shopperInfo": {
-                        "shopperId": "49047180",
-                        "dateCreated": "2012-01-10",
-                        "domainCount": 9,
+                    "blacklist": False,
+                    "domain": "impcat.com",
+                    "domainStatus": {
+                        "statusCode": "PLACEHOLDER: domain status code"
+                    },
+                    "host": {
+                        "dataCenter": "Unable to locate",
+                        "guid": "c0799e2a-e7f5-11e5-be04-14feb5d40a06",
+                        "hostingCompanyName": "GoDaddy.com LLC",
+                        "hostingAbuseEmail": [
+                            "abuse@godaddy.com"
+                        ],
+                        "hostname": "Unable to locate",
+                        "ip": "184.168.47.225",
+                        "os": "Linux",
+                        "product": "wpaas",
+                        "shopperId": "9sd",
                         "vip": {
+                            "accountRepEmail": None,
+                            "accountRepFirstName": None,
+                            "accountRepLastName": None,
                             "blacklist": False,
-                            "PortfolioType": "No Premium Services For This Shopper"
+                            "portfolioType": "No Premium Services For This Shopper",
+                            "shopperId": None
                         }
                     },
-                    "blacklist": False
+                    "registrar": {
+                        "domainCreateDate": "2009-12-05",
+                        "registrarAbuseEmail": [
+                            "abuse@godaddy.com"
+                        ],
+                        "registrarName": "GoDaddy.com, LLC"
+                    },
+                    "shopperInfo": {
+                        "domainCount": 9,
+                        "domainSearch": None,
+                        "shopperCreateDate": "2003-01-19",
+                        "shopperEmail": "splashcd@gmail.com",
+                        "shopperFirstName": "Brett",
+                        "shopperId": "1488039",
+                        "vip": {
+                            "accountRepEmail": None,
+                            "accountRepFirstName": None,
+                            "accountRepLastName": None,
+                            "blacklist": False,
+                            "portfolioType": "No Premium Services For This Shopper",
+                            "shopperId": None
+                        }
+                    }
                 }
             }
         }
-        domain = "comicsn.beer"
+        domain = "impcat.com"
         doc = self.cmapservice.domain_query(domain)
-        assert_true(doc['data']['domainQuery']['host']['name'] == 'GO-DADDY-COM-LLC')
-        assert_true(doc['data']['domainQuery']['registrar']['name'] == 'GoDaddy.com, LLC')
-        assert_true(doc['data']['domainQuery']['registrar']['createDate'] == '2014-09-25')
+        assert_true(doc['data']['domainQuery']['alexaRank'] == 999999)
         assert_true(doc['data']['domainQuery']['apiReseller']['parent'] is None)
         assert_true(doc['data']['domainQuery']['apiReseller']['child'] is None)
-        assert_true(doc['data']['domainQuery']['shopperInfo']['shopperId'] == '49047180')
-        assert_true(doc['data']['domainQuery']['shopperInfo']['dateCreated'] == '2012-01-10')
-        assert_true(doc['data']['domainQuery']['shopperInfo']['domainCount'] == 9)
-        assert_true(doc['data']['domainQuery']['shopperInfo']['vip']['blacklist'] is False)
-        assert_true(
-            doc['data']['domainQuery']['shopperInfo']['vip']['PortfolioType'] == 'No Premium Services For This Shopper')
         assert_true(doc['data']['domainQuery']['blacklist'] is False)
+        assert_true(doc['data']['domainQuery']['domain'] == "impcat.com")
+        assert_true(doc['data']['domainQuery']['domainStatus']['statusCode'] == "PLACEHOLDER: domain status code")
+
+        assert_true(doc['data']['domainQuery']['host']['dataCenter'] == "Unable to locate")
+        assert_true(doc['data']['domainQuery']['host']['guid'] == 'c0799e2a-e7f5-11e5-be04-14feb5d40a06')
+        assert_true(doc['data']['domainQuery']['host']['hostingCompanyName'] == 'GoDaddy.com LLC')
+        assert_true(doc['data']['domainQuery']['host']['hostingAbuseEmail'] == ['abuse@godaddy.com'])
+        assert_true(doc['data']['domainQuery']['host']['hostname'] == 'Unable to locate')
+
+        assert_true(doc['data']['domainQuery']['host']['ip'] == '184.168.47.225')
+        assert_true(doc['data']['domainQuery']['host']['os'] == 'Linux')
+        assert_true(doc['data']['domainQuery']['host']['product'] == 'wpaas')
+        assert_true(doc['data']['domainQuery']['host']['shopperId'] == '9sd')
+        assert_true(doc['data']['domainQuery']['host']['vip']['accountRepEmail'] == None)
+        assert_true(doc['data']['domainQuery']['host']['vip']['accountRepFirstName'] == None)
+        assert_true(doc['data']['domainQuery']['host']['vip']['accountRepLastName'] == None)
+        assert_true(doc['data']['domainQuery']['host']['vip']['blacklist'] == False)
+        assert_true(doc['data']['domainQuery']['host']['vip']['portfolioType'] == 'No Premium Services For This Shopper')
+        assert_true(doc['data']['domainQuery']['host']['vip']['shopperId'] == None)
+        assert_true(doc['data']['domainQuery']['registrar']['domainCreateDate'] == '2009-12-05')
+        assert_true(doc['data']['domainQuery']['registrar']['registrarAbuseEmail'] == ['abuse@godaddy.com'])
+        assert_true(doc['data']['domainQuery']['registrar']['registrarName'] == 'GoDaddy.com, LLC')
+
+        assert_true(doc['data']['domainQuery']['shopperInfo']['domainCount'] == 9)
+        assert_true(doc['data']['domainQuery']['shopperInfo']['domainSearch'] == None)
+        assert_true(doc['data']['domainQuery']['shopperInfo']['shopperCreateDate'] == '2003-01-19')
+        assert_true(doc['data']['domainQuery']['shopperInfo']['shopperEmail'] == 'splashcd@gmail.com')
+        assert_true(doc['data']['domainQuery']['shopperInfo']['shopperFirstName'] == 'Brett')
+        assert_true(doc['data']['domainQuery']['shopperInfo']['shopperId'] == '1488039')
+        assert_true(doc['data']['domainQuery']['shopperInfo']['vip']['blacklist'] is False)
+        assert_true(doc['data']['domainQuery']['shopperInfo']['vip']['accountRepEmail'] is None)
+        assert_true(doc['data']['domainQuery']['shopperInfo']['vip']['accountRepFirstName'] is None)
+        assert_true(doc['data']['domainQuery']['shopperInfo']['vip']['accountRepLastName'] is None)
+        assert_true(
+            doc['data']['domainQuery']['shopperInfo']['vip']['portfolioType'] == 'No Premium Services For This Shopper')
+        assert_true(doc['data']['domainQuery']['shopperInfo']['vip']['shopperId'] is None)
 
     def test_domain_query2(self):
-        doc = self.cmapservice.domain_query(None)
-        assert_true(doc is None)
+        doc = self.cmapservice.domain_query('')
+        assert_true(doc == {'data': {'domainQuery': {'blacklist': None,
+                                                     'host': {'guid': None, 'hostingCompanyName': None},
+                                                     'registrar': {'domainCreateDate': None, 'registrarName': None},
+                                                     'shopperInfo': {'shopperCreateDate': None, 'shopperId': None,
+                                                                     'vip': {'blacklist': None}}}}})
 
     def test_api_cmap_merge(self):
         apidata = {'info': u'My spam Farm is better than yours...',
@@ -71,11 +136,11 @@ class TestCmapServiceHelper:
         cmapdata = {"data": {
             "domainQuery": {
                 "host": {
-                    "name": "GO-DADDY-COM-LLC"
+                    "hostingCompanyName": "GO-DADDY-COM-LLC"
                 },
                 "registrar": {
-                    "name": "GoDaddy.com, LLC",
-                    "createDate": "2014-09-25"
+                    "registrarName": "GoDaddy.com, LLC",
+                    "domainCreateDate": "2014-09-25"
                 },
                 "apiReseller": {
                     "parent": None,
@@ -83,28 +148,28 @@ class TestCmapServiceHelper:
                 },
                 "shopperInfo": {
                     "shopperId": "49047180",
-                    "dateCreated": "2012-01-09",
+                    "shopperCreateDate": "2012-01-09",
                     "domainCount": 9,
                     "vip": {
                         "blacklist": True,
-                        "PortfolioType": 'No Premium Services For This Shopper'
+                        "portfolioType": 'No Premium Services For This Shopper'
                     },
                 },
                 "blacklist": True
             }
         }}
         doc = self.cmapservice.api_cmap_merge(apidata, cmapdata)
-        assert_true(doc['data']['domainQuery']['host']['name'] == 'GO-DADDY-COM-LLC')
-        assert_true(doc['data']['domainQuery']['registrar']['name'] == 'GoDaddy.com, LLC')
-        assert_true(doc['data']['domainQuery']['registrar']['createDate'] == '2014-09-25')
+        assert_true(doc['data']['domainQuery']['host']['hostingCompanyName'] == 'GO-DADDY-COM-LLC')
+        assert_true(doc['data']['domainQuery']['registrar']['registrarName'] == 'GoDaddy.com, LLC')
+        assert_true(doc['data']['domainQuery']['registrar']['domainCreateDate'] == '2014-09-25')
         assert_true(doc['data']['domainQuery']['apiReseller']['parent'] is None)
         assert_true(doc['data']['domainQuery']['apiReseller']['child'] is None)
         assert_true(doc['data']['domainQuery']['shopperInfo']['shopperId'] == '49047180')
-        assert_true(doc['data']['domainQuery']['shopperInfo']['dateCreated'] == '2012-01-09')
+        assert_true(doc['data']['domainQuery']['shopperInfo']['shopperCreateDate'] == '2012-01-09')
         assert_true(doc['data']['domainQuery']['shopperInfo']['domainCount'] == 9)
         assert_true(doc['data']['domainQuery']['shopperInfo']['vip']['blacklist'] is True)
         assert_true(
-            doc['data']['domainQuery']['shopperInfo']['vip']['PortfolioType'] == 'No Premium Services For This Shopper')
+            doc['data']['domainQuery']['shopperInfo']['vip']['portfolioType'] == 'No Premium Services For This Shopper')
         assert_true(doc['data']['domainQuery']['blacklist'] is True)
         assert_true(doc['info'] == 'My spam Farm is better than yours...')
         assert_true(doc['target'] == 'The spam Brothers')

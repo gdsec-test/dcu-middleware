@@ -7,10 +7,11 @@ from requests import sessions
 
 class CmapServiceHelper(object):
 
+    _post_headers = {'Content-Type': 'application/graphql'}
+
     def __init__(self, settings):
         self._logger = logging.getLogger(__name__)
         self._graphene_url = settings.CMAP_SERVICE + '/graphql'
-        self._post_headers = {'Content-Type': 'application/graphql'}
 
     def cmap_query(self, query, domain):
         """
@@ -26,7 +27,10 @@ class CmapServiceHelper(object):
                 return json.loads(re.text)
         except Exception as e:
             self._logger.error("Unable to query CMAP service for: {}. {}".format(domain, e.message))
-            return dict()
+            return {'data': {'domainQuery': {'blacklist': None,
+                                             'host': {'guid': None, 'hostingCompanyName': None},
+                                             'registrar': {'domainCreateDate': None, 'registrarName': None},
+                                             'shopperInfo': {'shopperCreateDate': None, 'shopperId': None, 'vip': {'blacklist': None}}}}}
 
     def domain_query(self, domain):
         """
@@ -36,32 +40,65 @@ class CmapServiceHelper(object):
         shopper create date, shopper domain count, API parent/child account numbers
         """
         query = ('''
-          {
-            domainQuery(domain: "''' + domain + '''") {
-              host {
-                name
-              }
-              registrar {
-                name
-                createDate
-              }
-              apiReseller {
-                parent
-                child
-              }
-              shopperInfo {
-                shopperId
-                dateCreated
-                domainCount
-                vip {
-                  blacklist
-                  PortfolioType
+             {
+              domainQuery(domain: "''' + domain + '''") {
+                alexaRank
+                apiReseller {
+                  child
+                  parent
+                }
+                blacklist
+                domain
+                domainStatus {
+                  statusCode
+                }
+                host {
+                  dataCenter
+                  guid
+                  hostingCompanyName
+                  hostingAbuseEmail
+                  hostname
+                  ip
+                  os
+                  product
+                  shopperId
+                  vip {
+                    accountRepEmail
+                    accountRepFirstName
+                    accountRepLastName
+                    blacklist
+                    portfolioType
+                    shopperId
+                  }
+                }
+                registrar {
+                  domainCreateDate
+                  registrarAbuseEmail
+                  registrarName
+                }
+                shopperInfo {
+                  domainCount
+                  domainSearch(regex: "a") {
+                    results {
+                      domain
+                      domainid
+                    }
+                  }
+                  shopperCreateDate
+                  shopperEmail
+                  shopperFirstName
+                  shopperId
+                  vip {
+                    accountRepEmail
+                    accountRepFirstName
+                    accountRepLastName
+                    blacklist
+                    portfolioType
+                    shopperId
+                  }
                 }
               }
-              blacklist
-              alexaRank
             }
-          }
           ''')
         query_result = self.cmap_query(query, domain)
 
@@ -69,12 +106,13 @@ class CmapServiceHelper(object):
             query_result = dict()
 
         reg_create_date = query_result.get('data', {}).get('domainQuery', {}).get('registrar', {}).get(
-            'createDate', None)
-        query_result['data']['domainQuery']['registrar']['createDate'] = self._date_time_format(reg_create_date)
+            'domainCreateDate', None)
+        query_result['data']['domainQuery']['registrar']['domainCreateDate'] = self._date_time_format(reg_create_date)
 
         shp_create_date = query_result.get('data', {}).get('domainQuery', {}).get('shopperInfo', {}).get(
-            'dateCreated', None)
-        query_result['data']['domainQuery']['shopperInfo']['dateCreated'] = self._date_time_format(shp_create_date)
+            'shopperCreateDate', None)
+        query_result['data']['domainQuery']['shopperInfo']['shopperCreateDate'] = self._date_time_format(
+            shp_create_date)
 
         return query_result
 
@@ -87,8 +125,8 @@ class CmapServiceHelper(object):
         try:
             return datetime.strptime(date, '%Y-%m-%d')
         except Exception as e:
-            self._logger.error(
-                "Unable to format date string to ISO date object: {}. {}".format(date, e.message))
+            self._logger.error("Unable to format date string to ISO date object: {}. {}".format(
+                date, e.message))
             return date
 
     def api_cmap_merge(self, apidata, cmapdata):
@@ -101,7 +139,6 @@ class CmapServiceHelper(object):
         try:
             return dict(apidata.items() + cmapdata.items())
         except Exception as e:
-            self._logger.error(
-                "Unable to merge API and CMAP service dictionaries: {}. {}".
-                format(apidata['ticketId'], e.message))
+            self._logger.error("Unable to merge API and CMAP service dictionaries: {}. {}".format(
+                apidata['ticketId'], e.message))
             return apidata
