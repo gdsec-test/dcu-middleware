@@ -55,7 +55,6 @@ class TestCmapServiceHelper:
                     },
                     "shopperInfo": {
                         "domainCount": 9,
-                        "domainSearch": None,
                         "shopperCreateDate": "2003-01-19",
                         "shopperEmail": "splashcd@gmail.com",
                         "shopperFirstName": "Brett",
@@ -102,7 +101,6 @@ class TestCmapServiceHelper:
         assert_true(doc['data']['domainQuery']['registrar']['registrarName'] == 'GoDaddy.com, LLC')
 
         assert_true(doc['data']['domainQuery']['shopperInfo']['domainCount'] == 9)
-        assert_true(doc['data']['domainQuery']['shopperInfo']['domainSearch'] == None)
         assert_true(doc['data']['domainQuery']['shopperInfo']['shopperCreateDate'] == '2003-01-19')
         assert_true(doc['data']['domainQuery']['shopperInfo']['shopperEmail'] == 'splashcd@gmail.com')
         assert_true(doc['data']['domainQuery']['shopperInfo']['shopperFirstName'] == 'Brett')

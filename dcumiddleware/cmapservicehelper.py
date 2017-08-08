@@ -78,12 +78,6 @@ class CmapServiceHelper(object):
                 }
                 shopperInfo {
                   domainCount
-                  domainSearch(regex: "a") {
-                    results {
-                      domain
-                      domainid
-                    }
-                  }
                   shopperCreateDate
                   shopperEmail
                   shopperFirstName
