@@ -118,9 +118,9 @@ def _printer(data):
 def _parse_hostname_and_registrar(data):
     regex = re.compile('[^a-zA-Z]')
 
-    host = data.get('data', {}).get('domainQuery', {}).get('host', {}).get('name', None)
+    host = data.get('data', {}).get('domainQuery', {}).get('host', {}).get('hostingCompanyName', None)
     hostname = regex.sub('', host) if host is not None else None
-    reg = data.get('data', {}).get('domainQuery', {}).get('registrar', {}).get('name', None)
+    reg = data.get('data', {}).get('domainQuery', {}).get('registrar', {}).get('registrarName', None)
     registrar = regex.sub('', reg) if reg is not None else None
 
     return hostname, registrar
