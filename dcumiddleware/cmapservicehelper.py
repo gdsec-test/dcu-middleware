@@ -49,9 +49,6 @@ class CmapServiceHelper(object):
                 }
                 blacklist
                 domain
-                domainStatus {
-                  statusCode
-                }
                 host {
                   dataCenter
                   guid

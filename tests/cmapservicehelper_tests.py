@@ -22,9 +22,6 @@ class TestCmapServiceHelper:
                     },
                     "blacklist": False,
                     "domain": "impcat.com",
-                    "domainStatus": {
-                        "statusCode": "PLACEHOLDER: domain status code"
-                    },
                     "host": {
                         "dataCenter": "Unable to locate",
                         "guid": "c0799e2a-e7f5-11e5-be04-14feb5d40a06",
@@ -78,7 +75,6 @@ class TestCmapServiceHelper:
         assert_true(doc['data']['domainQuery']['apiReseller']['child'] is None)
         assert_true(doc['data']['domainQuery']['blacklist'] is False)
         assert_true(doc['data']['domainQuery']['domain'] == "impcat.com")
-        assert_true(doc['data']['domainQuery']['domainStatus']['statusCode'] == "PLACEHOLDER: domain status code")
 
         assert_true(doc['data']['domainQuery']['host']['dataCenter'] == "Unable to locate")
         assert_true(doc['data']['domainQuery']['host']['guid'] == 'c0799e2a-e7f5-11e5-be04-14feb5d40a06')
