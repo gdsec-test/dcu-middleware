@@ -35,9 +35,6 @@ class TestCmapServiceHelper:
                         "product": "wpaas",
                         "shopperId": "9sd",
                         "vip": {
-                            "accountRepEmail": None,
-                            "accountRepFirstName": None,
-                            "accountRepLastName": None,
                             "blacklist": False,
                             "portfolioType": "No Premium Services For This Shopper",
                             "shopperId": None
@@ -53,13 +50,8 @@ class TestCmapServiceHelper:
                     "shopperInfo": {
                         "domainCount": 9,
                         "shopperCreateDate": "2003-01-19",
-                        "shopperEmail": "splashcd@gmail.com",
-                        "shopperFirstName": "Brett",
                         "shopperId": "1488039",
                         "vip": {
-                            "accountRepEmail": None,
-                            "accountRepFirstName": None,
-                            "accountRepLastName": None,
                             "blacklist": False,
                             "portfolioType": "No Premium Services For This Shopper",
                             "shopperId": None
@@ -86,9 +78,6 @@ class TestCmapServiceHelper:
         assert_true(doc['data']['domainQuery']['host']['os'] == 'Linux')
         assert_true(doc['data']['domainQuery']['host']['product'] == 'wpaas')
         assert_true(doc['data']['domainQuery']['host']['shopperId'] == '9sd')
-        assert_true(doc['data']['domainQuery']['host']['vip']['accountRepEmail'] == None)
-        assert_true(doc['data']['domainQuery']['host']['vip']['accountRepFirstName'] == None)
-        assert_true(doc['data']['domainQuery']['host']['vip']['accountRepLastName'] == None)
         assert_true(doc['data']['domainQuery']['host']['vip']['blacklist'] == False)
         assert_true(doc['data']['domainQuery']['host']['vip']['portfolioType'] == 'No Premium Services For This Shopper')
         assert_true(doc['data']['domainQuery']['host']['vip']['shopperId'] == None)
@@ -98,24 +87,19 @@ class TestCmapServiceHelper:
 
         assert_true(doc['data']['domainQuery']['shopperInfo']['domainCount'] == 9)
         assert_true(doc['data']['domainQuery']['shopperInfo']['shopperCreateDate'] == '2003-01-19')
-        assert_true(doc['data']['domainQuery']['shopperInfo']['shopperEmail'] == 'splashcd@gmail.com')
-        assert_true(doc['data']['domainQuery']['shopperInfo']['shopperFirstName'] == 'Brett')
         assert_true(doc['data']['domainQuery']['shopperInfo']['shopperId'] == '1488039')
         assert_true(doc['data']['domainQuery']['shopperInfo']['vip']['blacklist'] is False)
-        assert_true(doc['data']['domainQuery']['shopperInfo']['vip']['accountRepEmail'] is None)
-        assert_true(doc['data']['domainQuery']['shopperInfo']['vip']['accountRepFirstName'] is None)
-        assert_true(doc['data']['domainQuery']['shopperInfo']['vip']['accountRepLastName'] is None)
         assert_true(
             doc['data']['domainQuery']['shopperInfo']['vip']['portfolioType'] == 'No Premium Services For This Shopper')
         assert_true(doc['data']['domainQuery']['shopperInfo']['vip']['shopperId'] is None)
 
     def test_domain_query2(self):
         doc = self.cmapservice.domain_query('')
-        assert_true(doc == {'data': {'domainQuery': {'blacklist': None,
+        assert_true(doc == {'data': {'domainQuery': {'blacklist': False,
                                                      'host': {'guid': None, 'hostingCompanyName': None},
                                                      'registrar': {'domainCreateDate': None, 'registrarName': None},
                                                      'shopperInfo': {'shopperCreateDate': None, 'shopperId': None,
-                                                                     'vip': {'blacklist': None}}}}})
+                                                                     'vip': {'blacklist': False}}}}})
 
     def test_api_cmap_merge(self):
         apidata = {'info': u'My spam Farm is better than yours...',

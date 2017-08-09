@@ -27,10 +27,10 @@ class CmapServiceHelper(object):
                 return json.loads(re.text)
         except Exception as e:
             self._logger.error("Unable to query CMAP service for: {}. {}".format(domain, e.message))
-            return {'data': {'domainQuery': {'blacklist': None,
+            return {'data': {'domainQuery': {'blacklist': False,
                                              'host': {'guid': None, 'hostingCompanyName': None},
                                              'registrar': {'domainCreateDate': None, 'registrarName': None},
-                                             'shopperInfo': {'shopperCreateDate': None, 'shopperId': None, 'vip': {'blacklist': None}}}}}
+                                             'shopperInfo': {'shopperCreateDate': None, 'shopperId': None, 'vip': {'blacklist': False}}}}}
 
     def domain_query(self, domain):
         """
@@ -60,9 +60,6 @@ class CmapServiceHelper(object):
                   product
                   shopperId
                   vip {
-                    accountRepEmail
-                    accountRepFirstName
-                    accountRepLastName
                     blacklist
                     portfolioType
                     shopperId
@@ -76,13 +73,8 @@ class CmapServiceHelper(object):
                 shopperInfo {
                   domainCount
                   shopperCreateDate
-                  shopperEmail
-                  shopperFirstName
                   shopperId
                   vip {
-                    accountRepEmail
-                    accountRepFirstName
-                    accountRepLastName
                     blacklist
                     portfolioType
                     shopperId
