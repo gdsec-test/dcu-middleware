@@ -100,8 +100,10 @@ def _route_to_brand_services(data):
     :return:
     """
     routing_helper = RoutingHelper(app)
-    hostname, registrar = _parse_hostname_and_registrar(data)
-    routing_helper.route(hostname, registrar, data)
+
+    host_brand = data.get('data', {}).get('domainQuery', {}).get('host', {}).get('brand', None)
+    registrar_brand = data.get('data', {}).get('domainQuery', {}).get('registrar', {}).get('brand', None)
+    routing_helper.route(host_brand, registrar_brand, data)
 
     return data
 
@@ -110,17 +112,3 @@ def _route_to_brand_services(data):
 def _printer(data):
     if data:
         logger.info("Successfully processed {}".format(pformat(data)))
-
-
-#### Private Helper Utilities ####
-
-
-def _parse_hostname_and_registrar(data):
-    regex = re.compile('[^a-zA-Z]')
-
-    host = data.get('data', {}).get('domainQuery', {}).get('host', {}).get('hostingCompanyName', None)
-    hostname = regex.sub('', host) if host is not None else None
-    reg = data.get('data', {}).get('domainQuery', {}).get('registrar', {}).get('registrarName', None)
-    registrar = regex.sub('', reg) if reg is not None else None
-
-    return hostname, registrar

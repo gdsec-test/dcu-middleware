@@ -33,14 +33,14 @@ class TestRoutingHelper:
     @patch.object(Celery, 'send_task')
     def test_route_registrar_no_host_not_branded(self, send_task):
         send_task.return_value = True
-        brands = self._routing_helper.route(None, 'NOBRAND', {'ticketId': "test_ticket"})
-        assert_true(brands == [])
+        brands = self._routing_helper.route(None, 'FOREIGN', {'ticketId': "test_ticket"})
+        assert_true(brands == ['FOREIGN'])
 
     @patch.object(Celery, 'send_task')
     def test_route_host_no_registrar_not_branded(self, send_task):
         send_task.return_value = True
-        brands = self._routing_helper.route('NOBRAND', None, {'ticketId': "test_ticket"})
-        assert_true(brands == [])
+        brands = self._routing_helper.route('FOREIGN', None, {'ticketId': "test_ticket"})
+        assert_true(brands == ['FOREIGN'])
 
     @patch.object(Celery, 'send_task')
     def test_route_registrar_and_host_both_branded_same(self, send_task):
@@ -57,11 +57,11 @@ class TestRoutingHelper:
     @patch.object(Celery, 'send_task')
     def test_route_registrar_branded_hosted_not_branded(self, send_task):
         send_task.return_value = True
-        brands = self._routing_helper.route('NOBRAND', 'EMEA', {'ticketId': "test_ticket"})
-        assert_true(brands == ['EMEA'])
+        brands = self._routing_helper.route('FOREIGN', 'EMEA', {'ticketId': "test_ticket"})
+        assert_true(brands == ['FOREIGN', 'EMEA'])
 
     @patch.object(Celery, 'send_task')
     def test_route_foreign(self, send_task):
         send_task.return_value = True
-        brands = self._routing_helper.route('NOBRAND', 'NOBRAND', {'ticketId': "test_ticket"})
-        assert_true(brands == ['GODADDY'])
+        brands = self._routing_helper.route('FOREIGN', 'FOREIGN', {'ticketId': "test_ticket"})
+        assert_true(brands == ['FOREIGN'])
