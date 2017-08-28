@@ -107,14 +107,10 @@ class CmapServiceHelper(object):
         :param date:
         :return iso_date:
         """
-        if date is None:
-            self._logger.info("Unable to format date string to ISO date object. Date provided is None")
-            return date
-
         try:
             return datetime.strptime(date, '%Y-%m-%d')
         except Exception as e:
-            self._logger.info("Unable to format date string to ISO date object: {}. {}".format(
+            self._logger.error("Unable to format date string to ISO date object: {}. {}".format(
                 date, e.message))
             return date
 
