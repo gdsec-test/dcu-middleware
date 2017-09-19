@@ -92,10 +92,13 @@ class CmapServiceHelper(object):
             'domainCreateDate', None)
         query_result['data']['domainQuery']['registrar']['domainCreateDate'] = self._date_time_format(reg_create_date)
 
-        shp_create_date = query_result.get('data', {}).get('domainQuery', {}).get('shopperInfo', {}).get(
-            'shopperCreateDate', None)
-        query_result['data']['domainQuery']['shopperInfo']['shopperCreateDate'] = self._date_time_format(
-            shp_create_date)
+        try:
+            shp_create_date = query_result.get('data', {}).get('domainQuery', {}).get('shopperInfo', {}).get(
+                'shopperCreateDate', None)
+            query_result['data']['domainQuery']['shopperInfo']['shopperCreateDate'] = self._date_time_format(
+                shp_create_date)
+        except:
+            query_result['data']['domainQuery']['shopperInfo'] = {}
 
         return query_result
 
