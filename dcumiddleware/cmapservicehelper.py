@@ -20,17 +20,10 @@ class CmapServiceHelper(object):
         :param domain:
         :return query result:
         """
-        try:
-            with sessions.Session() as session:
-                self._logger.info("Fetching query for {}".format(domain))
-                re = session.request(method='POST', url=self._graphene_url, headers=self._post_headers, data=query)
-                return json.loads(re.text)
-        except Exception as e:
-            self._logger.error("Unable to query CMAP service for: {}. {}".format(domain, e.message))
-            return {'data': {'domainQuery': {'blacklist': False,
-                                             'host': {'guid': None, 'hostingCompanyName': None},
-                                             'registrar': {'domainCreateDate': None, 'registrarName': None},
-                                             'shopperInfo': {'shopperCreateDate': None, 'shopperId': None, 'vip': {'blacklist': False}}}}}
+        with sessions.Session() as session:
+            self._logger.info("Fetching query for {}".format(domain))
+            re = session.request(method='POST', url=self._graphene_url, headers=self._post_headers, data=query)
+            return json.loads(re.text)
 
     def domain_query(self, domain):
         """
