@@ -20,17 +20,10 @@ class CmapServiceHelper(object):
         :param domain:
         :return query result:
         """
-        try:
-            with sessions.Session() as session:
-                self._logger.info("Fetching query for {}".format(domain))
-                re = session.request(method='POST', url=self._graphene_url, headers=self._post_headers, data=query)
-                return json.loads(re.text)
-        except Exception as e:
-            self._logger.error("Unable to query CMAP service for: {}. {}".format(domain, e.message))
-            return {'data': {'domainQuery': {'blacklist': False,
-                                             'host': {'guid': None, 'hostingCompanyName': None},
-                                             'registrar': {'domainCreateDate': None, 'registrarName': None},
-                                             'shopperInfo': {'shopperCreateDate': None, 'shopperId': None, 'vip': {'blacklist': False}}}}}
+        with sessions.Session() as session:
+            self._logger.info("Fetching query for {}".format(domain))
+            re = session.request(method='POST', url=self._graphene_url, headers=self._post_headers, data=query)
+            return json.loads(re.text)
 
     def domain_query(self, domain):
         """
@@ -94,10 +87,13 @@ class CmapServiceHelper(object):
             'domainCreateDate', None)
         query_result['data']['domainQuery']['registrar']['domainCreateDate'] = self._date_time_format(reg_create_date)
 
-        shp_create_date = query_result.get('data', {}).get('domainQuery', {}).get('shopperInfo', {}).get(
-            'shopperCreateDate', None)
-        query_result['data']['domainQuery']['shopperInfo']['shopperCreateDate'] = self._date_time_format(
-            shp_create_date)
+        try:
+            shp_create_date = query_result.get('data', {}).get('domainQuery', {}).get('shopperInfo', {}).get(
+                'shopperCreateDate', None)
+            query_result['data']['domainQuery']['shopperInfo']['shopperCreateDate'] = self._date_time_format(
+                shp_create_date)
+        except:
+            query_result['data']['domainQuery']['shopperInfo'] = {}
 
         return query_result
 

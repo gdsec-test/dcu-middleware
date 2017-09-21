@@ -78,7 +78,7 @@ class TestCmapServiceHelper:
         assert_true(doc['data']['domainQuery']['host']['os'] == 'Linux')
         assert_true(doc['data']['domainQuery']['host']['product'] == 'wpaas')
         assert_true(doc['data']['domainQuery']['host']['shopperId'] == '9sd')
-        assert_true(doc['data']['domainQuery']['host']['vip']['blacklist'] == False)
+        assert_true(doc['data']['domainQuery']['host']['vip']['blacklist'] is False)
         assert_true(doc['data']['domainQuery']['host']['vip']['portfolioType'] == 'No Premium Services For This Shopper')
         assert_true(doc['data']['domainQuery']['host']['vip']['shopperId'] is None)
         assert_true(doc['data']['domainQuery']['registrar']['domainCreateDate'] == '2009-12-05')
