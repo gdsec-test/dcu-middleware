@@ -61,19 +61,29 @@ def process(data):
 ##### PRIVATE TASKS #####
 
 
-@app.task
-def _load_and_enrich_data(data):
+@app.task(bind=True, default_retry_delay=app_settings.TASK_TIMEOUT, max_retries=app_settings.TASK_MAX_RETRIES)
+def _load_and_enrich_data(self, data):
     """
     Loads the data from CMAP and merges it with information gained from CMAP Service
     :param data:
     :return:
     """
+    cmap_data = {}
     cmap_helper = CmapServiceHelper(app_settings)
+    domain = data.get('sourceSubDomain') if data.get('sourceSubDomain', None) else data.get('sourceDomainOrIp', None)
 
-    # Retreive CMAP data from CMapServiceHelper
-    subdomain = data.get('sourceSubDomain', None)
-    cmap_data = cmap_helper.domain_query(subdomain) if subdomain \
-        else cmap_helper.domain_query(data.get('sourceDomainOrIp', None))
+    try:
+        # Retreive CMAP data from CMapServiceHelper
+        cmap_data = cmap_helper.domain_query(domain)
+    except Exception as e:
+        # If we have reached the max retries allowed, abort the process and nullify the task chain
+        if self.request.retries == self.max_retries:
+            logger.error("Max retries exceeded for {} : {}".format(domain, e.message))
+            self.request.chain[:] = []
+            return
+        else:
+            logger.error("Error while processing : {}. Retrying...".format(domain))
+            self.retry(exc=e)
 
     # return the result of merging the CMap data with data gathered from the API
     return cmap_helper.api_cmap_merge(data, cmap_data)
