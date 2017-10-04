@@ -83,4 +83,4 @@ class RoutingHelper:
         :return:
         """
         self._logger.info("Closing ticket: {}. No action able to be taken by GoDaddy.".format(ticket))
-        return self._db.close_incident(ticket, dict(close_reason='sent_to_emea'))
+        return self._db.close_incident(ticket, dict(close_reason='email_sent_to_emea'))
