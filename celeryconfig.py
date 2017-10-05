@@ -1,9 +1,9 @@
 import os
 import urllib
 
-from blindal.crypter import Crypter
 from kombu import Exchange, Queue
 
+from dcumiddleware.encryption_helper import PasswordDecrypter
 from settings import config_by_name
 
 # Grab the correct settings based on environment
@@ -33,14 +33,6 @@ class CeleryConfig:
 
     def __init__(self):
         self.BROKER_PASS = os.getenv('BROKER_PASS') or 'password'
-        keyfile = os.getenv('KEYFILE') or None
-        if keyfile:
-            f = open(keyfile, "r")
-            try:
-                key, iv = f.readline().split()
-                self.BROKER_PASS = Crypter.decrypt(self.BROKER_PASS, key, iv)
-            finally:
-                f.close()
-        self.BROKER_PASS = urllib.quote(self.BROKER_PASS)
+        self.BROKER_PASS = urllib.quote(PasswordDecrypter.decrypt(self.BROKER_PASS))
         self.BROKER_URL = 'amqp://02d1081iywc7A:' + self.BROKER_PASS + '@infosec-rmq-v01.prod.phx3.secureserver.net:5672/grandma'
 
