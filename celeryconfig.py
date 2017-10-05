@@ -28,7 +28,7 @@ class CeleryConfig:
     CELERY_ROUTES = {
         'run.process_gd': {'queue': app_settings.GDBRANDSERVICESQUEUE, 'routing_key': app_settings.GDBRANDSERVICESQUEUE},
         'run.process_emea': {'queue': app_settings.EMEABRANDSERVICESQUEUE, 'routing_key': app_settings.EMEABRANDSERVICESQUEUE},
-        'run.process_hainain': {'queue': app_settings.HAINAINBRANDSERVICESQUEUE, 'routing_key': app_settings.HAINAINBRANDSERVICESQUEUE}
+        'run.process_hainan': {'queue': app_settings.HAINANBRANDSERVICESQUEUE, 'routing_key': app_settings.HAINANBRANDSERVICESQUEUE}
     }
 
     def __init__(self):

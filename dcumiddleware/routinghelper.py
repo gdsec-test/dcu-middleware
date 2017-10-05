@@ -8,7 +8,7 @@ class RoutingHelper:
     _brands = {'GODADDY': 'run.process_gd',
                'FOREIGN': 'run.process_gd',
                'EMEA': 'run.process_emea',
-               'HAINAIN': 'run.process_hainain'}
+               'HAINAN': 'run.process_hainan'}
 
     def __init__(self, capp):
         self._logger = logging.getLogger(__name__)
