@@ -8,7 +8,7 @@ class RoutingHelper:
     _brands = {'GODADDY': 'run.process_gd',
                'FOREIGN': 'run.process_gd',
                'EMEA': 'run.process_emea',
-               'HAINAIN': 'run.process_hainain'}
+               'HAINAN': 'run.process_hainan'}
 
     def __init__(self, capp, db):
         self._logger = logging.getLogger(__name__)
@@ -46,20 +46,19 @@ class RoutingHelper:
         :param registrar_brand:
         :return:
         """
-        hosted_by_brand = host_brand in self._brands
-        registered_by_brand = registrar_brand in self._brands
-
         brands = []
 
         if host_brand is None and registrar_brand is None:  # Anything we don't have data for go to GoDaddy
             brands.append('GODADDY')
         else:
+            hosted_by_brand = host_brand in self._brands
+
             if hosted_by_brand and host_brand == registrar_brand:  # Don't route two tickets for one workflow
                 brands = [host_brand]
             else:
                 if hosted_by_brand:
                     brands.append(host_brand)
-                if registered_by_brand:
+                if registrar_brand in self._brands:
                     brands.append(registrar_brand)
         return brands
 

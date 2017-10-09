@@ -8,7 +8,7 @@ import settings
 class TestSettings:
     @classmethod
     def setup_class(cls):
-        os.environ['DBPASS'] = 'vkdE4NSw5wgFIcQDxQ=='  # decrypted password: test_password
+        os.environ['DB_PASS'] = 'vkdE4NSw5wgFIcQDxQ=='  # decrypted password: test_password
         path = os.path.dirname(os.path.abspath(__file__))
         os.environ['KEYFILE'] = path + '/' + 'test_key.txt'
 
@@ -17,10 +17,10 @@ class TestSettings:
 
     def test_production_app_config(self):
         configs = settings.ProductionAppConfig()
-        assert_true(configs.PASS == 'vkdE4NSw5wgFIcQDxQ==')
+        assert_true(configs.DB_PASS == 'test_password')
         assert_true(configs.DBURL == 'mongodb://sau_p_phish:test_password@10.22.9.209/phishstory')
 
     def test_ote_app_config(self):
         configs = settings.OTEAppConfig()
-        assert_true(configs.PASS == 'vkdE4NSw5wgFIcQDxQ==')
+        assert_true(configs.DB_PASS == 'test_password')
         assert_true(configs.DBURL == 'mongodb://sau_o_phish:test_password@10.22.9.209/otephishstory')

@@ -47,7 +47,7 @@ spec:
             value: http://cmap-service.abuse-api-prod.svc.cluster.local:5000
           - name: KEYFILE
             value: /keyfiles/key.txt
-          - name: DBPASS
+          - name: DB_PASS
             valueFrom:
               secretKeyRef:
                 name: db-middleware
