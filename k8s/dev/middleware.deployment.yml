@@ -8,6 +8,7 @@ metadata:
     app: "middleware"
 spec:
   replicas: 1
+  revisionHistoryLimit: 2
   template:
     metadata:
       labels:
@@ -41,7 +42,7 @@ spec:
             value: http://cmap-service.abuse-api-dev.svc.cluster.local:5000
           - name: KEYFILE
             value: /keyfiles/key.txt
-          - name: DBPASS
+          - name: DB_PASS
             valueFrom:
               secretKeyRef:
                 name: db-middleware

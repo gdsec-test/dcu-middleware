@@ -45,6 +45,7 @@ class CmapServiceHelper(object):
                 host {
                   dataCenter
                   guid
+                  brand
                   hostingCompanyName
                   hostingAbuseEmail
                   hostname
@@ -59,6 +60,7 @@ class CmapServiceHelper(object):
                   }
                 }
                 registrar {
+                  brand
                   domainCreateDate
                   registrarAbuseEmail
                   registrarName

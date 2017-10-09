@@ -1,4 +1,3 @@
-import re
 import os
 import yaml
 import logging.config
@@ -11,7 +10,7 @@ from celeryconfig import CeleryConfig
 from settings import config_by_name
 from dcumiddleware.cmapservicehelper import CmapServiceHelper
 from dcumiddleware.routinghelper import RoutingHelper
-from dcdatabase.phishstorymongo import PhishstoryMongo as db
+from dcdatabase.phishstorymongo import PhishstoryMongo
 
 
 # Grab the correct settings based on environment
@@ -32,6 +31,9 @@ if os.path.exists(path):
     logging.config.dictConfig(lconfig)
 else:
     logging.basicConfig(level=logging.INFO)
+
+db = PhishstoryMongo(app_settings)
+routing_helper = RoutingHelper(app)
 
 """
 Sample data:
@@ -91,12 +93,11 @@ def _load_and_enrich_data(self, data):
 
 @app.task
 def _add_data_to_database(data):
-    dcu_db = db(app_settings)
-    iid = dcu_db.add_new_incident(data.get('ticketId', None), data)
+    iid = db.add_new_incident(data.get('ticketId', None), data)
     if iid:
         logger.info("Incident {} inserted into the database.".format(iid))
         # Put the ticket in an intermediary stage while it is being processed by brand services.
-        data = dcu_db.update_incident(iid, dict(phishstory_status='PROCESSING'))
+        data = db.update_incident(iid, dict(phishstory_status='PROCESSING'))
     else:
         logger.error("Unable to insert {} into the database.".format(iid))
     return data
@@ -109,28 +110,10 @@ def _route_to_brand_services(data):
     :param data:
     :return:
     """
-    routing_helper = RoutingHelper(app)
-    hostname, registrar = _parse_hostname_and_registrar(data)
-    routing_helper.route(hostname, registrar, data)
-
-    return data
+    return routing_helper.route(data)
 
 
 @app.task
 def _printer(data):
     if data:
         logger.info("Successfully processed {}".format(pformat(data)))
-
-
-#### Private Helper Utilities ####
-
-
-def _parse_hostname_and_registrar(data):
-    regex = re.compile('[^a-zA-Z]')
-
-    host = data.get('data', {}).get('domainQuery', {}).get('host', {}).get('hostingCompanyName', None)
-    hostname = regex.sub('', host) if host is not None else None
-    reg = data.get('data', {}).get('domainQuery', {}).get('registrar', {}).get('registrarName', None)
-    registrar = regex.sub('', reg) if reg is not None else None
-
-    return hostname, registrar
