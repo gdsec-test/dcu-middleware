@@ -10,9 +10,10 @@ class RoutingHelper:
                'EMEA': 'run.process_emea',
                'HAINAN': 'run.process_hainan'}
 
-    def __init__(self, capp):
+    def __init__(self, capp, db):
         self._logger = logging.getLogger(__name__)
         self._capp = capp
+        self._db = db
 
     def route(self, data):
         """
@@ -25,8 +26,11 @@ class RoutingHelper:
 
         brands = self._find_brands_to_route(host_brand, registrar_brand)
 
-        # All foreign tickets get sent to GoDaddy so this prevents two tickets being sent to GDBS Container
-        if 'FOREIGN' in brands and 'GODADDY' in brands:
+        if len(brands) == 1 and 'EMEA' in brands:
+            # Need to be sure to return the updated data structure to Celery and EMEABS Container
+            data = self._close_emea_only_ticket(data.get('ticketId'))
+        elif 'FOREIGN' in brands and 'GODADDY' in brands:
+            # All foreign tickets get sent to GoDaddy so this prevents two tickets being sent to GDBS Container
             brands = ['GODADDY']
 
         for brand in brands:
@@ -69,3 +73,12 @@ class RoutingHelper:
             self._capp.send_task(self._brands.get(service), (data,))
         except Exception as e:
             self._logger.error("Error trying to route ticket to {} brand services: {}".format(service, e.message))
+
+    def _close_emea_only_ticket(self, ticket):
+        """
+        Closes a ticket that is destined only for EMEA and returns the resulting data structure from MongoDB
+        :param ticket:
+        :return:
+        """
+        self._logger.info("Closing ticket: {}. No action able to be taken by GoDaddy.".format(ticket))
+        return self._db.close_incident(ticket, dict(close_reason='email_sent_to_emea'))

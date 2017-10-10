@@ -1,15 +1,22 @@
-from nose.tools import assert_true
+import mongomock
+
+from nose.tools import assert_true, assert_equal
+from mock import patch
 from celery import Celery
 from celeryconfig import CeleryConfig
 
+from settings import TestAppConfig
 from dcumiddleware.routinghelper import RoutingHelper
+from dcdatabase.phishstorymongo import PhishstoryMongo
 
 
 class TestRoutingHelper:
 
     @classmethod
     def setup(cls):
-        cls._routing_helper = RoutingHelper(Celery().config_from_object(CeleryConfig))
+        cls._routing_helper = RoutingHelper(Celery().config_from_object(CeleryConfig), PhishstoryMongo(TestAppConfig()))
+        cls._routing_helper._db._mongo._collection = mongomock.MongoClient().db.collection
+        cls._routing_helper._db.add_new_incident(1234, dict(ticketId=1234))
 
     def test_find_brands_to_route_no_host_no_registrar(self):
         brands = self._routing_helper._find_brands_to_route(None, None)
@@ -46,3 +53,19 @@ class TestRoutingHelper:
     def test_find_brands_to_route_foreign(self):
         brands = self._routing_helper._find_brands_to_route('FOREIGN', 'FOREIGN')
         assert_true(brands == ['FOREIGN'])
+
+    @patch.object(RoutingHelper, '_route_to_brand')
+    def test_route_emea_only(self, _route_to_brand):
+        ticket_data = {'ticketId': '1234', 'data': {'domainQuery': {'host': {'brand': 'EMEA'},
+                                                                    'registrar': {'brand': 'EMEA'}}}}
+        returned_data = self._routing_helper.route(ticket_data)
+
+        assert_equal(returned_data, self._routing_helper._db.get_incident('1234'))
+
+    @patch.object(RoutingHelper, '_route_to_brand')
+    def test_route_emea_only(self, _route_to_brand):
+        ticket_data = {'ticketId': '1234', 'data': {'domainQuery': {'host': {'brand': 'GODADDY'},
+                                                                    'registrar': {'brand': 'FOREIGN'}}}}
+        returned_data = self._routing_helper.route(ticket_data)
+
+        assert_equal(returned_data, ticket_data)

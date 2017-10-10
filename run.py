@@ -33,7 +33,7 @@ else:
     logging.basicConfig(level=logging.INFO)
 
 db = PhishstoryMongo(app_settings)
-routing_helper = RoutingHelper(app)
+routing_helper = RoutingHelper(app, db)
 
 """
 Sample data:
