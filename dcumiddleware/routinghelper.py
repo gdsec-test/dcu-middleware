@@ -29,9 +29,8 @@ class RoutingHelper:
         if len(brands) == 1 and 'EMEA' in brands:
             # Need to be sure to return the updated data structure to Celery and EMEABS Container
             data = self._close_emea_only_ticket(data.get('ticketId'))
-
-        # All foreign tickets get sent to GoDaddy so this prevents two tickets being sent to GDBS Container
-        if 'FOREIGN' in brands and 'GODADDY' in brands:
+        elif 'FOREIGN' in brands and 'GODADDY' in brands:
+            # All foreign tickets get sent to GoDaddy so this prevents two tickets being sent to GDBS Container
             brands = ['GODADDY']
 
         for brand in brands:
