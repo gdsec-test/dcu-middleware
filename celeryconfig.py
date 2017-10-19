@@ -34,5 +34,4 @@ class CeleryConfig:
     def __init__(self):
         self.BROKER_PASS = os.getenv('BROKER_PASS') or 'password'
         self.BROKER_PASS = urllib.quote(PasswordDecrypter.decrypt(self.BROKER_PASS))
-        self.BROKER_URL = 'amqp://02d1081iywc7A:' + self.BROKER_PASS + '@infosec-rmq-v01.prod.phx3.secureserver.net:5672/grandma'
-
+        self.BROKER_URL = 'amqp://02d1081iywc7A:' + self.BROKER_PASS + '@rmq-dcu.int.godaddy.com:5672/grandma'
