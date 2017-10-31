@@ -1,7 +1,7 @@
 import json
 import logging
 
-from datetime import datetime
+from dateutil import parser
 from requests import sessions
 
 
@@ -101,14 +101,12 @@ class CmapServiceHelper(object):
         """
         Returns date/time formatted object
         :param date:
-        :return iso_date:
+        :return
         """
         try:
-            return datetime.strptime(date, '%Y-%m-%d')
+            return parser.parse(date, ignoretz=True)
         except Exception as e:
-            self._logger.error("Unable to format date string to ISO date object: {}. {}".format(
-                date, e.message))
-            return date
+            self._logger.error("Unable to format date string to ISO date object: {}. {}".format(date, e.message))
 
     def api_cmap_merge(self, apidata, cmapdata):
         """
