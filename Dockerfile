@@ -48,4 +48,4 @@ RUN apt-get remove --purge -y build-essential \
 USER dcu
 WORKDIR /app
 
-CMD ["/usr/local/bin/celery", "-A", "run", "worker", "-l", "INFO"]
+CMD ["/usr/local/bin/celery", "-A", "run", "worker", "-l", "INFO", "--without-gossip", "--without-mingle", "--without-heartbeat"]

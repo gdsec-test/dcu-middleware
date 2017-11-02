@@ -21,6 +21,7 @@ class CeleryConfig:
     CELERY_DEFAULT_QUEUE = app_settings.APIQUEUE
     CELERY_ACKS_LATE = True
     CELERYD_PREFETCH_MULTIPLIER = 1
+    CELERY_SEND_EVENTS = False
     CELERY_QUEUES = (
         Queue(app_settings.APIQUEUE, Exchange(app_settings.APIQUEUE), routing_key=app_settings.APIQUEUE),
     )
