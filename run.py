@@ -78,13 +78,14 @@ def _load_and_enrich_data(self, data):
         # Retreive CMAP data from CMapServiceHelper
         cmap_data = cmap_helper.domain_query(domain)
     except Exception as e:
+        ticket = data.get('ticketId')
         # If we have reached the max retries allowed, abort the process and nullify the task chain
         if self.request.retries == self.max_retries:
-            logger.error("Max retries exceeded for {} : {}".format(domain, e.message))
+            logger.error("Max retries exceeded for {} : {}".format(ticket, e.message))
             self.request.chain[:] = []
             return
         else:
-            logger.error("Error while processing : {}. Retrying...".format(domain))
+            logger.error("Error while processing : {}. Retrying...".format(ticket))
             self.retry(exc=e)
 
     # return the result of merging the CMap data with data gathered from the API

@@ -1,7 +1,7 @@
 from nose.tools import assert_true
 from dcumiddleware.cmapservicehelper import CmapServiceHelper
 from test_settings import TestingConfig
-from datetime import datetime
+from dateutil import parser
 from mock import patch
 
 
@@ -79,7 +79,8 @@ class TestCmapServiceHelper:
         assert_true(doc['data']['domainQuery']['host']['product'] == 'wpaas')
         assert_true(doc['data']['domainQuery']['host']['shopperId'] == '9sd')
         assert_true(doc['data']['domainQuery']['host']['vip']['blacklist'] is False)
-        assert_true(doc['data']['domainQuery']['host']['vip']['portfolioType'] == 'No Premium Services For This Shopper')
+        assert_true(
+            doc['data']['domainQuery']['host']['vip']['portfolioType'] == 'No Premium Services For This Shopper')
         assert_true(doc['data']['domainQuery']['host']['vip']['shopperId'] is None)
         assert_true(doc['data']['domainQuery']['registrar']['domainCreateDate'] == '2009-12-05')
         assert_true(doc['data']['domainQuery']['registrar']['registrarAbuseEmail'] == ['abuse@godaddy.com'])
@@ -92,14 +93,6 @@ class TestCmapServiceHelper:
         assert_true(
             doc['data']['domainQuery']['shopperInfo']['vip']['portfolioType'] == 'No Premium Services For This Shopper')
         assert_true(doc['data']['domainQuery']['shopperInfo']['vip']['shopperId'] is None)
-
-    def test_domain_query2(self):
-        doc = self.cmapservice.domain_query('')
-        assert_true(doc == {'data': {'domainQuery': {'blacklist': False,
-                                                     'host': {'guid': None, 'hostingCompanyName': None},
-                                                     'registrar': {'domainCreateDate': None, 'registrarName': None},
-                                                     'shopperInfo': {'shopperCreateDate': None, 'shopperId': None,
-                                                                     'vip': {'blacklist': False}}}}})
 
     def test_api_cmap_merge(self):
         apidata = {'info': u'My spam Farm is better than yours...',
@@ -161,7 +154,7 @@ class TestCmapServiceHelper:
         assert_true(doc2['type'] == 'PHISHING')
 
     def test_date_time_format(self):
-        date = self.cmapservice._date_time_format(datetime.strptime('09-01-2012', '%d-%m-%Y'))
-        assert_true(date == datetime.strptime('2012-01-09', '%Y-%m-%d'))
-        date2 = self.cmapservice._date_time_format('fail')
-        assert_true(date2 == 'fail')
+        date = self.cmapservice._date_time_format('2007-03-08T12:11:06Z')
+        assert_true(date == parser.parse('2007-03-08 12:11:06'))
+        date2 = self.cmapservice._date_time_format('invaliddatetimestring')
+        assert_true(date2 is None)
