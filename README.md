@@ -44,4 +44,4 @@ nosetests
 ```
 
 ## Built With
-This project utilizes Celery, as well as the internal projects dcdatabase, cmap_ervice, and blindAl
+This project utilizes Celery, as well as the internal projects dcdatabase, cmap_service, and blindAl
