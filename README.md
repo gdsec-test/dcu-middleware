@@ -1,7 +1,6 @@
 # DCUMiddleware
 
-This set of classes is responsible for processing data created from the DCU REST API, 
-and enriching the report information, and routing the report to the appropriate brand service[s].
+This set of classes is responsible for processing data created from the DCU REST API, enriching the report information, and routing the report to the appropriate brand service[s].
 The metadata generated and saved is only used internally to assist the DCU team.
 
 ## Cloning
@@ -40,8 +39,19 @@ make [prod,ote,dev]-deploy
 ## Testing
 To run all tests
 ```
-nosetests
+nosetests --with-coverage --cover-package=dcumiddleware
 ```
 
 ## Built With
 This project utilizes Celery, as well as the internal projects dcdatabase, cmap_service, and blindAl
+
+## Running Locally
+If you would like to run the dcumiddleware service locally, you will need to specify the following environment variables:
+1. `sysenv` (dev, ote, prod)
+2. `SERVICE_URL` (URL for accessing CMAP service)
+3. `DB_PASS` (Password for MongoDB)
+4. `BROKER_PASS` (Password for Celery)
+5. `KEYFILE` (BlindAl key file, for decrypting passwords)
+You may also need to configure settings.py and celeryconfig.py to specify additional MongoDB and Celery settings.
+
+DCU Middleware can then be run locally by running `python run.py`
