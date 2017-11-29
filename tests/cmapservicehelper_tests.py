@@ -10,9 +10,9 @@ class TestCmapServiceHelper:
         config = TestingConfig()
         self.cmapservice = CmapServiceHelper(config)
 
-    @patch.object(CmapServiceHelper, 'domain_query')
-    def test_domain_query(self, domain_query):
-        domain_query.return_value = {
+    @patch.object(CmapServiceHelper, 'cmap_query')
+    def test_domain_query(self, cmap_query):
+        cmap_query.return_value = {
             "data": {
                 "domainQuery": {
                     "alexaRank": 999999,
