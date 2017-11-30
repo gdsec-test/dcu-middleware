@@ -82,12 +82,12 @@ class TestCmapServiceHelper:
         assert_true(
             doc['data']['domainQuery']['host']['vip']['portfolioType'] == 'No Premium Services For This Shopper')
         assert_true(doc['data']['domainQuery']['host']['vip']['shopperId'] is None)
-        assert_true(doc['data']['domainQuery']['registrar']['domainCreateDate'] == '2009-12-05')
+        assert_true(doc['data']['domainQuery']['registrar']['domainCreateDate'].isoformat() == '2009-12-05T00:00:00')
         assert_true(doc['data']['domainQuery']['registrar']['registrarAbuseEmail'] == ['abuse@godaddy.com'])
         assert_true(doc['data']['domainQuery']['registrar']['registrarName'] == 'GoDaddy.com, LLC')
 
         assert_true(doc['data']['domainQuery']['shopperInfo']['domainCount'] == 9)
-        assert_true(doc['data']['domainQuery']['shopperInfo']['shopperCreateDate'] == '2003-01-19')
+        assert_true(doc['data']['domainQuery']['shopperInfo']['shopperCreateDate'].isoformat() == '2003-01-19T00:00:00')
         assert_true(doc['data']['domainQuery']['shopperInfo']['shopperId'] == '1488039')
         assert_true(doc['data']['domainQuery']['shopperInfo']['vip']['blacklist'] is False)
         assert_true(
