@@ -98,7 +98,7 @@ def _add_data_to_database(data):
     if iid:
         logger.info("Incident {} inserted into the database.".format(iid))
         # Put the ticket in an intermediary stage while it is being processed by brand services.
-        data = db.update_incident(iid, dict(phishstory_status='PROCESSING'))
+        data = db.update_incident(iid, dict(data, phishstory_status='PROCESSING'))
     else:
         logger.error("Unable to insert {} into the database.".format(iid))
     return data
