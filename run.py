@@ -94,7 +94,7 @@ def _load_and_enrich_data(self, data):
 
 @app.task
 def _add_data_to_database(data):
-    iid = db.add_new_incident(data.get('ticketId', None), data)
+    iid = data.get('ticketId', None)
     if iid:
         logger.info("Incident {} inserted into the database.".format(iid))
         # Put the ticket in an intermediary stage while it is being processed by brand services.
