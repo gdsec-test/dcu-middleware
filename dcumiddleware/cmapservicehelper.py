@@ -21,8 +21,7 @@ class CmapServiceHelper(object):
         :return query result:
         """
         with sessions.Session() as session:
-            self._logger.info("Fetching query for {}".format(domain))
-            re = session.request(method='POST', url=self._graphene_url, headers=self._post_headers, data=query)
+            re = session.post(url=self._graphene_url, headers=self._post_headers, data=query)
             return json.loads(re.text)
 
     def domain_query(self, domain):
@@ -80,20 +79,18 @@ class CmapServiceHelper(object):
           ''')
         query_result = self.cmap_query(query, domain)
 
-        if not isinstance(query_result, dict):
-            query_result = dict()
+        if not isinstance(query_result, dict) or 'errors' in query_result:
+            query_result = {}
 
-        reg_create_date = query_result.get('data', {}).get('domainQuery', {}).get('registrar', {}).get(
-            'domainCreateDate', None)
-        query_result['data']['domainQuery']['registrar']['domainCreateDate'] = self._date_time_format(reg_create_date)
+        reg_create_date = query_result.get('data', {}).get('domainQuery', {}).get('registrar', {}).get('domainCreateDate')
+        if reg_create_date:
+            query_result['data']['domainQuery']['registrar']['domainCreateDate'] = \
+                self._date_time_format(reg_create_date)
 
-        try:
-            shp_create_date = query_result.get('data', {}).get('domainQuery', {}).get('shopperInfo', {}).get(
-                'shopperCreateDate', None)
-            query_result['data']['domainQuery']['shopperInfo']['shopperCreateDate'] = self._date_time_format(
-                shp_create_date)
-        except:
-            query_result['data']['domainQuery']['shopperInfo'] = {}
+        shp_create_date = query_result.get('data', {}).get('domainQuery', {}).get('shopperInfo', {}).get('shopperCreateDate')
+        if shp_create_date:
+            query_result['data']['domainQuery']['shopperInfo']['shopperCreateDate'] = \
+                self._date_time_format(shp_create_date)
 
         return query_result
 
