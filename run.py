@@ -1,17 +1,16 @@
-import os
-import yaml
 import logging.config
-
+import os
 from pprint import pformat
+
+import yaml
 from celery import Celery, chain
 from celery.utils.log import get_task_logger
-
-from celeryconfig import CeleryConfig
-from settings import config_by_name
-from dcumiddleware.cmapservicehelper import CmapServiceHelper
-from dcumiddleware.routinghelper import RoutingHelper
 from dcdatabase.phishstorymongo import PhishstoryMongo
 
+from celeryconfig import CeleryConfig
+from dcumiddleware.cmapservicehelper import CmapServiceHelper
+from dcumiddleware.routinghelper import RoutingHelper
+from settings import config_by_name
 
 # Grab the correct settings based on environment
 app_settings = config_by_name[os.getenv('sysenv') or 'dev']()
@@ -56,11 +55,11 @@ def process(data):
     :return:
     """
     chain(_load_and_enrich_data.s(data),
-          _add_data_to_database.s(),
+          _update_ticket.s(),
           _route_to_brand_services.s(),
           _printer.s())()
 
-##### PRIVATE TASKS #####
+''' PRIVATE TASKS'''
 
 
 @app.task(bind=True, default_retry_delay=app_settings.TASK_TIMEOUT, max_retries=app_settings.TASK_MAX_RETRIES)
@@ -72,7 +71,7 @@ def _load_and_enrich_data(self, data):
     """
     cmap_data = {}
     cmap_helper = CmapServiceHelper(app_settings)
-    domain = data.get('sourceSubDomain') if data.get('sourceSubDomain', None) else data.get('sourceDomainOrIp', None)
+    domain = data.get('sourceSubDomain') if data.get('sourceSubDomain') else data.get('sourceDomainOrIp')
 
     try:
         # Retreive CMAP data from CMapServiceHelper
@@ -85,7 +84,7 @@ def _load_and_enrich_data(self, data):
             self.request.chain[:] = []
             return
         else:
-            logger.error("Error while processing : {}. Retrying...".format(ticket))
+            logger.error("Error while processing: {}. Retrying...".format(ticket))
             self.retry(exc=e)
 
     # return the result of merging the CMap data with data gathered from the API
@@ -93,15 +92,8 @@ def _load_and_enrich_data(self, data):
 
 
 @app.task
-def _add_data_to_database(data):
-    iid = data.get('ticketId', None)
-    if iid:
-        logger.info("Incident {} inserted into the database.".format(iid))
-        # Put the ticket in an intermediary stage while it is being processed by brand services.
-        data = db.update_incident(iid, dict(data, phishstory_status='PROCESSING'))
-    else:
-        logger.error("Unable to insert {} into the database.".format(iid))
-    return data
+def _update_ticket(data):
+    return db.update_incident(data.get('ticketId'), dict(data, phishstory_status='PROCESSING'))
 
 
 @app.task
