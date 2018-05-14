@@ -1,6 +1,6 @@
 REPONAME=infosec-dcu/dcumiddleware
 BUILDROOT=$(HOME)/dockerbuild/$(REPONAME)
-DOCKERREPO=artifactory.secureserver.net:10014/docker-dcu-local/dcumiddleware
+DOCKERREPO=docker-dcu-local.artifactory.secureserver.net/dcumiddleware
 DATE=$(shell date)
 
 # libraries we need to stage for pip to install inside Docker build
