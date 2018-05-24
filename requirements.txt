@@ -1,5 +1,5 @@
 requests==2.13.0
-celery==4.0.2
+celery==4.1.1
 dcdatabase==1.1
 blindAl==1.0
 pyyaml==3.12
