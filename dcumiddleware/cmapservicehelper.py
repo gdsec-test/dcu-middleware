@@ -52,6 +52,8 @@ class CmapServiceHelper(object):
                   os
                   product
                   shopperId
+                  createdDate
+                  friendlyName
                   vip {
                     blacklist
                     portfolioType
@@ -91,6 +93,10 @@ class CmapServiceHelper(object):
         if shp_create_date:
             query_result['data']['domainQuery']['shopperInfo']['shopperCreateDate'] = \
                 self._date_time_format(shp_create_date)
+
+        hosting_create_date = query_result.get('data', {}).get('domainQuery', {}).get('host', {}).get('createdDate')
+        if hosting_create_date:
+            query_result['data']['domainQuery']['host']['createdDate'] = self._date_time_format(hosting_create_date)
 
         return query_result
 
