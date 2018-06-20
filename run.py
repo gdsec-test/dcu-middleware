@@ -55,9 +55,9 @@ def process(data):
     :return:
     """
     chain(_load_and_enrich_data.s(data),
-          _update_ticket.s(),
           _route_to_brand_services.s(),
           _printer.s())()
+
 
 ''' PRIVATE TASKS'''
 
@@ -88,12 +88,7 @@ def _load_and_enrich_data(self, data):
             self.retry(exc=e)
 
     # return the result of merging the CMap data with data gathered from the API
-    return cmap_helper.api_cmap_merge(data, cmap_data)
-
-
-@app.task
-def _update_ticket(data):
-    return db.update_incident(data.get('ticketId'), dict(data, phishstory_status='PROCESSING'))
+    return db.update_incident(data.get('ticketId'), cmap_helper.api_cmap_merge(data, cmap_data))
 
 
 @app.task
