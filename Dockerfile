@@ -16,7 +16,7 @@ COPY . /tmp/
 RUN chown -R dcu:dcu /app
 
 # pip install private pips staged by Makefile
-RUN for entry in dcdatabase blindAl; \
+RUN for entry in dcdatabase; \
     do \
     pip install --compile "/tmp/private_pips/$entry"; \
 done

@@ -4,8 +4,7 @@ DOCKERREPO=docker-dcu-local.artifactory.secureserver.net/dcumiddleware
 DATE=$(shell date)
 
 # libraries we need to stage for pip to install inside Docker build
-PRIVATE_PIPS=git@github.secureserver.net:ITSecurity/dcdatabase.git \
-git@github.secureserver.net:ITSecurity/blindAl.git
+PRIVATE_PIPS=git@github.secureserver.net:ITSecurity/dcdatabase.git
 
 .PHONY: prep dev stage prod ote clean prod-deploy ote-deploy dev-deploy
 

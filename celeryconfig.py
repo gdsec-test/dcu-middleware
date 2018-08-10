@@ -3,7 +3,6 @@ import urllib
 
 from kombu import Exchange, Queue
 
-from dcumiddleware.encryption_helper import PasswordDecrypter
 from settings import config_by_name
 
 # Grab the correct settings based on environment
@@ -33,6 +32,5 @@ class CeleryConfig:
     }
 
     def __init__(self):
-        self.BROKER_PASS = os.getenv('BROKER_PASS') or 'password'
-        self.BROKER_PASS = urllib.quote(PasswordDecrypter.decrypt(self.BROKER_PASS))
+        self.BROKER_PASS = urllib.quote(os.getenv('BROKER_PASS', 'password'))
         self.BROKER_URL = 'amqp://02d1081iywc7A:' + self.BROKER_PASS + '@rmq-dcu.int.godaddy.com:5672/grandma'

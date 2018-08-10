@@ -40,20 +40,8 @@ spec:
                 key: password
           - name: SERVICE_URL
             value: http://cmap-service.abuse-api-dev.svc.cluster.local:5000
-          - name: KEYFILE
-            value: /keyfiles/key.txt
           - name: DB_PASS
             valueFrom:
               secretKeyRef:
                 name: db-middleware
                 key: password
-          volumeMounts:
-          - name: encryption-keys
-            mountPath: /keyfiles
-            readOnly: true
-
-      volumes:
-        - name: encryption-keys
-          secret:
-            secretName: encryption-key-files
-

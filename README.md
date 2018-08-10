@@ -43,7 +43,7 @@ nosetests --with-coverage --cover-package=dcumiddleware
 ```
 
 ## Built With
-This project utilizes Celery, as well as the internal projects dcdatabase, cmap_service, and blindAl
+This project utilizes Celery, as well as the internal projects dcdatabase and CMAP Service.
 
 ## Running Locally
 If you would like to run the dcumiddleware service locally, you will need to specify the following environment variables:
@@ -51,7 +51,6 @@ If you would like to run the dcumiddleware service locally, you will need to spe
 2. `SERVICE_URL` (URL for accessing CMAP service)
 3. `DB_PASS` (Password for MongoDB)
 4. `BROKER_PASS` (Password for Celery)
-5. `KEYFILE` (BlindAl key file, for decrypting passwords)
 
 You may also need to configure settings.py and celeryconfig.py to specify additional MongoDB and Celery settings.
 
