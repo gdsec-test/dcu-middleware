@@ -1,8 +1,9 @@
-from nose.tools import assert_true
-from dcumiddleware.cmapservicehelper import CmapServiceHelper
-from test_settings import TestingConfig
 from dateutil import parser
 from mock import patch
+from nose.tools import assert_true
+
+from dcumiddleware.cmapservicehelper import CmapServiceHelper
+from test_settings import TestingConfig
 
 
 class TestCmapServiceHelper:

@@ -1,13 +1,12 @@
 import mongomock
-
-from nose.tools import assert_true, assert_equal
-from mock import patch
 from celery import Celery
-from celeryconfig import CeleryConfig
-
-from settings import TestAppConfig
-from dcumiddleware.routinghelper import RoutingHelper
 from dcdatabase.phishstorymongo import PhishstoryMongo
+from mock import patch
+from nose.tools import assert_equal, assert_true
+
+from celeryconfig import CeleryConfig
+from dcumiddleware.routinghelper import RoutingHelper
+from settings import TestAppConfig
 
 
 class TestRoutingHelper:
@@ -63,7 +62,7 @@ class TestRoutingHelper:
         assert_equal(returned_data, self._routing_helper._db.get_incident('1234'))
 
     @patch.object(RoutingHelper, '_route_to_brand')
-    def test_route_emea_only(self, _route_to_brand):
+    def test_route_godaddy_foreign(self, _route_to_brand):
         ticket_data = {'ticketId': '1234', 'data': {'domainQuery': {'host': {'brand': 'GODADDY'},
                                                                     'registrar': {'brand': 'FOREIGN'}}}}
         returned_data = self._routing_helper.route(ticket_data)

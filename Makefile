@@ -6,11 +6,39 @@ DATE=$(shell date)
 # libraries we need to stage for pip to install inside Docker build
 PRIVATE_PIPS=git@github.secureserver.net:ITSecurity/dcdatabase.git
 
-.PHONY: prep dev stage prod ote clean prod-deploy ote-deploy dev-deploy
+all: env
 
-all: prep dev
+env:
+	pip install -r test_requirements.txt
+	pip install -r private_pips.txt
+	pip install -r requirements.txt
 
-prep:
+.PHONY: flake8
+flake8:
+	@echo "----- Running linter -----"
+	flake8 --config ./.flake8 .
+
+.PHONY: isort
+isort:
+	@echo "----- Optimizing imports -----"
+	isort -rc --atomic .
+
+.PHONY: tools
+tools: flake8 isort
+
+.PHONY: test
+test:
+	@echo "----- Running tests -----"
+	nosetests tests
+
+.PHONY: testcov
+testcov:
+	@echo "----- Running tests with coverage -----"
+	nosetests tests --with-coverage --cover-erase --cover-package=dcumiddleware
+
+
+.PHONY: prep
+prep: tools test
 	@echo "----- preparing $(REPONAME) build -----"
 	# stage pips we will need to install in Docker build
 	mkdir -p $(BUILDROOT)/private_pips && rm -rf $(BUILDROOT)/private_pips/*
@@ -21,41 +49,43 @@ prep:
 	# copy the app code to the build root
 	cp -rp ./* $(BUILDROOT)
 
-stage: prep
-	@echo "----- building $(REPONAME) stage -----"
-	DOCKERTAG=stage
-	docker build -t $(DOCKERREPO):stage $(BUILDROOT)
-
+.PHONY: dev
 dev: prep
 	@echo "----- building $(REPONAME) dev -----"
 	sed -ie 's/THIS_STRING_IS_REPLACED_DURING_BUILD/$(DATE)/g' $(BUILDROOT)/k8s/dev/middleware.deployment.yml
 	docker build -t $(DOCKERREPO):dev $(BUILDROOT)
 
+.PHONY: ote
 ote: prep
 	@echo "----- building $(REPONAME) ote -----"
 	sed -ie 's/THIS_STRING_IS_REPLACED_DURING_BUILD/$(DATE)/g' $(BUILDROOT)/k8s/ote/middleware.deployment.yml
 	docker build -t $(DOCKERREPO):ote $(BUILDROOT)
 
+.PHONY: prod
 prod: prep
 	@echo "----- building $(REPONAME) prod -----"
 	sed -ie 's/THIS_STRING_IS_REPLACED_DURING_BUILD/$(DATE)/g' $(BUILDROOT)/k8s/prod/middleware.deployment.yml
 	docker build -t $(DOCKERREPO):prod $(BUILDROOT)
 
+.PHONY: dev-deploy
 dev-deploy: dev
 	@echo "----- deploying $(REPONAME) to dev -----"
 	docker push $(DOCKERREPO):dev
 	kubectl --context dev apply -f $(BUILDROOT)/k8s/dev/middleware.deployment.yml --record
 
+.PHONY: ote-deploy
 ote-deploy: ote
 	@echo "----- deploying $(REPONAME) to ote -----"
 	docker push $(DOCKERREPO):ote
 	kubectl --context ote apply -f $(BUILDROOT)/k8s/ote/middleware.deployment.yml --record
 
+.PHONY: prod-deploy
 prod-deploy: prod
 	@echo "----- deploying $(REPONAME) to prod -----"
 	docker push $(DOCKERREPO):prod
 	kubectl --context prod apply -f $(BUILDROOT)/k8s/prod/middleware.deployment.yml --record
 
+.PHONY: clean
 clean:
 	@echo "----- cleaning $(REPONAME) app -----"
 	rm -rf $(BUILDROOT)

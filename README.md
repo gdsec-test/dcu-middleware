@@ -4,42 +4,44 @@ This set of classes is responsible for processing data created from the DCU REST
 The metadata generated and saved is only used internally to assist the DCU team.
 
 ## Cloning
-To clone the repo, use git, and set up a python virtualenv:
+To clone the repository via SSH perform the following
 ```
 git clone git@github.secureserver.net:ITSecurity/dcumiddleware.git
-virtualenv virt_dcumiddleware
-source virt_dcumiddleware/bin/activate
-cd dcumiddleware
 ```
+
+It is recommended that you clone this project into a pyvirtualenv or equivalent virtual environment.
 
 ## Installing Dependencies
-Install private pips and main project dependencies:
-```
-pip install -r private_pips.txt
-pip install -r requirements.txt
-```
-If you also wish to run test suites, install the test dependencies:
-```
-pip install -r test_requirements.txt
-```
+To install all dependencies for development and testing simply run `make`.
 
 ## Building
-To build an Ubuntu 16.10 based Docker container for development run:
+Building a local Docker image for the respective development environments can be achieved by
 ```
-make dev
+make [dev, ote, prod]
 ```
-Similiar targets exist for ote and prod.
 
-## Deploy
-To deploy the container to kubernetes run one of the deploy targets
+## Deploying
+Deploying the Docker image to Kubernetes can be achieved via
 ```
-make [prod,ote,dev]-deploy
+make [dev, ote, prod]-deploy
 ```
+You must also ensure you have the proper push permissions to Artifactory or you may experience a `Forbidden` message.
 
 ## Testing
-To run all tests
 ```
-nosetests --with-coverage --cover-package=dcumiddleware
+make test     # runs all unit tests
+make testcov  # runs tests with coverage
+```
+
+## Style and Standards
+All deploys must pass Flake8 linting and all unit tests which are baked into the [Makefile](Makfile).
+
+There are a few commands that might be useful to ensure consistent Python style:
+
+```
+make flake8  # Runs the Flake8 linter
+make isort   # Sorts all imports
+make tools   # Runs both Flake8 and isort
 ```
 
 ## Built With

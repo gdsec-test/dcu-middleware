@@ -2,3 +2,5 @@ nose
 coverage
 mongomock
 mock
+flake8
+isort
