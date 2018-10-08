@@ -63,6 +63,7 @@ class CmapServiceHelper(object):
                 registrar {
                   brand
                   domainCreateDate
+                  domainId
                   registrarAbuseEmail
                   registrarName
                 }
