@@ -58,7 +58,6 @@ class TestRoutingHelper:
         ticket_data = {'ticketId': '1234', 'data': {'domainQuery': {'host': {'brand': 'EMEA'},
                                                                     'registrar': {'brand': 'EMEA'}}}}
         returned_data = self._routing_helper.route(ticket_data)
-
         assert_equal(returned_data, self._routing_helper._db.get_incident('1234'))
 
     @patch.object(RoutingHelper, '_route_to_brand')
@@ -66,5 +65,4 @@ class TestRoutingHelper:
         ticket_data = {'ticketId': '1234', 'data': {'domainQuery': {'host': {'brand': 'GODADDY'},
                                                                     'registrar': {'brand': 'FOREIGN'}}}}
         returned_data = self._routing_helper.route(ticket_data)
-
         assert_equal(returned_data, ticket_data)
