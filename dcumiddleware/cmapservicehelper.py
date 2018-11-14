@@ -9,6 +9,9 @@ class CmapServiceHelper(object):
 
     _post_headers = {'Content-Type': 'application/graphql'}
 
+    # Map of reseller private label ids that need to be enriched:
+    _reseller_id_map = {'525844': '123REG'}
+
     def __init__(self, settings):
         self._logger = logging.getLogger(__name__)
         self._graphene_url = settings.CMAP_SERVICE + '/graphql'
@@ -54,6 +57,7 @@ class CmapServiceHelper(object):
                   shopperId
                   createdDate
                   friendlyName
+                  privateLabelId
                   vip {
                     blacklist
                     portfolioType
@@ -98,6 +102,9 @@ class CmapServiceHelper(object):
         hosting_create_date = query_result.get('data', {}).get('domainQuery', {}).get('host', {}).get('createdDate')
         if hosting_create_date:
             query_result['data']['domainQuery']['host']['createdDate'] = self._date_time_format(hosting_create_date)
+
+        private_label_id = query_result['data']['domainQuery']['host']['privateLabelId']
+        query_result['data']['domainQuery']['host']['reseller'] = self._reseller_id_map.get(private_label_id)
 
         return query_result
 
