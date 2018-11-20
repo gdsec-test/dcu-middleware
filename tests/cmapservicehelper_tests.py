@@ -1,6 +1,6 @@
 from dateutil import parser
 from mock import patch
-from nose.tools import assert_true, assert_equal
+from nose.tools import assert_true
 
 from dcumiddleware.cmapservicehelper import CmapServiceHelper
 from test_settings import TestingConfig
