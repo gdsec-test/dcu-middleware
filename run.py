@@ -71,7 +71,7 @@ def _load_and_enrich_data(self, data):
     """
     cmap_data = {}
     cmap_helper = CmapServiceHelper(app_settings)
-    domain = data.get('sourceSubDomain', data.get('sourceDomainOrIp'))
+    domain = data.get('sourceSubDomain') if data.get('sourceSubDomain') else data.get('sourceDomainOrIp')
 
     try:
         # Retreive CMAP data from CMapServiceHelper
