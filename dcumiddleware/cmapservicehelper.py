@@ -32,7 +32,7 @@ class CmapServiceHelper(object):
         Returns query result of cmap service given a domain
         :param domain:
         :return query result: query result host, registrar, domain create date, vip profile, shopperID,
-        shopper create date, shopper domain count, API parent/child account numbers
+        shopper create date, shopper domain count, API parent/child account numbers, securitySubscription
         """
         query = ('''
              {
@@ -44,6 +44,9 @@ class CmapServiceHelper(object):
                 }
                 blacklist
                 domain
+                securitySubscription {
+                  sucuriProduct
+                }
                 host {
                   dataCenter
                   guid

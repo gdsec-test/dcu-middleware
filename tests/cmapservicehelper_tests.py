@@ -23,6 +23,9 @@ class TestCmapServiceHelper:
                     },
                     "blacklist": False,
                     "domain": "impcat.com",
+                    "securitySubscription": {
+                        "sucuriProduct": None
+                    },
                     "host": {
                         "dataCenter": None,
                         "guid": None,
@@ -72,6 +75,7 @@ class TestCmapServiceHelper:
         assert_true('parent' in doc['data']['domainQuery']['apiReseller'])
         assert_true('blacklist' in doc['data']['domainQuery'])
         assert_true('domain' in doc['data']['domainQuery'])
+        assert_true('securitySubscription' in doc['data']['domainQuery'])
         assert_true('host' in doc['data']['domainQuery'])
         assert_true('dataCenter' in doc['data']['domainQuery']['host'])
         assert_true('guid' in doc['data']['domainQuery']['host'])
