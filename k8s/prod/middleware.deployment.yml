@@ -21,7 +21,7 @@ spec:
         -
           name: "middleware"
           imagePullPolicy: "Always"
-          image: "docker-dcu-local.artifactory.secureserver.net/dcumiddleware:prod"
+          image: "docker-dcu-local.artifactory.secureserver.net/dcumiddleware:REPLACE_WITH_GIT_COMMIT"
           resources:
             requests:
               memory: "300Mi"
