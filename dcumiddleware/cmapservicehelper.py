@@ -48,8 +48,11 @@ class CmapServiceHelper(object):
                 securitySubscription {
                   sucuriProduct
                 }
-                sslSubscription {
-                  sslProduct
+                sslSubscriptions {
+                  certCommonName
+                  certType
+                  createdAt
+                  expiresAt
                 }
                 host {
                   dataCenter

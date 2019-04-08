@@ -26,8 +26,11 @@ class TestCmapServiceHelper:
                     "securitySubscription": {
                         "sucuriProduct": None
                     },
-                    "sslSubscription": {
-                        "sslProduct": None
+                    "sslSubscriptions": {
+                        "certCommonName": None,
+                        "certType": None,
+                        "createdAt": None,
+                        "expiresAt": None
                     },
                     "host": {
                         "dataCenter": None,
@@ -79,7 +82,11 @@ class TestCmapServiceHelper:
         assert_true('blacklist' in doc['data']['domainQuery'])
         assert_true('domain' in doc['data']['domainQuery'])
         assert_true('securitySubscription' in doc['data']['domainQuery'])
-        assert_true('sslSubscription' in doc['data']['domainQuery'])
+        assert_true('sslSubscriptions' in doc['data']['domainQuery'])
+        assert_true('certCommonName' in doc['data']['domainQuery']['sslSubscriptions'])
+        assert_true('certType' in doc['data']['domainQuery']['sslSubscriptions'])
+        assert_true('createdAt' in doc['data']['domainQuery']['sslSubscriptions'])
+        assert_true('expiresAt' in doc['data']['domainQuery']['sslSubscriptions'])
         assert_true('host' in doc['data']['domainQuery'])
         assert_true('dataCenter' in doc['data']['domainQuery']['host'])
         assert_true('guid' in doc['data']['domainQuery']['host'])
