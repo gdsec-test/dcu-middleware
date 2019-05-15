@@ -97,23 +97,24 @@ class CmapServiceHelper(object):
         query_result = self.cmap_query(query, domain)
 
         if not isinstance(query_result, dict) or 'errors' in query_result:
-            query_result = {}
+            raise Exception("Unexpected query result")
 
-        reg_create_date = query_result.get('data', {}).get('domainQuery', {}).get('registrar', {}).get('domainCreateDate')
+        ddq = query_result.get('data', {}).get('domainQuery', {})
+        reg_create_date = ddq.get('registrar', {}).get('domainCreateDate')
         if reg_create_date:
             query_result['data']['domainQuery']['registrar']['domainCreateDate'] = \
                 self._date_time_format(reg_create_date)
 
-        shp_create_date = query_result.get('data', {}).get('domainQuery', {}).get('shopperInfo', {}).get('shopperCreateDate')
+        shp_create_date = ddq.get('shopperInfo', {}).get('shopperCreateDate')
         if shp_create_date:
             query_result['data']['domainQuery']['shopperInfo']['shopperCreateDate'] = \
                 self._date_time_format(shp_create_date)
 
-        hosting_create_date = query_result.get('data', {}).get('domainQuery', {}).get('host', {}).get('createdDate')
+        hosting_create_date = ddq.get('host', {}).get('createdDate')
         if hosting_create_date:
             query_result['data']['domainQuery']['host']['createdDate'] = self._date_time_format(hosting_create_date)
 
-        private_label_id = query_result['data']['domainQuery']['host']['privateLabelId']
+        private_label_id = ddq.get('host', {}).get('privateLabelId')
         query_result['data']['domainQuery']['host']['reseller'] = self._reseller_id_map.get(private_label_id)
 
         return query_result

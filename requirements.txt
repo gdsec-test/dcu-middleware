@@ -1,5 +1,5 @@
 requests==2.13.0
 celery==4.1.1
-dcdatabase==1.1
+dcdatabase==1.2
 pyyaml==3.12
 python-dateutil
