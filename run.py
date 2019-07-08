@@ -1,11 +1,13 @@
 import logging.config
 import os
+import socket
 from pprint import pformat
 
 import yaml
 from celery import Celery, chain
 from celery.utils.log import get_task_logger
 from dcdatabase.phishstorymongo import PhishstoryMongo
+from func_timeout import FunctionTimedOut, func_timeout
 
 from celeryconfig import CeleryConfig
 from dcumiddleware.cmapservicehelper import CmapServiceHelper
@@ -40,7 +42,7 @@ Sample data:
  'sourceDomainOrIp': u'spam.com',
  'ticketId': u'DCU000001053',
  'target': u'The spam Brothers',
- 'reporter': u'bxberry',
+ 'reporter': u'10101010',
  'source': u'http://spam.com/thegoodstuff/jonas.php?g=a&itin=1324',
  'proxy': u'Must be viewed from an German IP',
  'type': u'PHISHING'}
@@ -69,27 +71,46 @@ def _load_and_enrich_data(self, data):
     :param data:
     :return:
     """
+    ticket_id = data.get('ticketId')
+    domain_name = data.get('sourceDomainOrIp')
+    sub_domain_name = data.get('sourceSubDomain')
+    timeout_in_seconds = 2
+    domain_name_ip = sub_domain_ip = None
     cmap_data = {}
     cmap_helper = CmapServiceHelper(app_settings)
-    domain = data.get('sourceSubDomain') if data.get('sourceSubDomain') else data.get('sourceDomainOrIp')
 
     try:
-        # Retreive CMAP data from CMapServiceHelper
+        domain_name_ip = func_timeout(timeout_in_seconds, socket.gethostbyname, args=(domain_name,))
+    except (FunctionTimedOut, socket.gaierror) as e:
+        logger.error("Error while determining domain IP for {} : {}".format(ticket_id, e))
+
+    try:
+        domain_name_ip = func_timeout(timeout_in_seconds, socket.gethostbyname, args=(sub_domain_name,))
+    except (FunctionTimedOut, socket.gaierror) as e:
+        logger.error("Error while determining sub-domain IP for {} : {}".format(ticket_id, e))
+
+    # If the domain and sub-domain ips match, then send a CMAP query for the domain, as the domain
+    # query is more likely to return a guid than the sub-domain query
+    domain = domain_name
+    if sub_domain_name and sub_domain_ip and domain_name_ip != sub_domain_ip:
+        domain = sub_domain_name
+
+    try:
+        # Retrieve CMAP data from CMapServiceHelper
         cmap_data = cmap_helper.domain_query(domain)
     except Exception as e:
-        ticket = data.get('ticketId')
         # If we have reached the max retries allowed, abort the process and nullify the task chain
         if self.request.retries == self.max_retries:
-            logger.error("Max retries exceeded for {} : {}".format(ticket, e.message))
+            logger.error("Max retries exceeded for {} : {}".format(ticket_id, e.message))
             # Flag DB for the enrichment failure
             data['failedEnrichment'] = True
 
         else:
-            logger.error("Error while processing: {}. Retrying...".format(ticket))
+            logger.error("Error while processing: {}. Retrying...".format(ticket_id))
             self.retry(exc=e)
 
     # return the result of merging the CMap data with data gathered from the API
-    return db.update_incident(data.get('ticketId'), cmap_helper.api_cmap_merge(data, cmap_data))
+    return db.update_incident(ticket_id, cmap_helper.api_cmap_merge(data, cmap_data))
 
 
 @app.task
