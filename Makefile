@@ -1,4 +1,4 @@
-REPONAME=infosec-dcu/dcumiddleware
+REPONAME=digital-crimes/dcumiddleware
 BUILDROOT=$(HOME)/dockerbuild/$(REPONAME)
 DOCKERREPO=docker-dcu-local.artifactory.secureserver.net/dcumiddleware
 DATE=$(shell date)

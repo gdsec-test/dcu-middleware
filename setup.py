@@ -16,7 +16,7 @@ setup(
     author_email='dcueng@godaddy.com',
     description='middleware for processing API requests',
     long_description=long_description,
-    url='https://github.secureserver.net/ITSecurity/DCUMiddleware',
+    url='https://github.secureserver.net/digital-crimes/DCUMiddleware',
     packages=find_packages(exclude=['tests']),
     install_requires=install_reqs,
     tests_require=testing_reqs,

@@ -6,7 +6,7 @@ The metadata generated and saved is only used internally to assist the DCU team.
 ## Cloning
 To clone the repository via SSH perform the following
 ```
-git clone git@github.secureserver.net:ITSecurity/dcumiddleware.git
+git clone git@github.secureserver.net:digital-crimes/dcumiddleware.git
 ```
 
 It is recommended that you clone this project into a pyvirtualenv or equivalent virtual environment.
