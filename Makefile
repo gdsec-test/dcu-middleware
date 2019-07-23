@@ -6,7 +6,7 @@ COMMIT=
 BUILD_BRANCH=origin/master
 
 # libraries we need to stage for pip to install inside Docker build
-PRIVATE_PIPS=git@github.secureserver.net:ITSecurity/dcdatabase.git
+PRIVATE_PIPS=git@github.secureserver.net:digital-crimes/dcdatabase.git
 
 all: env
 
