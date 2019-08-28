@@ -15,7 +15,7 @@ from dcumiddleware.routinghelper import RoutingHelper
 from settings import config_by_name
 
 # Grab the correct settings based on environment
-app_settings = config_by_name[os.getenv('sysenv', 'dev')]
+app_settings = config_by_name[os.getenv('sysenv', 'dev')]()
 
 app = Celery()
 app.config_from_object(CeleryConfig())
