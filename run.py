@@ -15,20 +15,34 @@ from dcumiddleware.routinghelper import RoutingHelper
 from settings import config_by_name
 
 # Grab the correct settings based on environment
-app_settings = config_by_name[os.getenv('sysenv') or 'dev']()
+app_settings = config_by_name[os.getenv('sysenv', 'dev')]
 
 app = Celery()
 app.config_from_object(CeleryConfig())
 logger = get_task_logger('celery.tasks')
+log_level = os.getenv('LOG_LEVEL', 'INFO')
+
+
+def replace_dict(dict_to_replace):
+    """
+    Replace empty logging levels in logging.yaml with environment appropriate levels
+    :param dict_to_replace: logging.yaml is read into a dict which is passed in
+    :return:
+    """
+    for k, v in dict_to_replace.iteritems():
+        if type(v) is dict:
+            replace_dict(dict_to_replace[k])
+        else:
+            if v == 'NOTSET':
+                dict_to_replace[k] = log_level
+
 
 # setup logging
-path = 'logging.yml'
-value = os.getenv('LOG_CFG', None)
-if value:
-    path = value
+path = 'logging.yaml'
 if os.path.exists(path):
     with open(path, 'rt') as f:
         lconfig = yaml.safe_load(f.read())
+    replace_dict(lconfig)
     logging.config.dictConfig(lconfig)
 else:
     logging.basicConfig(level=logging.INFO)
@@ -126,4 +140,5 @@ def _route_to_brand_services(data):
 @app.task
 def _printer(data):
     if data:
-        logger.info("Successfully processed {}".format(pformat(data)))
+        logger.info("Successfully processed {}".format(data['_id']))
+        logger.debug("Successfully processed {}".format(pformat(data)))

@@ -45,3 +45,5 @@ spec:
               secretKeyRef:
                 name: db-middleware
                 key: password
+          - name: LOG_LEVEL
+            value: DEBUG

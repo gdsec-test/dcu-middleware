@@ -10,7 +10,7 @@ RUN apk update && \
     py-pip
 
 # Make directory for middleware
-COPY ./run.py ./settings.py ./logging.yml ./celeryconfig.py ./*.sh /app/
+COPY ./run.py ./settings.py ./logging.yaml ./celeryconfig.py ./*.sh /app/
 COPY . /tmp/
 
 RUN chown -R dcu:dcu /app
