@@ -65,6 +65,7 @@ class CmapServiceHelper(object):
                   os
                   product
                   shopperId
+                  mwpId
                   createdDate
                   friendlyName
                   privateLabelId
