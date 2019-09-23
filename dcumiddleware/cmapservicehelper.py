@@ -57,6 +57,7 @@ class CmapServiceHelper(object):
                 host {
                   dataCenter
                   guid
+                  containerId
                   brand
                   hostingCompanyName
                   hostingAbuseEmail

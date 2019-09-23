@@ -35,6 +35,7 @@ class TestCmapServiceHelper:
                     "host": {
                         "dataCenter": None,
                         "guid": None,
+                        "containerId": None,
                         "hostingCompanyName": None,
                         "hostingAbuseEmail": [
                             None
@@ -90,6 +91,7 @@ class TestCmapServiceHelper:
         assert_true('host' in doc['data']['domainQuery'])
         assert_true('dataCenter' in doc['data']['domainQuery']['host'])
         assert_true('guid' in doc['data']['domainQuery']['host'])
+        assert_true('containerId' in doc['data']['domainQuery']['host'])
         assert_true('hostingCompanyName' in doc['data']['domainQuery']['host'])
         assert_true('hostingAbuseEmail' in doc['data']['domainQuery']['host'])
         assert_true('hostname' in doc['data']['domainQuery']['host'])
