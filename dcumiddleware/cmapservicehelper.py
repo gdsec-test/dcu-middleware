@@ -1,6 +1,7 @@
 import json
 import logging
 
+import requests
 from dateutil import parser
 from requests import sessions
 
@@ -15,6 +16,10 @@ class CmapServiceHelper(object):
     def __init__(self, settings):
         self._logger = logging.getLogger(__name__)
         self._graphene_url = settings.CMAP_SERVICE + '/graphql'
+
+        self._sso_endpoint = settings.SSO_URL + '/v1/secure/api/token'
+        cert = (settings.CMAP_CERT, settings.CMAP_KEY)
+        self._post_headers.update({'Authorization': 'sso-jwt {}'.format(self._get_jwt(cert))})
 
     def cmap_query(self, query, domain):
         """
@@ -145,3 +150,19 @@ class CmapServiceHelper(object):
             self._logger.error("Unable to merge API and CMAP service dictionaries: {}. {}".format(
                 apidata['ticketId'], e.message))
             return apidata
+
+    def _get_jwt(self, cert):
+        """
+        Attempt to retrieve the JWT associated with the cert/key pair from SSO
+        :param cert:
+        :return: jwt
+        """
+        try:
+            response = requests.post(self._sso_endpoint, data={'realm': 'cert'}, cert=cert)
+            response.raise_for_status()
+
+            body = json.loads(response.text)
+            return body.get('data')  # {'type': 'signed-jwt', 'id': 'XXX', 'code': 1, 'message': 'Success', 'data': JWT}
+        except Exception as e:
+            self._logger.error(e.message)
+        return None

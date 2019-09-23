@@ -52,3 +52,15 @@ spec:
                 key: password
           - name: LOG_LEVEL
             value: INFO
+          - name: CMAP_CERT
+            value: /cmap_certs/tls.crt
+          - name: CMAP_KEY
+            value: /cmap_certs/tls.key
+          volumeMounts:
+          - name: tls-cmap-files
+            mountPath: /cmap_certs
+            readOnly: true
+      volumes:
+        - name: tls-cmap-files
+          secret:
+            secretName: tls-cmap
