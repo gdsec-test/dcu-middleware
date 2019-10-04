@@ -1,10 +1,11 @@
-import mongomock
+from collections import namedtuple
+
 from celery import Celery
-from dcdatabase.phishstorymongo import PhishstoryMongo
 from mock import patch
-from nose.tools import assert_equal
+from nose.tools import assert_equal, assert_true
 
 from celeryconfig import CeleryConfig
+from dcumiddleware.apihelper import APIHelper
 from dcumiddleware.routinghelper import RoutingHelper
 from settings import TestAppConfig
 
@@ -13,9 +14,7 @@ class TestRoutingHelper:
 
     @classmethod
     def setup(cls):
-        cls._routing_helper = RoutingHelper(Celery().config_from_object(CeleryConfig), PhishstoryMongo(TestAppConfig()))
-        cls._routing_helper._db._mongo._collection = mongomock.MongoClient().db.collection
-        cls._routing_helper._db.add_new_incident(1234, dict(ticketId=1234))
+        cls._routing_helper = RoutingHelper(Celery().config_from_object(CeleryConfig), APIHelper(TestAppConfig()))
 
     def test_find_brands_to_route_no_host_no_registrar(self):
         brands = self._routing_helper._find_brands_to_route(None, None)
@@ -77,12 +76,21 @@ class TestRoutingHelper:
         brands = self._routing_helper._find_brands_to_route('123REG', 'GODADDY')
         assert_equal(brands, {'GODADDY'})
 
-    @patch.object(RoutingHelper, '_route_to_brand')
-    def test_route_emea_only(self, _route_to_brand):
+    @patch.object(RoutingHelper, '_close_emea_only_ticket')
+    def test_close_emea_only_ticket(self, _close_emea_only_ticket):
         ticket_data = {'ticketId': '1234', 'data': {'domainQuery': {'host': {'brand': 'EMEA'},
                                                                     'registrar': {'brand': 'EMEA'}}}}
-        returned_data = self._routing_helper.route(ticket_data)
-        assert_equal(returned_data, self._routing_helper._db.get_incident('1234'))
+        emea_only_ticket = self._routing_helper._close_emea_only_ticket(ticket_data)
+        assert_true(emea_only_ticket)
+
+    @patch.object(RoutingHelper, '_close_emea_only_ticket')
+    def test_close_emea_only_ticket_fail(self, mocked_method):
+        status = dict(status_code=500, status_message='FAIL')
+        mocked_method.return_value = namedtuple('struct', status.keys())(**status)
+        ticket_data = {'ticketId': '1236', 'data': {'domainQuery': {'host': {'brand': 'EMEA'},
+                                                                    'registrar': {'brand': 'EMEA'}}}}
+        emea_only_ticket_fail = self._routing_helper._close_emea_only_ticket(ticket_data)
+        assert_true(emea_only_ticket_fail)
 
     @patch.object(RoutingHelper, '_route_to_brand')
     def test_route_godaddy(self, _route_to_brand):

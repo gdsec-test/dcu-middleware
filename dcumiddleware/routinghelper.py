@@ -12,10 +12,10 @@ class RoutingHelper:
 
     _brands_routed_to_gd = {'GODADDY', '123REG', 'FOREIGN'}
 
-    def __init__(self, capp, db):
+    def __init__(self, capp, api):
         self._logger = logging.getLogger(__name__)
         self._capp = capp
-        self._db = db
+        self._api = api
 
     def route(self, data):
         """
@@ -30,8 +30,7 @@ class RoutingHelper:
 
         # Closing tickets that are EMEA only.
         if len(brands) == 1 and 'EMEA' in brands:
-            # Need to be sure to return the updated data structure to Celery and EMEABS Container
-            data = self._close_emea_only_ticket(data.get('ticketId'))
+            self._close_emea_only_ticket(data.get('ticketId'))
 
         for brand in brands:
             self._route_to_brand(brand, data)
@@ -47,7 +46,6 @@ class RoutingHelper:
             1. GODADDY and 123REG will be routed to GODADDY.
             2. 123REG and FOREIGN will be routed to GODADDY.
             3. GODADDY and FOREIGN will be routed to GODADDY.
-
         :param host_brand:
         :param registrar_brand:
         :return brands:
@@ -81,9 +79,9 @@ class RoutingHelper:
 
     def _close_emea_only_ticket(self, ticket):
         """
-        Closes a ticket that is destined only for EMEA and returns the resulting data structure from MongoDB
+        Closes a ticket that is destined only for EMEA and returns the resulting data structure from AbuseAPI
         :param ticket:
         :return:
         """
         self._logger.info("Closing ticket: {}. No action able to be taken by GoDaddy.".format(ticket))
-        return self._db.close_incident(ticket, dict(close_reason='email_sent_to_emea'))
+        self._api.close_incident(ticket, 'email_sent_to_emea')

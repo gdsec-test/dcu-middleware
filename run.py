@@ -10,6 +10,7 @@ from dcdatabase.phishstorymongo import PhishstoryMongo
 from func_timeout import FunctionTimedOut, func_timeout
 
 from celeryconfig import CeleryConfig
+from dcumiddleware.apihelper import APIHelper
 from dcumiddleware.cmapservicehelper import CmapServiceHelper
 from dcumiddleware.routinghelper import RoutingHelper
 from settings import config_by_name
@@ -48,7 +49,9 @@ else:
     logging.basicConfig(level=logging.INFO)
 
 db = PhishstoryMongo(app_settings)
-routing_helper = RoutingHelper(app, db)
+api = APIHelper(app_settings)
+routing_helper = RoutingHelper(app, api)
+
 
 """
 Sample data:

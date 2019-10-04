@@ -43,6 +43,13 @@ spec:
               secretKeyRef:
                 name: amqp-middleware
                 key: password
+          - name: API_TOKEN
+            valueFrom:
+              secretKeyRef:
+                name: api-token
+                key: token
+          - name: ABUSE_API_URL
+            value: http://api.abuse-api-prod.svc.cluster.local:5000/v1/abuse/tickets
           - name: SERVICE_URL
             value: http://cmap-service.abuse-api-prod.svc.cluster.local:5000
           - name: DB_PASS
