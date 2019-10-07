@@ -1,8 +1,19 @@
 # DCUMiddleware
 
+## Overview
 This set of classes is responsible for processing data created from the DCU REST API, enriching the report information, and routing the report to the appropriate brand service[s].
 The metadata generated and saved is only used internally to assist the DCU team.
 
+## Table of Contents
+  1. [Cloning](#cloning)
+  2. [Installing Dependencies](#installing-dependencies)
+  3. [Building](#building)
+  4. [Deploying](#deploying)
+  5. [Testing](#testing)
+  6. [Style and Standards](#style-and-standards)
+  7. [Built With](#built-with)
+  8. [Running Locally](#running-locally)
+  
 ## Cloning
 To clone the repository via SSH perform the following
 ```
@@ -49,10 +60,14 @@ This project utilizes Celery, as well as the internal projects dcdatabase and CM
 
 ## Running Locally
 If you would like to run the dcumiddleware service locally, you will need to specify the following environment variables:
-1. `sysenv` (dev, ote, prod)
-2. `SERVICE_URL` (URL for accessing CMAP service)
-3. `DB_PASS` (Password for MongoDB)
-4. `BROKER_PASS` (Password for Celery)
+* `sysenv` (dev, ote, prod)
+* `SERVICE_URL` (URL for accessing CMAP service)
+* `DB_PASS` (Password for MongoDB)
+* `BROKER_PASS` (Password for RabbitMQ)
+* `API_TOKEN` (JWT for Abuse API)
+* `LOG_LEVEL` (DEBUG, INFO)
+* `CMAP_CERT` Path to cmapservice.int certificate file (for connecting to CMAP Service)
+* `CMAP_KEY` Path to cmapservice.int certificate file (for connecting to CMAP Service)
 
 You may also need to configure settings.py and celeryconfig.py to specify additional MongoDB and Celery settings.
 
