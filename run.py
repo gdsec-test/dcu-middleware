@@ -102,7 +102,7 @@ def _load_and_enrich_data(self, data):
         logger.error("Error while determining domain IP for {} : {}".format(ticket_id, e))
 
     try:
-        domain_name_ip = func_timeout(timeout_in_seconds, socket.gethostbyname, args=(sub_domain_name,))
+        sub_domain_ip = func_timeout(timeout_in_seconds, socket.gethostbyname, args=(sub_domain_name,))
     except (FunctionTimedOut, socket.gaierror) as e:
         logger.error("Error while determining sub-domain IP for {} : {}".format(ticket_id, e))
 
