@@ -72,10 +72,10 @@ class RoutingHelper:
         :return:
         """
         try:
-            self._logger.info("Routing {} to {} brand services".format(data['ticketId'], service))
+            self._logger.info('Routing {} to {} brand services'.format(data['ticketId'], service))
             self._capp.send_task(self._brands.get(service), (data,))
         except Exception as e:
-            self._logger.error("Error trying to route ticket to {} brand services: {}".format(service, e.message))
+            self._logger.error('Error trying to route ticket to {} brand services: {}'.format(service, e.message))
 
     def _close_emea_only_ticket(self, ticket):
         """
@@ -83,5 +83,6 @@ class RoutingHelper:
         :param ticket:
         :return:
         """
-        self._logger.info("Closing ticket: {}. No action able to be taken by GoDaddy.".format(ticket))
+        self._logger.info('Closing ticket: {}. No action able to be taken by GoDaddy.'.format(ticket))
         self._api.close_incident(ticket, 'email_sent_to_emea')
+        self._db.update_actions_sub_document(ticket, 'closed as email_sent_to_emea')

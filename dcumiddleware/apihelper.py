@@ -28,6 +28,6 @@ class APIHelper(object):
         try:
             r = requests.patch('{}/{}'.format(self._url, ticket_id), json=payload, headers=self._header)
             if r.status_code != 204:
-                self._logger.warning("Unable to update ticket {} {}".format(ticket_id, r.content))
+                self._logger.warning('Unable to update ticket {} {}'.format(ticket_id, r.content))
         except Exception as e:
-            self._logger.error("Exception while updating ticket {} {}".format(ticket_id, e.message))
+            self._logger.error('Exception while updating ticket {} {}'.format(ticket_id, e.message))

@@ -5,7 +5,7 @@ class TestingConfig:
     LOGLEVEL = logging.INFO
     PROXY = None
     AUTHUSER = None
-    FORMAT = "[%(levelname)s:%(asctime)s:%(filename)s:%(lineno)s - %(funcName)20s() ] %(message)s"
+    FORMAT = '[%(levelname)s:%(asctime)s:%(filename)s:%(lineno)s - %(funcName)20s() ] %(message)s'
     DATE_FORMAT = '%Y-%m-%d %I:%M:%S%p'
     DBURL = 'mongodb://localhost/devphishstory'
     DB = 'test'

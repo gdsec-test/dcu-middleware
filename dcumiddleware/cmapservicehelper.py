@@ -104,7 +104,7 @@ class CmapServiceHelper(object):
         query_result = self.cmap_query(query, domain)
 
         if not isinstance(query_result, dict) or 'errors' in query_result:
-            raise Exception("Unexpected query result")
+            raise Exception('Unexpected query result')
 
         ddq = query_result.get('data', {}).get('domainQuery', {})
         reg_create_date = ddq.get('registrar', {}).get('domainCreateDate')
@@ -135,7 +135,7 @@ class CmapServiceHelper(object):
         try:
             return parser.parse(date, ignoretz=True)
         except Exception as e:
-            self._logger.error("Unable to format date string to ISO date object: {}. {}".format(date, e.message))
+            self._logger.error('Unable to format date string to ISO date object: {}. {}'.format(date, e.message))
 
     def api_cmap_merge(self, apidata, cmapdata):
         """
@@ -147,7 +147,7 @@ class CmapServiceHelper(object):
         try:
             return dict(apidata.items() + cmapdata.items())
         except Exception as e:
-            self._logger.error("Unable to merge API and CMAP service dictionaries: {}. {}".format(
+            self._logger.error('Unable to merge API and CMAP service dictionaries: {}. {}'.format(
                 apidata['ticketId'], e.message))
             return apidata
 

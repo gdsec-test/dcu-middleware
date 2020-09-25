@@ -14,65 +14,65 @@ class TestCmapServiceHelper:
     @patch.object(CmapServiceHelper, 'cmap_query')
     def test_domain_query(self, cmap_query):
         cmap_query.return_value = {
-            "data": {
-                "domainQuery": {
-                    "alexaRank": None,
-                    "apiReseller": {
-                        "child": None,
-                        "parent": None
+            'data': {
+                'domainQuery': {
+                    'alexaRank': None,
+                    'apiReseller': {
+                        'child': None,
+                        'parent': None
                     },
-                    "blacklist": False,
-                    "domain": "impcat.com",
-                    "securitySubscription": {
-                        "sucuriProduct": None
+                    'blacklist': False,
+                    'domain': 'impcat.com',
+                    'securitySubscription': {
+                        'sucuriProduct': None
                     },
-                    "sslSubscriptions": {
-                        "certCommonName": None,
-                        "certType": None,
-                        "createdAt": None,
-                        "expiresAt": None
+                    'sslSubscriptions': {
+                        'certCommonName': None,
+                        'certType': None,
+                        'createdAt': None,
+                        'expiresAt': None
                     },
-                    "host": {
-                        "dataCenter": None,
-                        "guid": None,
-                        "containerId": None,
-                        "hostingCompanyName": None,
-                        "hostingAbuseEmail": [
+                    'host': {
+                        'dataCenter': None,
+                        'guid': None,
+                        'containerId': None,
+                        'hostingCompanyName': None,
+                        'hostingAbuseEmail': [
                             None
                         ],
-                        "hostname": None,
-                        "ip": None,
-                        "os": None,
-                        "product": None,
-                        "shopperId": None,
-                        "privateLabelId": None,
-                        "vip": {
-                            "blacklist": False,
-                            "portfolioType": None,
-                            "shopperId": None
+                        'hostname': None,
+                        'ip': None,
+                        'os': None,
+                        'product': None,
+                        'shopperId': None,
+                        'privateLabelId': None,
+                        'vip': {
+                            'blacklist': False,
+                            'portfolioType': None,
+                            'shopperId': None
                         }
                     },
-                    "registrar": {
-                        "domainCreateDate": "2009-12-05",
-                        "registrarAbuseEmail": [
+                    'registrar': {
+                        'domainCreateDate': '2009-12-05',
+                        'registrarAbuseEmail': [
                             None
                         ],
-                        "registrarName": None
+                        'registrarName': None
                     },
-                    "shopperInfo": {
-                        "domainCount": None,
-                        "shopperCreateDate": "2003-01-19",
-                        "shopperId": None,
-                        "vip": {
-                            "blacklist": False,
-                            "portfolioType": None,
-                            "shopperId": None
+                    'shopperInfo': {
+                        'domainCount': None,
+                        'shopperCreateDate': '2003-01-19',
+                        'shopperId': None,
+                        'vip': {
+                            'blacklist': False,
+                            'portfolioType': None,
+                            'shopperId': None
                         }
                     }
                 }
             }
         }
-        domain = "impcat.com"
+        domain = 'impcat.com'
         doc = self.cmapservice.domain_query(domain)
         assert_true('data' in doc)
         assert_true('domainQuery' in doc['data'])
@@ -127,29 +127,29 @@ class TestCmapServiceHelper:
                    'ticketId': u'DCU000001053',
                    'type': u'PHISHING'
                    }
-        cmapdata = {"data": {
-            "domainQuery": {
-                "host": {
-                    "hostingCompanyName": "GO-DADDY-COM-LLC"
+        cmapdata = {'data': {
+            'domainQuery': {
+                'host': {
+                    'hostingCompanyName': 'GO-DADDY-COM-LLC'
                 },
-                "registrar": {
-                    "registrarName": "GoDaddy.com, LLC",
-                    "domainCreateDate": "2014-09-25"
+                'registrar': {
+                    'registrarName': 'GoDaddy.com, LLC',
+                    'domainCreateDate': '2014-09-25'
                 },
-                "apiReseller": {
-                    "parent": None,
-                    "child": None
+                'apiReseller': {
+                    'parent': None,
+                    'child': None
                 },
-                "shopperInfo": {
-                    "shopperId": "49047180",
-                    "shopperCreateDate": "2012-01-09",
-                    "domainCount": 9,
-                    "vip": {
-                        "blacklist": True,
-                        "portfolioType": 'No Premium Services For This Shopper'
+                'shopperInfo': {
+                    'shopperId': '49047180',
+                    'shopperCreateDate': '2012-01-09',
+                    'domainCount': 9,
+                    'vip': {
+                        'blacklist': True,
+                        'portfolioType': 'No Premium Services For This Shopper'
                     },
                 },
-                "blacklist": True
+                'blacklist': True
             }
         }}
         doc = self.cmapservice.api_cmap_merge(apidata, cmapdata)
