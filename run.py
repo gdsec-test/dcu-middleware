@@ -96,6 +96,9 @@ def _load_and_enrich_data(self, data):
     cmap_data = {}
     cmap_helper = CmapServiceHelper(app_settings)
 
+    if data.get('failedEnrichment'):
+        data.pop('failedEnrichment', None)
+
     try:
         domain_name_ip = func_timeout(timeout_in_seconds, socket.gethostbyname, args=(domain_name,))
     except (FunctionTimedOut, socket.gaierror) as e:
@@ -115,6 +118,7 @@ def _load_and_enrich_data(self, data):
     try:
         # Retrieve CMAP data from CMapServiceHelper
         cmap_data = cmap_helper.domain_query(domain)
+
     except Exception as e:
         # If we have reached the max retries allowed, abort the process and nullify the task chain
         if self.request.retries == self.max_retries:
