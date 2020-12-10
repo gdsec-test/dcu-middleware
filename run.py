@@ -50,7 +50,7 @@ else:
 
 db = PhishstoryMongo(app_settings)
 api = APIHelper(app_settings)
-routing_helper = RoutingHelper(app, api)
+routing_helper = RoutingHelper(app, api, db)
 
 
 """
@@ -96,8 +96,7 @@ def _load_and_enrich_data(self, data):
     cmap_data = {}
     cmap_helper = CmapServiceHelper(app_settings)
 
-    if data.get('failedEnrichment'):
-        data.pop('failedEnrichment', None)
+    data.pop('failedEnrichment', None)
 
     try:
         domain_name_ip = func_timeout(timeout_in_seconds, socket.gethostbyname, args=(domain_name,))

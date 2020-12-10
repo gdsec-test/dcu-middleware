@@ -2,6 +2,11 @@ import logging
 
 
 class RoutingHelper:
+    EMEA = 'EMEA'
+    CLOSE_REASON = 'email_sent_to_emea'
+    GODADDY = 'GODADDY'
+    KEY_BRAND = 'brand'
+    KEY_TICKET_ID = 'ticketId'
     """
     Responsible for all routing responsibilities to the brand services.
     """
@@ -12,25 +17,32 @@ class RoutingHelper:
 
     _brands_routed_to_gd = {'GODADDY', '123REG', 'FOREIGN'}
 
-    def __init__(self, capp, api):
+    def __init__(self, capp, api, db):
+        """
+        :param capp: handle to Celery
+        :param api: handle to abuse api
+        :param db: handle to db
+        """
         self._logger = logging.getLogger(__name__)
         self._capp = capp
         self._api = api
+        self._db = db
 
     def route(self, data):
         """
         Retrieves brands that need to process these tickets and routes them to the appropriate service
         :param data:
-        :return:
+        :return: dict data passed in
         """
-        host_brand = data.get('data', {}).get('domainQuery', {}).get('host', {}).get('brand', None)
-        registrar_brand = data.get('data', {}).get('domainQuery', {}).get('registrar', {}).get('brand', None)
+        dq = data.get('data', {}).get('domainQuery', {})
+        host_brand = dq.get('host', {}).get(self.KEY_BRAND)
+        registrar_brand = dq.get('registrar', {}).get(self.KEY_BRAND)
 
         brands = self._find_brands_to_route(host_brand, registrar_brand)
 
         # Closing tickets that are EMEA only.
-        if len(brands) == 1 and 'EMEA' in brands:
-            self._close_emea_only_ticket(data.get('ticketId'))
+        if len(brands) == 1 and self.EMEA in brands:
+            self._close_emea_only_ticket(data.get(self.KEY_TICKET_ID))
 
         for brand in brands:
             self._route_to_brand(brand, data)
@@ -48,19 +60,20 @@ class RoutingHelper:
             3. GODADDY and FOREIGN will be routed to GODADDY.
         :param host_brand:
         :param registrar_brand:
-        :return brands:
+        :return: set of brands
         """
         brands = set()
         if host_brand is None and registrar_brand is None:  # Anything we don't have data for go to GoDaddy
-            brands.add('GODADDY')
+            brands.add(self.GODADDY)
         else:
             if host_brand in self._brands:
                 brands.add(host_brand)
             if registrar_brand in self._brands:
                 brands.add(registrar_brand)
 
+        # Are ALL elements in brands present in _brands_routed_to_gd ?
         if len(brands) > 1 and brands.issubset(self._brands_routed_to_gd):
-            brands = {'GODADDY'}
+            brands = {self.GODADDY}
 
         return brands
 
@@ -69,20 +82,23 @@ class RoutingHelper:
         Routes the provided data to the specified service, else logs error
         :param service:
         :param data:
-        :return:
+        :return: None
         """
         try:
-            self._logger.info('Routing {} to {} brand services'.format(data['ticketId'], service))
+            self._logger.info('Routing {} to {} brand services'.format(data[self.KEY_TICKET_ID], service))
             self._capp.send_task(self._brands.get(service), (data,))
         except Exception as e:
             self._logger.error('Error trying to route ticket to {} brand services: {}'.format(service, e.message))
 
     def _close_emea_only_ticket(self, ticket):
         """
-        Closes a ticket that is destined only for EMEA and returns the resulting data structure from AbuseAPI
-        :param ticket:
-        :return:
+        Closes a ticket that is destined only for EMEA.
+        :param ticket: dict of ticket key/value pairs
+        :return: None
         """
-        self._logger.info('Closing ticket: {}. No action able to be taken by GoDaddy.'.format(ticket))
-        self._api.close_incident(ticket, 'email_sent_to_emea')
-        self._db.update_actions_sub_document(ticket, 'closed as email_sent_to_emea')
+        try:
+            self._logger.info('Closing ticket: {}. No action able to be taken by GoDaddy.'.format(ticket))
+            self._api.close_incident(ticket, self.CLOSE_REASON)
+            self._db.update_actions_sub_document(ticket, 'closed as {}'.format(self.CLOSE_REASON))
+        except Exception as e:
+            self._logger.error('Error trying to close emea ticket {}: {}'.format(ticket, e.message))
