@@ -113,6 +113,8 @@ def _load_and_enrich_data(self, data):
     domain = domain_name
     if sub_domain_name and sub_domain_ip and domain_name_ip != sub_domain_ip:
         domain = sub_domain_name
+    elif domain_name in app_settings.ENRICH_ON_SUBDOMAIN:
+        domain = sub_domain_name
 
     try:
         # Retrieve CMAP data from CMapServiceHelper
