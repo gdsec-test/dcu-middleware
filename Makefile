@@ -6,7 +6,7 @@ COMMIT=
 BUILD_BRANCH=origin/master
 
 # libraries we need to stage for pip to install inside Docker build
-PRIVATE_PIPS=git@github.secureserver.net:digital-crimes/dcdatabase.git
+PRIVATE_PIPS="git@github.secureserver.net:digital-crimes/dcdatabase.git;d15d3da5e2ad5c352fbe4f6a5ce6d40778020b7c"
 
 all: env
 
@@ -45,7 +45,17 @@ prep: tools test
 	# stage pips we will need to install in Docker build
 	mkdir -p $(BUILDROOT)/private_pips && rm -rf $(BUILDROOT)/private_pips/*
 	for entry in $(PRIVATE_PIPS) ; do \
-		cd $(BUILDROOT)/private_pips && git clone $$entry ; \
+		IFS=";" read repo revision <<< "$$entry" ; \
+		cd $(BUILDROOT)/private_pips && git clone $$repo ; \
+		if [ "$$revision" != "" ] ; then \
+			name=$$(echo $$repo | awk -F/ '{print $$NF}' | sed -e 's/.git$$//') ; \
+			cd $(BUILDROOT)/private_pips/$$name ; \
+			current_revision=$$(git rev-parse HEAD) ; \
+			echo $$repo HEAD is currently at revision: $$current_revision ; \
+			echo Dependency specified in the Makefile for $$name is set to revision: $$revision ; \
+			echo Reverting to revision: $$revision in $$repo ; \
+			git reset --hard $$revision; \
+		fi ; \
 	done
 
 	# copy the app code to the build root
