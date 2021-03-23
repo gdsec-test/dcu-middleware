@@ -3,7 +3,8 @@ from mock import patch
 from nose.tools import assert_true
 
 from dcumiddleware.cmapservicehelper import CmapServiceHelper
-from test_settings import TestingConfig
+
+from .test_settings import TestingConfig
 
 
 class TestCmapServiceHelper:
@@ -22,7 +23,7 @@ class TestCmapServiceHelper:
                         'parent': None
                     },
                     'blacklist': False,
-                    'domain': 'impcat.com',
+                    'domain': 'example.com',
                     'securitySubscription': {
                         'sucuriProduct': None
                     },
@@ -72,7 +73,7 @@ class TestCmapServiceHelper:
                 }
             }
         }
-        domain = 'impcat.com'
+        domain = 'example.com'
         doc = self.cmapservice.domain_query(domain)
         assert_true('data' in doc)
         assert_true('domainQuery' in doc['data'])
@@ -118,14 +119,14 @@ class TestCmapServiceHelper:
         assert_true('shopperId' in doc['data']['domainQuery']['shopperInfo']['vip'])
 
     def test_api_cmap_merge(self):
-        apidata = {'info': u'My spam Farm is better than yours...',
-                   'target': u'The spam Brothers',
-                   'reporter': u'bxberry',
-                   'source': u'http://spam.com/thegoodstuff/jonas.php?g=a&itin=1324',
-                   'sourceDomainOrIp': u'spam.com',
-                   'proxy': u'Must be viewed from an German IP',
-                   'ticketId': u'DCU000001053',
-                   'type': u'PHISHING'
+        apidata = {'info': 'My spam Farm is better than yours...',
+                   'target': 'The spam Brothers',
+                   'reporter': 'testuser',
+                   'source': 'http://spam.com/thegoodstuff/jonas.php?g=a&itin=1324',
+                   'sourceDomainOrIp': 'spam.com',
+                   'proxy': 'Must be viewed from an German IP',
+                   'ticketId': 'DCU000001053',
+                   'type': 'PHISHING'
                    }
         cmapdata = {'data': {
             'domainQuery': {
@@ -167,7 +168,7 @@ class TestCmapServiceHelper:
         assert_true(doc['data']['domainQuery']['blacklist'] is True)
         assert_true(doc['info'] == 'My spam Farm is better than yours...')
         assert_true(doc['target'] == 'The spam Brothers')
-        assert_true(doc['reporter'] == 'bxberry')
+        assert_true(doc['reporter'] == 'testuser')
         assert_true(doc['source'] == 'http://spam.com/thegoodstuff/jonas.php?g=a&itin=1324')
         assert_true(doc['sourceDomainOrIp'] == 'spam.com')
         assert_true(doc['proxy'] == 'Must be viewed from an German IP')

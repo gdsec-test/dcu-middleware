@@ -135,7 +135,7 @@ class CmapServiceHelper(object):
         try:
             return parser.parse(date, ignoretz=True)
         except Exception as e:
-            self._logger.error('Unable to format date string to ISO date object: {}. {}'.format(date, e.message))
+            self._logger.error('Unable to format date string to ISO date object: {}. {}'.format(date, e))
 
     def api_cmap_merge(self, apidata, cmapdata):
         """
@@ -145,10 +145,10 @@ class CmapServiceHelper(object):
         :return merged_data: dictionary that is the result of merging the api data and cmap data dictionaries
         """
         try:
-            return dict(apidata.items() + cmapdata.items())
+            return dict(list(apidata.items()) + list(cmapdata.items()))
         except Exception as e:
             self._logger.error('Unable to merge API and CMAP service dictionaries: {}. {}'.format(
-                apidata['ticketId'], e.message))
+                apidata['ticketId'], e))
             return apidata
 
     def _get_jwt(self, cert):
@@ -164,5 +164,5 @@ class CmapServiceHelper(object):
             body = json.loads(response.text)
             return body.get('data')  # {'type': 'signed-jwt', 'id': 'XXX', 'code': 1, 'message': 'Success', 'data': JWT}
         except Exception as e:
-            self._logger.error(e.message)
+            self._logger.error(e)
         return None

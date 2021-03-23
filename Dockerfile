@@ -1,27 +1,31 @@
-# DCU Middleware
+FROM python:3.7.10-slim as base
 
-FROM alpine:3.9
-MAINTAINER DCU ENG <DCUEng@godaddy.com>
+LABEL MAINTAINER="dcueng@godaddy.com"
 
-RUN addgroup -S dcu && adduser -H -S -G dcu dcu
-RUN apk update && \
-    apk add --no-cache build-base \
-    python-dev \
-    py-pip
+# pip installs
+RUN pip3 install -U pip
+COPY requirements.txt .
+COPY ./private_pips /tmp/private_deps
 
-# Make directory for middleware
+RUN pip3 install --compile /tmp/private_deps/dcdatabase
+RUN pip3 install -r requirements.txt
+
+RUN rm requirements.txt
+RUN rm -rf /tmp/private_deps
+
+FROM base as deliverable
+
 COPY ./run.py ./settings.py ./logging.yaml ./celeryconfig.py ./*.sh /app/
-COPY . /tmp/
 
+# Compile the Flask API
+RUN mkdir /tmp/build
+COPY . /tmp/build
+RUN pip3 install --compile /tmp/build
+RUN rm -rf /tmp/build
+
+# Fix permissions.
+RUN addgroup dcu && adduser --disabled-password --disabled-login --no-create-home --ingroup dcu --system dcu
 RUN chown -R dcu:dcu /app
-
-# pip install private pips staged by Makefile
-RUN for entry in dcdatabase; \
-    do \
-    pip install --compile "/tmp/private_pips/$entry"; \
-done
-
-RUN pip install --compile /tmp && rm -rf /tmp/*
 
 WORKDIR /app
 

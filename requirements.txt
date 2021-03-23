@@ -1,6 +1,7 @@
-requests==2.13.0
-celery==4.1.1
+celery==4.4.7
 dcdatabase==1.2
-pyyaml==3.12
-python-dateutil
 func-timeout==4.3.3
+kombu==4.6.11
+python-dateutil
+PyYAML==5.4.1
+requests==2.25.1

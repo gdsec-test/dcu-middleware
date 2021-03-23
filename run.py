@@ -30,7 +30,7 @@ def replace_dict(dict_to_replace):
     :param dict_to_replace: logging.yaml is read into a dict which is passed in
     :return:
     """
-    for k, v in dict_to_replace.iteritems():
+    for k, v in list(dict_to_replace.items()):
         if type(v) is dict:
             replace_dict(dict_to_replace[k])
         else:
@@ -123,7 +123,7 @@ def _load_and_enrich_data(self, data):
     except Exception as e:
         # If we have reached the max retries allowed, abort the process and nullify the task chain
         if self.request.retries == self.max_retries:
-            logger.error("Max retries exceeded for {} : {}".format(ticket_id, e.message))
+            logger.error("Max retries exceeded for {} : {}".format(ticket_id, e))
             # Flag DB for the enrichment failure
             data['failedEnrichment'] = True
 
