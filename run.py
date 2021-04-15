@@ -192,7 +192,7 @@ def _load_and_enrich_data(self, data):
             self.retry(exc=e)
 
     enrichmentCounter.labels(env=env).inc()
-    if data.get(FAILED_ENRICHMENT_KEY, True):
+    if data.get(FAILED_ENRICHMENT_KEY, False):
         failedEnrichmentCounter.labels(env=env).inc()
 
     # return the result of merging the CMap data with data gathered from the API
