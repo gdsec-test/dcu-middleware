@@ -6,8 +6,3 @@ tests/cover
 *sublime*
 .vscode/*
 .noseids
-.tool-versions
-integration_test.py
-.venv
-nosetests.xml
-.envrc

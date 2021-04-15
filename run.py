@@ -7,9 +7,7 @@ import yaml
 from celery import Celery, chain
 from celery.utils.log import get_task_logger
 from dcdatabase.phishstorymongo import PhishstoryMongo
-from dcuprometheuscelery.metrics import getRegistry, setupMetrics
 from func_timeout import FunctionTimedOut, func_timeout
-from prometheus_client import Counter
 
 from celeryconfig import CeleryConfig
 from dcumiddleware.apihelper import APIHelper
@@ -18,41 +16,12 @@ from dcumiddleware.routinghelper import RoutingHelper
 from settings import config_by_name
 
 # Grab the correct settings based on environment
-env = os.getenv('sysenv', 'dev')
-app_settings = config_by_name[env]()
+app_settings = config_by_name[os.getenv('sysenv', 'dev')]()
 
 app = Celery()
 app.config_from_object(CeleryConfig())
 logger = get_task_logger('celery.tasks')
 log_level = os.getenv('LOG_LEVEL', 'INFO')
-
-FAILED_ENRICHMENT_KEY = 'failedEnrichment'
-DATA_KEY = 'data'
-DOMAIN_Q_KEY = 'domainQuery'
-BRAND_KEY = 'brand'
-SHOPPER_KEY = 'shopperId'
-PRODUCT_KEY = 'product'
-GUID_KEY = 'guid'
-DOMAIN_ID_KEY = 'domainId'
-HOST_KEY = 'host'
-REGISTRAR_KEY = 'registrar'
-GODADDY_BRAND = 'GODADDY'
-SHOPPER_INFO_KEY = 'shopperInfo'
-
-# Configure DCU celery metrics
-setupMetrics(logger)
-failedEnrichmentCounter = Counter(
-    'failed_enrichment',
-    'Count enrichment failures for processed tickets',
-    ['env'],
-    registry=getRegistry()
-)
-enrichmentCounter = Counter(
-    'enrichment',
-    'Count enrichment attempts for processed tickets',
-    ['env'],
-    registry=getRegistry()
-)
 
 
 def replace_dict(dict_to_replace):
@@ -67,34 +36,6 @@ def replace_dict(dict_to_replace):
         else:
             if v == 'NOTSET':
                 dict_to_replace[k] = log_level
-
-
-def enrichment_succeeded(data):
-    """
-    Mark enrichment as failed if we identified the brand as GoDaddy, but do not the information
-    needed to determine the shopper.
-    :param data: A dictionary returned by the CMAP service.
-    :return:
-    """
-    hosted = data.get(DATA_KEY, {}).get(DOMAIN_Q_KEY, {}).get(HOST_KEY, {})
-    domain = data.get(DATA_KEY, {}).get(DOMAIN_Q_KEY, {}).get(REGISTRAR_KEY, {})
-    shopper = data.get(DATA_KEY, {}).get(DOMAIN_Q_KEY, {}).get(SHOPPER_INFO_KEY, {})
-
-    host_here = hosted.get(BRAND_KEY, None) == GODADDY_BRAND
-
-    miss_shopper = hosted.get(SHOPPER_KEY, None) is None
-    miss_product = hosted.get(PRODUCT_KEY, None) is None
-    miss_guid = hosted.get(GUID_KEY, None) is None
-    host_enrich_fail = host_here and (miss_shopper or miss_product or miss_guid)
-
-    registered_here = domain.get(BRAND_KEY, None) == GODADDY_BRAND
-    missing_domain = domain.get(DOMAIN_ID_KEY, None) is None
-    missing_domain_shopper = shopper.get(SHOPPER_KEY, None) is None
-    domain_enrich_fail = registered_here and (missing_domain or missing_domain_shopper)
-
-    if host_enrich_fail or domain_enrich_fail:
-        return False
-    return True
 
 
 # setup logging
@@ -178,22 +119,17 @@ def _load_and_enrich_data(self, data):
     try:
         # Retrieve CMAP data from CMapServiceHelper
         cmap_data = cmap_helper.domain_query(domain)
-        if not enrichment_succeeded(cmap_data):
-            data[FAILED_ENRICHMENT_KEY] = True
+
     except Exception as e:
         # If we have reached the max retries allowed, abort the process and nullify the task chain
         if self.request.retries == self.max_retries:
             logger.error("Max retries exceeded for {} : {}".format(ticket_id, e))
             # Flag DB for the enrichment failure
-            data[FAILED_ENRICHMENT_KEY] = True
+            data['failedEnrichment'] = True
 
         else:
             logger.error("Error while processing: {}. Retrying...".format(ticket_id))
             self.retry(exc=e)
-
-    enrichmentCounter.labels(env=env).inc()
-    if data.get(FAILED_ENRICHMENT_KEY, False):
-        failedEnrichmentCounter.labels(env=env).inc()
 
     # return the result of merging the CMap data with data gathered from the API
     return db.update_incident(ticket_id, cmap_helper.api_cmap_merge(data, cmap_data))

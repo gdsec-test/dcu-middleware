@@ -7,8 +7,7 @@ BUILD_BRANCH=origin/master
 SHELL=/bin/bash
 
 # libraries we need to stage for pip to install inside Docker build
-PRIVATE_PIPS="git@github.secureserver.net:digital-crimes/dcdatabase.git" \
-"git@github.com:gdcorp-infosec/dcu-prometheus-celery.git"
+PRIVATE_PIPS="git@github.secureserver.net:digital-crimes/dcdatabase.git"
 
 all: env
 
@@ -25,7 +24,7 @@ flake8:
 .PHONY: isort
 isort:
 	@echo "----- Optimizing imports -----"
-	isort --atomic .
+	isort -rc --atomic .
 
 .PHONY: tools
 tools: flake8 isort

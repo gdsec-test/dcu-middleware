@@ -8,7 +8,6 @@ COPY requirements.txt .
 COPY ./private_pips /tmp/private_deps
 
 RUN pip3 install --compile /tmp/private_deps/dcdatabase
-RUN pip3 install --compile /tmp/private_deps/dcu-prometheus-celery
 RUN pip3 install -r requirements.txt
 
 RUN rm requirements.txt
