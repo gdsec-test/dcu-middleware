@@ -1,5 +1,7 @@
 celery==4.4.7
 dcdatabase==1.2
+dcu-prometheus-celery==1.0
+gevent==21.1.2
 func-timeout==4.3.3
 kombu==4.6.11
 python-dateutil

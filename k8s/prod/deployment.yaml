@@ -16,13 +16,17 @@ spec:
     metadata:
       labels:
         app: "middleware"
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9091"
     spec:
       imagePullSecrets:
         -
           name: "dcu-artifactory-creds"
       containers:
-        -
-          name: "middleware"
+        - name: pushgateway
+          image: prom/pushgateway:v1.4.0
+        - name: "middleware"
           imagePullPolicy: "Always"
           image: "docker-dcu-local.artifactory.secureserver.net/dcumiddleware:REPLACE_WITH_GIT_COMMIT"
           resources:
@@ -66,6 +70,8 @@ spec:
             value: /cmap_certs/tls.crt
           - name: CMAP_KEY
             value: /cmap_certs/tls.key
+          - name: METRICS_ENABLED
+            value: 'yes'
           volumeMounts:
           - name: tls-cmap-files
             mountPath: /cmap_certs
