@@ -11,7 +11,7 @@ app_settings = config_by_name[os.getenv('sysenv') or 'dev']
 
 class CeleryConfig:
     broker_transport = 'pyamqp'
-    broker_use_ssl = True
+    broker_use_ssl = not bool(os.getenv('DISABLESSL', ''))
     task_serializer = 'pickle'
     result_serializer = 'pickle'
     accept_content = ['json', 'pickle']
@@ -32,4 +32,7 @@ class CeleryConfig:
 
     def __init__(self):
         self.BROKER_PASS = urllib.parse.quote(os.getenv('BROKER_PASS', 'password'))
-        self.broker_url = 'amqp://02d1081iywc7A:' + self.BROKER_PASS + '@rmq-dcu.int.godaddy.com:5672/grandma'
+        if os.getenv('BROKER_URL'):
+            self.broker_url = os.getenv('BROKER_URL')
+        else:
+            self.broker_url = 'amqp://02d1081iywc7A:' + self.BROKER_PASS + '@rmq-dcu.int.godaddy.com:5672/grandma'

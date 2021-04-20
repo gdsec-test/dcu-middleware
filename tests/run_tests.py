@@ -2,6 +2,7 @@ import socket
 
 from dcdatabase.phishstorymongo import PhishstoryMongo
 from mock import patch
+from nose.tools import assert_false, assert_true
 
 import run
 
@@ -43,6 +44,17 @@ class MockCmapServiceHelper:
 
 
 class TestRun:
+    FOREIGN_BRAND = 'FOREIGN'
+    DATA_KEY = 'data'
+    DOMAIN_QUERY_KEY = 'domainQuery'
+    HOST_KEY = 'host'
+    GUID_KEY = 'guid'
+    PRODUCT_KEY = 'product'
+    BRAND_KEY = 'brand'
+    SHOPPER_KEY = 'shopperId'
+    REGISTRAR_KEY = 'registrar'
+    DOMAIN_KEY = 'domainId'
+    SHOPPER_INFO_KEY = 'shopperInfo'
 
     # Test successful load and enrichment
     @patch.object(PhishstoryMongo, 'update_incident', return_value=None)
@@ -53,3 +65,82 @@ class TestRun:
         mock_socket.assert_called()
         mock_cmap.assert_called()
         mock_db.assert_called()
+
+    def build_cmap_data_object(self, shopper_brand='GODADDY', shopper_id='123456', domain_brand='GODADDY', domain_id='123456', domain_shopper='123456'):
+        data = {
+            self.DATA_KEY: {
+                self.DOMAIN_QUERY_KEY: {
+                    self.HOST_KEY: {
+                        self.BRAND_KEY: shopper_brand,
+                        self.SHOPPER_KEY: shopper_id,
+                        self.GUID_KEY: 'random',
+                        self.PRODUCT_KEY: 'DIABLO'
+                    },
+                    self.REGISTRAR_KEY: {
+                        self.BRAND_KEY: domain_brand,
+                        self.DOMAIN_KEY: domain_id
+                    },
+                    self.SHOPPER_INFO_KEY: {
+                        self.SHOPPER_KEY: domain_shopper
+                    }
+                }
+            }
+        }
+        return data
+
+    def test_enrichment_status_check_hosted_registered(self):
+        data = self.build_cmap_data_object()
+        status = run.enrichment_succeeded(data)
+        assert_true(status)
+
+    def test_enrichment_status_check_hosted_not_registered(self):
+        data = self.build_cmap_data_object(domain_brand=self.FOREIGN_BRAND, domain_id=None)
+        status = run.enrichment_succeeded(data)
+        assert_true(status)
+
+    def test_enrichment_status_check_not_hosted_not_registered(self):
+        data = self.build_cmap_data_object(shopper_brand=self.FOREIGN_BRAND, shopper_id=None, domain_brand=self.FOREIGN_BRAND, domain_id=None)
+        status = run.enrichment_succeeded(data)
+        assert_true(status)
+
+    def test_enrichment_status_check_not_hosted_registered(self):
+        data = self.build_cmap_data_object(shopper_brand=self.FOREIGN_BRAND, shopper_id=None)
+        status = run.enrichment_succeeded(data)
+        assert_true(status)
+
+    def test_enrichment_status_check_hosted_registered_no_shopper(self):
+        data = self.build_cmap_data_object(shopper_id=None)
+        status = run.enrichment_succeeded(data)
+        assert_false(status)
+
+    def test_enrichment_status_check_hosted_registered_no_domainid(self):
+        data = self.build_cmap_data_object(domain_id=None)
+        status = run.enrichment_succeeded(data)
+        assert_false(status)
+
+    def test_enrichment_status_check_hosted_registered_no_domain_shopper(self):
+        data = self.build_cmap_data_object(domain_shopper=None)
+        status = run.enrichment_succeeded(data)
+        assert_false(status)
+
+    def test_enrichment_status_check_hosted_registered_no_id(self):
+        data = self.build_cmap_data_object(domain_id=None, shopper_id=None)
+        status = run.enrichment_succeeded(data)
+        assert_false(status)
+
+    def test_enrichment_status_check_missing_fields(self):
+        data = {self.DATA_KEY: {}}
+        status = run.enrichment_succeeded(data)
+        assert_true(status)
+
+    def test_enrichment_status_check_hosted_no_guid(self):
+        data = self.build_cmap_data_object()
+        del data[self.DATA_KEY][self.DOMAIN_QUERY_KEY][self.HOST_KEY][self.GUID_KEY]
+        status = run.enrichment_succeeded(data)
+        assert_false(status)
+
+    def test_enrichment_status_check_hosted_no_product(self):
+        data = self.build_cmap_data_object()
+        del data[self.DATA_KEY][self.DOMAIN_QUERY_KEY][self.HOST_KEY][self.PRODUCT_KEY]
+        status = run.enrichment_succeeded(data)
+        assert_false(status)
