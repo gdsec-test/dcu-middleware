@@ -80,10 +80,11 @@ def enrichment_succeeded(data):
     domain = data.get(DATA_KEY, {}).get(DOMAIN_Q_KEY, {}).get(REGISTRAR_KEY, {})
     shopper = data.get(DATA_KEY, {}).get(DOMAIN_Q_KEY, {}).get(SHOPPER_INFO_KEY, {})
 
-    host_here = hosted.get(BRAND_KEY, None) == GODADDY_BRAND
+    product = hosted.get(PRODUCT_KEY, None)
+    host_here = hosted.get(BRAND_KEY, None) == GODADDY_BRAND and product not in app_settings.REGISTERED_ONLY_PRODUCTS
 
     miss_shopper = hosted.get(SHOPPER_KEY, None) is None
-    miss_product = hosted.get(PRODUCT_KEY, None) is None
+    miss_product = product is None
     miss_guid = hosted.get(GUID_KEY, None) is None
     host_enrich_fail = host_here and (miss_shopper or miss_product or miss_guid)
 

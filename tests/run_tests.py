@@ -144,3 +144,10 @@ class TestRun:
         del data[self.DATA_KEY][self.DOMAIN_QUERY_KEY][self.HOST_KEY][self.PRODUCT_KEY]
         status = run.enrichment_succeeded(data)
         assert_false(status)
+
+    def test_enrichment_status_check_hosted_non_registered_product(self):
+        data = self.build_cmap_data_object()
+        data[self.DATA_KEY][self.DOMAIN_QUERY_KEY][self.HOST_KEY][self.PRODUCT_KEY] = 'Shortener'
+        del data[self.DATA_KEY][self.DOMAIN_QUERY_KEY][self.HOST_KEY][self.GUID_KEY]
+        status = run.enrichment_succeeded(data)
+        assert_true(status)
