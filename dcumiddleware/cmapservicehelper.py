@@ -50,6 +50,7 @@ class CmapServiceHelper(object):
                 }
                 blacklist
                 domain
+                isDomainHighValue
                 securitySubscription {
                   sucuriProduct
                 }
