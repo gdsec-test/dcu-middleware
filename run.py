@@ -8,6 +8,7 @@ from celery import Celery, chain
 from celery.utils.log import get_task_logger
 from dcdatabase.phishstorymongo import PhishstoryMongo
 from dcuprometheuscelery.metrics import getRegistry, setupMetrics
+from dcustructuredlogging import celerylogger  # noqa: F401
 from func_timeout import FunctionTimedOut, func_timeout
 from prometheus_client import Counter
 

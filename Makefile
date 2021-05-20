@@ -8,6 +8,7 @@ SHELL=/bin/bash
 
 # libraries we need to stage for pip to install inside Docker build
 PRIVATE_PIPS="git@github.secureserver.net:digital-crimes/dcdatabase.git" \
+"git@github.com:gdcorp-infosec/dcu-structured-logging-celery.git" \
 "git@github.com:gdcorp-infosec/dcu-prometheus-celery.git"
 
 all: env
