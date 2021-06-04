@@ -1,0 +1,28 @@
+services:
+  dcumiddleware:
+    image: docker-dcu-local.artifactory.secureserver.net/dcumiddleware:dev
+    environment:
+      ABUSE_API_URL: ${ABUSE_API_URL}
+      API_TOKEN: ${API_TOKEN}
+      BROKER_PASS: ${BROKER_PASS}
+      BROKER_URL: amqp://guest@rabbitmq:5672//
+      DB_PASS: ${DB_PASS}
+      CMAP_CERT: '/tmp/certs/cmapservice.int.dev-godaddy.com.crt'
+      CMAP_KEY: '/tmp/certs/cmapservice.int.dev-godaddy.com.key'
+      DISABLESSL: 'True'
+      LOG_LEVEL: ${LOG_LEVEL}
+      METRICS_ENABLED: 'yes'
+      SERVICE_URL: ${SERVICE_URL}
+      sysenv: ${sysenv}
+    volumes:
+      - /PATH_TO_YOUR_CERTS_DIRECTORY/:/tmp/certs/
+    links:
+      - rabbitmq:rabbitmq
+    depends_on:
+      - rabbitmq
+
+  rabbitmq:
+    image: rabbitmq:3.8.14-management
+    ports:
+      - 5672:5672
+      - 15672:15672

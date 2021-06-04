@@ -2,11 +2,15 @@ import socket
 
 from dcdatabase.phishstorymongo import PhishstoryMongo
 from mock import patch
-from nose.tools import assert_false, assert_true
+from nose.tools import (assert_dict_equal, assert_false, assert_is_none,
+                        assert_true)
+from pymongo.collection import Collection
 
 import run
+from dcumiddleware.apihelper import APIHelper
 
 HOSTED = 'HOSTED'
+KEY_BLACKLIST = 'blacklist'
 KEY_FAILED_ENRICHMENT = 'failedEnrichment'
 KEY_HOSTED = 'hosted_status'
 KEY_PHISHSTORY_STATUS = 'phishstory_status'
@@ -27,6 +31,9 @@ AUTO_SUSPEND_DOMAIN = {
     KEY_TYPE: PHISHING,
     KEY_FAILED_ENRICHMENT: True,
 }
+
+NOT_BLACKLISTED_TICKET = {KEY_BLACKLIST: False}
+BLACKLISTED_TICKET = {KEY_BLACKLIST: True}
 
 
 class MockCmapServiceHelper:
@@ -151,3 +158,45 @@ class TestRun:
         del data[self.DATA_KEY][self.DOMAIN_QUERY_KEY][self.HOST_KEY][self.GUID_KEY]
         status = run.enrichment_succeeded(data)
         assert_true(status)
+
+    @patch.object(Collection, 'find_one', return_value=None)
+    def test_blacklist_is_false(self, mock_find_one):
+        result = run._check_for_blacklist_auto_actions(NOT_BLACKLISTED_TICKET)
+        mock_find_one.assert_not_called()
+        assert_dict_equal(result, NOT_BLACKLISTED_TICKET)
+
+    @patch.object(PhishstoryMongo, 'update_actions_sub_document', return_value=None)
+    @patch.object(Collection, 'find_one', return_value={'entity': 'test.com'})
+    def test_blacklisted_no_action(self, mock_find_one, mock_update_actions):
+        result = run._check_for_blacklist_auto_actions(BLACKLISTED_TICKET)
+        mock_find_one.assert_called()
+        mock_update_actions.assert_not_called()
+        assert_dict_equal(result, BLACKLISTED_TICKET)
+
+    @patch.object(PhishstoryMongo, 'update_actions_sub_document', return_value=None)
+    @patch.object(Collection, 'find_one', return_value={'entity': 'test.com', 'action': ['nonsense']})
+    def test_invalid_action(self, mock_find_one, mock_update_actions):
+        result = run._check_for_blacklist_auto_actions(BLACKLISTED_TICKET)
+        mock_find_one.assert_called()
+        mock_update_actions.assert_not_called()
+        assert_dict_equal(result, BLACKLISTED_TICKET)
+
+    @patch.object(PhishstoryMongo, 'update_actions_sub_document', return_value=None)
+    @patch.object(APIHelper, 'close_incident', return_value=None)
+    @patch.object(Collection, 'find_one', return_value={'entity': 'test.com', 'action': ['false_positive']})
+    def test_fp_auto_action(self, mock_find_one, mock_close_incident, mock_update_actions):
+        result = run._check_for_blacklist_auto_actions(BLACKLISTED_TICKET)
+        mock_find_one.assert_called()
+        mock_close_incident.assert_called()
+        mock_update_actions.assert_called()
+        assert_is_none(result)
+
+    @patch.object(PhishstoryMongo, 'update_actions_sub_document', return_value=None)
+    @patch.object(APIHelper, 'close_incident', return_value=None)
+    @patch.object(Collection, 'find_one', return_value={'entity': 'test.com', 'action': ['resolved']})
+    def test_resolved_auto_action(self, mock_find_one, mock_close_incident, mock_update_actions):
+        result = run._check_for_blacklist_auto_actions(BLACKLISTED_TICKET)
+        mock_find_one.assert_called()
+        mock_close_incident.assert_called()
+        mock_update_actions.assert_called()
+        assert_is_none(result)

@@ -1,7 +1,7 @@
 import logging.config
 import os
 import socket
-from pprint import pformat
+from typing import Union
 
 import yaml
 from celery import Celery, chain
@@ -11,6 +11,7 @@ from dcuprometheuscelery.metrics import getRegistry, setupMetrics
 from dcustructuredlogging import celerylogger  # noqa: F401
 from func_timeout import FunctionTimedOut, func_timeout
 from prometheus_client import Counter
+from pymongo import MongoClient
 
 from celeryconfig import CeleryConfig
 from dcumiddleware.apihelper import APIHelper
@@ -27,18 +28,26 @@ app.config_from_object(CeleryConfig())
 logger = get_task_logger('celery.tasks')
 log_level = os.getenv('LOG_LEVEL', 'INFO')
 
-FAILED_ENRICHMENT_KEY = 'failedEnrichment'
-DATA_KEY = 'data'
-DOMAIN_Q_KEY = 'domainQuery'
+ACTION_KEY = 'action'
+BLACKLIST_KEY = 'blacklist'
+BLACKLIST_ENTITY_KEY = 'entity'
 BRAND_KEY = 'brand'
-SHOPPER_KEY = 'shopperId'
-PRODUCT_KEY = 'product'
-GUID_KEY = 'guid'
+DATA_KEY = 'data'
 DOMAIN_ID_KEY = 'domainId'
-HOST_KEY = 'host'
-REGISTRAR_KEY = 'registrar'
+DOMAIN_Q_KEY = 'domainQuery'
+FAILED_ENRICHMENT_KEY = 'failedEnrichment'
+FALSE_POSITIVE = 'false_positive'
 GODADDY_BRAND = 'GODADDY'
+GUID_KEY = 'guid'
+HOST_KEY = 'host'
+PRODUCT_KEY = 'product'
+REGISTRAR_KEY = 'registrar'
+RESOLVED = 'resolved'
 SHOPPER_INFO_KEY = 'shopperInfo'
+SHOPPER_KEY = 'shopperId'
+SOURCE_KEY = 'sourceDomainOrIp'
+TICKET_ID_KEY = '_id'
+VIP_KEY = 'vip'
 
 # Configure DCU celery metrics
 setupMetrics(logger)
@@ -54,6 +63,16 @@ enrichmentCounter = Counter(
     ['env'],
     registry=getRegistry()
 )
+
+
+def get_blacklist_info(source: str, domain_shopper: str, host_shopper: str) -> Union[list, None]:
+    blacklist_record = blacklist_collection.find_one({'$or': [
+        {BLACKLIST_ENTITY_KEY: host_shopper},
+        {BLACKLIST_ENTITY_KEY: domain_shopper},
+        {BLACKLIST_ENTITY_KEY: source}
+    ]})
+
+    return blacklist_record.get(ACTION_KEY) if blacklist_record else None
 
 
 def replace_dict(dict_to_replace):
@@ -112,7 +131,9 @@ else:
 db = PhishstoryMongo(app_settings)
 api = APIHelper(app_settings)
 routing_helper = RoutingHelper(app, api, db)
-
+blacklist_client = MongoClient(app_settings.DBURL)
+blacklist_db = blacklist_client[app_settings.DB]
+blacklist_collection = blacklist_db[app_settings.BLACKLIST_COLLECTION]
 
 """
 Sample data:
@@ -135,8 +156,8 @@ def process(data):
     :return:
     """
     chain(_load_and_enrich_data.s(data),
-          _route_to_brand_services.s(),
-          _printer.s())()
+          _check_for_blacklist_auto_actions.s(),
+          _route_to_brand_services.s())()
 
 
 ''' PRIVATE TASKS'''
@@ -162,12 +183,12 @@ def _load_and_enrich_data(self, data):
     try:
         domain_name_ip = func_timeout(timeout_in_seconds, socket.gethostbyname, args=(domain_name,))
     except (FunctionTimedOut, socket.gaierror) as e:
-        logger.error("Error while determining domain IP for {} : {}".format(ticket_id, e))
+        logger.error(f'Error while determining domain IP for {ticket_id} : {e}')
 
     try:
         sub_domain_ip = func_timeout(timeout_in_seconds, socket.gethostbyname, args=(sub_domain_name,))
     except (FunctionTimedOut, socket.gaierror) as e:
-        logger.error("Error while determining sub-domain IP for {} : {}".format(ticket_id, e))
+        logger.error(f'Error while determining sub-domain IP for {ticket_id} : {e}')
 
     # If the domain and sub-domain ips match, then send a CMAP query for the domain, as the domain
     # query is more likely to return a guid than the sub-domain query
@@ -185,12 +206,12 @@ def _load_and_enrich_data(self, data):
     except Exception as e:
         # If we have reached the max retries allowed, abort the process and nullify the task chain
         if self.request.retries == self.max_retries:
-            logger.error("Max retries exceeded for {} : {}".format(ticket_id, e))
+            logger.error(f'Max retries exceeded for {ticket_id} : {e}')
             # Flag DB for the enrichment failure
             data[FAILED_ENRICHMENT_KEY] = True
 
         else:
-            logger.error("Error while processing: {}. Retrying...".format(ticket_id))
+            logger.error(f'Error while processing: {ticket_id}. Retrying...')
             self.retry(exc=e)
 
     enrichmentCounter.labels(env=env).inc()
@@ -202,17 +223,38 @@ def _load_and_enrich_data(self, data):
 
 
 @app.task
+def _check_for_blacklist_auto_actions(data):
+    """
+    Checks if ticket is on blocklist and performs automated actions if applicable
+    :param data:
+    :return:
+    """
+    if data.get(BLACKLIST_KEY):
+        domain_shopper = data.get(DATA_KEY, {}).get(DOMAIN_Q_KEY, {}).get(SHOPPER_INFO_KEY, {}).get(SHOPPER_KEY, None)
+        host_shopper = data.get(DATA_KEY, {}).get(DOMAIN_Q_KEY, {}).get(HOST_KEY, {}).get(SHOPPER_KEY, None)
+        source = data.get(SOURCE_KEY)
+        ticket = data.get(TICKET_ID_KEY)
+
+        result_action = get_blacklist_info(source, domain_shopper, host_shopper)
+
+        if result_action:
+            if isinstance(result_action, list):
+                result_action = result_action[0]
+            if result_action in [FALSE_POSITIVE, RESOLVED]:
+                api.close_incident(ticket, result_action)
+                db.update_actions_sub_document(ticket, f'closed as {result_action}')
+                return
+    return data
+
+
+@app.task
 def _route_to_brand_services(data):
     """
     Routes data to the appropriate Brand Service to be processed further
     :param data:
     :return:
     """
+    if not isinstance(data, dict):
+        return
+
     return routing_helper.route(data)
-
-
-@app.task
-def _printer(data):
-    if data:
-        logger.info("Successfully processed {}".format(data['_id']))
-        logger.debug("Successfully processed {}".format(pformat(data)))
