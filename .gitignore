@@ -11,3 +11,4 @@ integration_test.py
 .venv
 nosetests.xml
 .envrc
+coverage.xml

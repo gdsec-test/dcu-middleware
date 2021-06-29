@@ -9,6 +9,7 @@ from requests import sessions
 class CmapServiceHelper(object):
 
     _post_headers = {'Content-Type': 'application/graphql'}
+    _domain_query_dicts = ['apiReseller', 'host', 'registrar', 'securitySubscription', 'shopperInfo']
 
     # Map of reseller private label ids that need to be enriched:
     _reseller_id_map = {'525844': '123REG'}
@@ -31,6 +32,22 @@ class CmapServiceHelper(object):
         with sessions.Session() as session:
             re = session.post(url=self._graphene_url, headers=self._post_headers, data=query)
             return json.loads(re.text)
+
+    def _validate_dq_structure(self, data: dict) -> None:
+        """
+        Ensure the data.domainQuery.* objects are all dictionaries.
+        Throw a TypeError if we find malformed data.
+        """
+        d = data.get('data')
+        if not isinstance(d, dict):
+            raise TypeError('Returned object for data not a dict')
+        dq = d.get('domainQuery')
+        if not isinstance(dq, dict):
+            raise TypeError('Returned object for domainQuery not a dict')
+
+        for field in self._domain_query_dicts:
+            if not isinstance(dq.get(field), dict):
+                raise TypeError(f'Returned object for {field} not a dict')
 
     def domain_query(self, domain):
         """
@@ -106,6 +123,8 @@ class CmapServiceHelper(object):
 
         if not isinstance(query_result, dict) or 'errors' in query_result:
             raise Exception('Unexpected query result')
+
+        self._validate_dq_structure(query_result)
 
         ddq = query_result.get('data', {}).get('domainQuery', {})
         reg_create_date = ddq.get('registrar', {}).get('domainCreateDate')

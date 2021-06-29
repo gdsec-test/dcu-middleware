@@ -1,6 +1,6 @@
 from dateutil import parser
 from mock import patch
-from nose.tools import assert_true
+from nose.tools import assert_is_none, assert_raises, assert_true
 
 from dcumiddleware.cmapservicehelper import CmapServiceHelper
 
@@ -182,3 +182,41 @@ class TestCmapServiceHelper:
         assert_true(date == parser.parse('2007-03-08 12:11:06'))
         date2 = self.cmapservice._date_time_format('invaliddatetimestring')
         assert_true(date2 is None)
+
+    def test_validate_dq_structure(self):
+        test_data = {
+            'data': {
+                'domainQuery': {
+                    'host': {},
+                    'registrar': {},
+                    'apiReseller': {},
+                    'securitySubscription': {},
+                    'shopperInfo': {}
+                }
+            }
+        }
+        assert_is_none(self.cmapservice._validate_dq_structure(test_data))
+
+    def test_validate_dq_structure_missing_field(self):
+        test_data = {
+            'data': {
+                'domainQuery': {
+                    'host': {},
+                    'registrar': {},
+                    'apiReseller': {},
+                    'securitySubscription': {}
+                }
+            }
+        }
+        assert_raises(TypeError, self.cmapservice._validate_dq_structure, test_data)
+
+    def test_validate_dq_structure_missing_dq(self):
+        test_data = {
+            'data': {
+            }
+        }
+        assert_raises(TypeError, self.cmapservice._validate_dq_structure, test_data)
+
+    def test_validate_dq_structure_missing_data(self):
+        test_data = {}
+        assert_raises(TypeError, self.cmapservice._validate_dq_structure, test_data)

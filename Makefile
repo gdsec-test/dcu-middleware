@@ -39,7 +39,7 @@ test:
 .PHONY: testcov
 testcov:
 	@echo "----- Running tests with coverage -----"
-	nosetests tests --with-coverage --cover-erase --cover-package=dcumiddleware
+	nosetests tests --with-coverage --cover-erase --cover-package=dcumiddleware  --cover-xml
 
 
 .PHONY: prep
