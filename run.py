@@ -178,7 +178,7 @@ def _load_and_enrich_data(self, data):
     cmap_data = {}
     cmap_helper = CmapServiceHelper(app_settings)
 
-    data.pop('failedEnrichment', None)
+    had_failed_enrichment = data.pop(FAILED_ENRICHMENT_KEY, False)
 
     try:
         domain_name_ip = func_timeout(timeout_in_seconds, socket.gethostbyname, args=(domain_name,))
@@ -202,22 +202,22 @@ def _load_and_enrich_data(self, data):
         # Retrieve CMAP data from CMapServiceHelper
         cmap_data = cmap_helper.domain_query(domain)
         if not enrichment_succeeded(cmap_data):
-            data[FAILED_ENRICHMENT_KEY] = True
+            raise Exception('Failed to correctly enrich required fields')
+        elif had_failed_enrichment:
+            db.remove_field(ticket_id, FAILED_ENRICHMENT_KEY)
     except Exception as e:
         # If we have reached the max retries allowed, abort the process and nullify the task chain
         if self.request.retries == self.max_retries:
             logger.error(f'Max retries exceeded for {ticket_id} : {e}')
             # Flag DB for the enrichment failure
             data[FAILED_ENRICHMENT_KEY] = True
+            failedEnrichmentCounter.labels(env=env).inc()
 
         else:
             logger.error(f'Error while processing: {ticket_id}. Retrying...')
             self.retry(exc=e)
 
     enrichmentCounter.labels(env=env).inc()
-    if data.get(FAILED_ENRICHMENT_KEY, False):
-        failedEnrichmentCounter.labels(env=env).inc()
-
     # return the result of merging the CMap data with data gathered from the API
     return db.update_incident(ticket_id, cmap_helper.api_cmap_merge(data, cmap_data))
 
