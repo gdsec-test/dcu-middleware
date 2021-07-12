@@ -19,8 +19,8 @@ class CmapServiceHelper(object):
         self._graphene_url = settings.CMAP_SERVICE + '/graphql'
 
         self._sso_endpoint = settings.SSO_URL + '/v1/secure/api/token'
-        cert = (settings.CMAP_CERT, settings.CMAP_KEY)
-        self._post_headers.update({'Authorization': 'sso-jwt {}'.format(self._get_jwt(cert))})
+        self._cert = (settings.CMAP_CERT, settings.CMAP_KEY)
+        self._post_headers.update({'Authorization': f'sso-jwt {self._get_jwt(self._cert)}'})
 
     def cmap_query(self, query, domain):
         """
@@ -31,6 +31,9 @@ class CmapServiceHelper(object):
         """
         with sessions.Session() as session:
             re = session.post(url=self._graphene_url, headers=self._post_headers, data=query)
+            if re.status_code == 401 or re.status_code == 403:
+                self._post_headers.update({'Authorization': f'sso-jwt {self._get_jwt(self._cert)}'})
+                re = session.post(url=self._graphene_url, headers=self._post_headers, data=query)
             return json.loads(re.text)
 
     def _validate_dq_structure(self, data: dict) -> None:
