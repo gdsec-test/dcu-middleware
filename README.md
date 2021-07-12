@@ -64,10 +64,11 @@ If you would like to run the dcumiddleware service locally, you will need to spe
 * `SERVICE_URL` (URL for accessing CMAP service)
 * `DB_PASS` (Password for MongoDB)
 * `BROKER_PASS` (Password for RabbitMQ)
-* `API_TOKEN` (JWT for Abuse API)
 * `LOG_LEVEL` (DEBUG, INFO)
 * `CMAP_CERT` Path to cmapservice.int certificate file (for connecting to CMAP Service)
 * `CMAP_KEY` Path to cmapservice.int certificate file (for connecting to CMAP Service)
+* `SSO_USER` user to retrieve JWT with.
+* `SSO_PASSWORD` password to retrieve JWT with.
 
 You may also need to configure settings.py and celeryconfig.py to specify additional MongoDB and Celery settings.
 

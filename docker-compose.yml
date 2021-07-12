@@ -3,7 +3,6 @@ services:
     image: docker-dcu-local.artifactory.secureserver.net/dcumiddleware:dev
     environment:
       ABUSE_API_URL: ${ABUSE_API_URL}
-      API_TOKEN: ${API_TOKEN}
       BROKER_PASS: ${BROKER_PASS}
       BROKER_URL: amqp://guest@rabbitmq:5672//
       DB_PASS: ${DB_PASS}
@@ -14,6 +13,8 @@ services:
       METRICS_ENABLED: 'yes'
       SERVICE_URL: ${SERVICE_URL}
       sysenv: ${sysenv}
+      SSO_USER: ${SSO_USER}
+      SSO_PASSWORD: ${SSO_PASSWORD}
     volumes:
       - /PATH_TO_YOUR_CERTS_DIRECTORY/:/tmp/certs/
     links:

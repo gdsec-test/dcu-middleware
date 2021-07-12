@@ -31,7 +31,8 @@ class TestRoutingHelper:
     KEY_TICKET_ID = 'ticketId'
 
     @classmethod
-    def setup(cls):
+    @patch.object(APIHelper, '_get_jwt')
+    def setup(cls, mock_jwt):
         cls._routing_helper = RoutingHelper(Celery().config_from_object(CeleryConfig),
                                             APIHelper(TestAppConfig()),
                                             MockMongo())

@@ -45,11 +45,16 @@ spec:
               secretKeyRef:
                 name: amqp-middleware
                 key: password
-          - name: API_TOKEN
+          - name: SSO_USER
             valueFrom:
               secretKeyRef:
-                name: api-token
-                key: token
+                name: abuse-api-user
+                key: username
+          - name: SSO_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: abuse-api-user
+                key: password
           - name: ABUSE_API_URL
             value: http://api.abuse-api-ote.svc.cluster.local:5000/v1/abuse/tickets
           - name: SERVICE_URL

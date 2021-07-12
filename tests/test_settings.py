@@ -11,7 +11,6 @@ class TestingConfig:
     DB = 'test'
     COLLECTION = 'test'
     API_UPDATE_URL = None
-    API_TOKEN = None
     CMAP_SERVICE = 'http://localhost:5000'
     SSO_URL = ''
     CMAP_CERT = ''
