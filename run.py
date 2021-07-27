@@ -181,7 +181,7 @@ def _load_and_enrich_data(self, data):
 
     had_failed_enrichment = data.pop(FAILED_ENRICHMENT_KEY, False)
 
-    if source.startswith('http://') and source.endswidth('.prod'):
+    if source.startswith('http://') and source.endswith('.prod'):
         logger.error('Spam ticket reported, moving directly to failed enrichment')
         # Flag DB for the enrichment failure
         data[FAILED_ENRICHMENT_KEY] = True
