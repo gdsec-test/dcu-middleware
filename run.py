@@ -171,6 +171,7 @@ def _load_and_enrich_data(self, data):
     :return:
     """
     ticket_id = data.get('ticketId')
+    source = data.get('source')
     domain_name = data.get('sourceDomainOrIp')
     sub_domain_name = data.get('sourceSubDomain')
     timeout_in_seconds = 2
@@ -180,42 +181,48 @@ def _load_and_enrich_data(self, data):
 
     had_failed_enrichment = data.pop(FAILED_ENRICHMENT_KEY, False)
 
-    try:
-        domain_name_ip = func_timeout(timeout_in_seconds, socket.gethostbyname, args=(domain_name,))
-    except (FunctionTimedOut, socket.gaierror) as e:
-        logger.error(f'Error while determining domain IP for {ticket_id} : {e}')
+    if source.startswith('http://') and source.endswidth('.prod'):
+        logger.error('Spam ticket reported, moving directly to failed enrichment')
+        # Flag DB for the enrichment failure
+        data[FAILED_ENRICHMENT_KEY] = True
+        failedEnrichmentCounter.labels(env=env).inc()
+    else:
+        try:
+            domain_name_ip = func_timeout(timeout_in_seconds, socket.gethostbyname, args=(domain_name,))
+        except (FunctionTimedOut, socket.gaierror) as e:
+            logger.error(f'Error while determining domain IP for {ticket_id} : {e}')
 
-    try:
-        sub_domain_ip = func_timeout(timeout_in_seconds, socket.gethostbyname, args=(sub_domain_name,))
-    except (FunctionTimedOut, socket.gaierror) as e:
-        logger.error(f'Error while determining sub-domain IP for {ticket_id} : {e}')
+        try:
+            sub_domain_ip = func_timeout(timeout_in_seconds, socket.gethostbyname, args=(sub_domain_name,))
+        except (FunctionTimedOut, socket.gaierror) as e:
+            logger.error(f'Error while determining sub-domain IP for {ticket_id} : {e}')
 
-    # If the domain and sub-domain ips match, then send a CMAP query for the domain, as the domain
-    # query is more likely to return a guid than the sub-domain query
-    domain = domain_name
-    if sub_domain_name and sub_domain_ip and domain_name_ip != sub_domain_ip:
-        domain = sub_domain_name
-    elif domain_name in app_settings.ENRICH_ON_SUBDOMAIN:
-        domain = sub_domain_name
+        # If the domain and sub-domain ips match, then send a CMAP query for the domain, as the domain
+        # query is more likely to return a guid than the sub-domain query
+        domain = domain_name
+        if sub_domain_name and sub_domain_ip and domain_name_ip != sub_domain_ip:
+            domain = sub_domain_name
+        elif domain_name in app_settings.ENRICH_ON_SUBDOMAIN:
+            domain = sub_domain_name
 
-    try:
-        # Retrieve CMAP data from CMapServiceHelper
-        cmap_data = cmap_helper.domain_query(domain)
-        if not enrichment_succeeded(cmap_data):
-            raise Exception('Failed to correctly enrich required fields')
-        elif had_failed_enrichment:
-            db.remove_field(ticket_id, FAILED_ENRICHMENT_KEY)
-    except Exception as e:
-        # If we have reached the max retries allowed, abort the process and nullify the task chain
-        if self.request.retries == self.max_retries:
-            logger.error(f'Max retries exceeded for {ticket_id} : {e}')
-            # Flag DB for the enrichment failure
-            data[FAILED_ENRICHMENT_KEY] = True
-            failedEnrichmentCounter.labels(env=env).inc()
+        try:
+            # Retrieve CMAP data from CMapServiceHelper
+            cmap_data = cmap_helper.domain_query(domain)
+            if not enrichment_succeeded(cmap_data):
+                raise Exception('Failed to correctly enrich required fields')
+            elif had_failed_enrichment:
+                db.remove_field(ticket_id, FAILED_ENRICHMENT_KEY)
+        except Exception as e:
+            # If we have reached the max retries allowed, abort the process and nullify the task chain
+            if self.request.retries == self.max_retries:
+                logger.error(f'Max retries exceeded for {ticket_id} : {e}')
+                # Flag DB for the enrichment failure
+                data[FAILED_ENRICHMENT_KEY] = True
+                failedEnrichmentCounter.labels(env=env).inc()
 
-        else:
-            logger.error(f'Error while processing: {ticket_id}. Retrying...')
-            self.retry(exc=e)
+            else:
+                logger.error(f'Error while processing: {ticket_id}. Retrying...')
+                self.retry(exc=e)
 
     enrichmentCounter.labels(env=env).inc()
     # return the result of merging the CMap data with data gathered from the API
