@@ -7,6 +7,10 @@ from requests import sessions
 
 
 class CmapServiceHelper(object):
+    DATA_KEY = 'data'
+    DOMAIN_Q_KEY = 'domainQuery'
+    HOST_KEY = 'host'
+    SHOPPER_CREATE_KEY = 'shopperCreateDate'
 
     _post_headers = {'Content-Type': 'application/graphql'}
     _domain_query_dicts = ['apiReseller', 'host', 'registrar', 'securitySubscription', 'shopperInfo']
@@ -52,13 +56,9 @@ class CmapServiceHelper(object):
             if not isinstance(dq.get(field), dict):
                 raise TypeError(f'Returned object for {field} not a dict')
 
-    def domain_query(self, domain):
+    def domain_query(self, domain: str) -> dict:
         """
-        Returns query result of cmap service given a domain
-        :param domain:
-        :return query result: query result host, registrar, domain create date, vip profile, shopperID,
-        shopper create date, shopper domain count, API parent/child account numbers, securitySubscription,
-        and ssl subscriptions.
+        Query CMAP service for information related to a domain.
         """
         query = ('''
              {
@@ -92,6 +92,7 @@ class CmapServiceHelper(object):
                   os
                   product
                   shopperId
+                  shopperCreateDate
                   mwpId
                   createdDate
                   friendlyName
@@ -139,6 +140,10 @@ class CmapServiceHelper(object):
         if shp_create_date:
             query_result['data']['domainQuery']['shopperInfo']['shopperCreateDate'] = \
                 self._date_time_format(shp_create_date)
+
+        host_sh_create = ddq.get('host', {}).get('shopperCreateDate')
+        if host_sh_create:
+            query_result[self.DATA_KEY][self.DOMAIN_Q_KEY][self.HOST_KEY][self.SHOPPER_CREATE_KEY] = self._date_time_format(host_sh_create)
 
         hosting_create_date = ddq.get('host', {}).get('createdDate')
         if hosting_create_date:

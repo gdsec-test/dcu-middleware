@@ -46,6 +46,7 @@ class TestCmapServiceHelper:
                         'os': None,
                         'product': None,
                         'shopperId': None,
+                        'shopperCreateDate': '2003-01-19',
                         'privateLabelId': None,
                         'vip': {
                             'blacklist': False,
@@ -100,6 +101,7 @@ class TestCmapServiceHelper:
         assert_true('os' in doc['data']['domainQuery']['host'])
         assert_true('product' in doc['data']['domainQuery']['host'])
         assert_true('shopperId' in doc['data']['domainQuery']['host'])
+        assert_true('shopperCreateDate' in doc['data']['domainQuery']['host'])
         assert_true('privateLabelId' in doc['data']['domainQuery']['host'])
         assert_true('vip' in doc['data']['domainQuery']['host'])
         assert_true('blacklist' in doc['data']['domainQuery']['host']['vip'])
