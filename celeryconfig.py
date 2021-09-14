@@ -35,4 +35,4 @@ class CeleryConfig:
         if os.getenv('BROKER_URL'):
             self.broker_url = os.getenv('BROKER_URL')
         else:
-            self.broker_url = 'amqp://02d1081iywc7A:' + self.BROKER_PASS + '@rmq-dcu.int.godaddy.com:5672/grandma'
+            self.broker_url = 'amqp://02d1081iywc7Av2:' + self.BROKER_PASS + '@rmq-dcu.int.godaddy.com:5672/grandma'

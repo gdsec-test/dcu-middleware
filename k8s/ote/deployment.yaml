@@ -43,7 +43,7 @@ spec:
           - name: BROKER_PASS
             valueFrom:
               secretKeyRef:
-                name: amqp-middleware
+                name: amqp-shared-creds
                 key: password
           - name: SSO_USER
             valueFrom:
