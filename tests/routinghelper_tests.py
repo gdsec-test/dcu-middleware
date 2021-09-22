@@ -1,3 +1,5 @@
+from unittest.case import TestCase
+
 from celery import Celery
 from mock import patch
 from nose.tools import assert_equal, assert_is_none
@@ -18,7 +20,7 @@ class MockMongo:
         pass
 
 
-class TestRoutingHelper:
+class TestRoutingHelper(TestCase):
     REG123 = '123REG'
     EMEA = 'EMEA'
     FOREIGN = 'FOREIGN'
@@ -32,7 +34,7 @@ class TestRoutingHelper:
 
     @classmethod
     @patch.object(APIHelper, '_get_jwt')
-    def setup(cls, mock_jwt):
+    def setupClass(cls, mock_jwt):
         cls._routing_helper = RoutingHelper(Celery().config_from_object(CeleryConfig),
                                             APIHelper(TestAppConfig()),
                                             MockMongo())

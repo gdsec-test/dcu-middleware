@@ -40,7 +40,23 @@ FALSE_POSITIVE = 'false_positive'
 GODADDY_BRAND = 'GODADDY'
 GUID_KEY = 'guid'
 HOST_KEY = 'host'
-PRODUCT_KEY = 'product'
+KEY_ABUSE_VERIFIED = 'abuseVerified'
+KEY_BLACKLIST = 'blacklist'
+KEY_CONTAINER_ID = 'containerId'
+KEY_CREATED_DATA = 'createdDate'
+KEY_DC = 'dataCenter'
+KEY_FRIENDLY_NAME = 'friendlyName'
+KEY_GUID = 'guid'
+KEY_HOSTNAME = 'hostname'
+KEY_IP = 'ip'
+KEY_METADATA = 'metadata'
+KEY_MWP_ID = 'mwpId'
+KEY_PRODUCT = 'product'
+KEY_PORTFOLIO_TYPE = 'portfolioType'
+KEY_PRIVATE_LABEL_ID = 'privateLabelId'
+KEY_RESELLER = 'reseller'
+KEY_SHOPPER_ID = 'shopperId'
+KEY_VIP = 'vip'
 REGISTRAR_KEY = 'registrar'
 RESOLVED = 'resolved'
 SHOPPER_INFO_KEY = 'shopperInfo'
@@ -100,7 +116,7 @@ def enrichment_succeeded(data):
     domain = data.get(DATA_KEY, {}).get(DOMAIN_Q_KEY, {}).get(REGISTRAR_KEY, {})
     shopper = data.get(DATA_KEY, {}).get(DOMAIN_Q_KEY, {}).get(SHOPPER_INFO_KEY, {})
 
-    product = hosted.get(PRODUCT_KEY, None)
+    product = hosted.get(KEY_PRODUCT, None)
     host_here = hosted.get(BRAND_KEY, None) == GODADDY_BRAND and product not in app_settings.REGISTERED_ONLY_PRODUCTS
 
     miss_shopper = hosted.get(SHOPPER_KEY, None) is None
@@ -116,6 +132,51 @@ def enrichment_succeeded(data):
     if host_enrich_fail or domain_enrich_fail:
         return False
     return True
+
+
+def validate_abuse_verified(ticket: dict, enrichment: dict, domain: str, ip: str) -> None:
+    cmap_helper = CmapServiceHelper(app_settings)
+    metadata = ticket.get(KEY_METADATA, {})
+    hosted_enrichment = enrichment.get(DATA_KEY, {}).get(DOMAIN_Q_KEY, {}).get(HOST_KEY, {})
+    mismatch = False
+
+    if metadata.get(KEY_PRODUCT) != hosted_enrichment.get(KEY_PRODUCT):
+        hosted_enrichment[KEY_PRODUCT] = metadata.get(KEY_PRODUCT)
+        mismatch = True
+        # If product doesn't match, the hosted GUID is definitely wrong.
+        hosted_enrichment.pop(KEY_GUID, None)
+
+    if metadata.get(KEY_GUID) != hosted_enrichment.get(KEY_GUID):
+        hosted_enrichment[KEY_GUID] = metadata.get(KEY_GUID)
+        mismatch = True
+
+    if mismatch:
+        # Remove all other enriched fields.
+        hosted_enrichment.pop(KEY_DC, None)
+        hosted_enrichment.pop(KEY_CONTAINER_ID, None)
+        hosted_enrichment.pop(KEY_HOSTNAME, None)
+        hosted_enrichment.pop(KEY_IP, None)
+        hosted_enrichment.pop(KEY_SHOPPER_ID, None)
+        hosted_enrichment.pop(KEY_MWP_ID, None)
+        hosted_enrichment.pop(KEY_CREATED_DATA, None)
+        hosted_enrichment.pop(KEY_FRIENDLY_NAME, None)
+        hosted_enrichment.pop(KEY_PRIVATE_LABEL_ID, None)
+        hosted_enrichment.pop(KEY_RESELLER, None)
+        hosted_enrichment[KEY_VIP] = {
+            KEY_BLACKLIST: False,
+            KEY_PORTFOLIO_TYPE: None,
+            KEY_SHOPPER_ID: None
+        }
+
+        # Perform a product specific enrichment.
+        hosted_enrichment = cmap_helper.product_lookup(
+            domain,
+            hosted_enrichment[KEY_GUID],
+            ip,
+            hosted_enrichment[KEY_PRODUCT]
+        )
+        hosted_enrichment.update(cmap_helper.shopper_lookup(hosted_enrichment[KEY_SHOPPER_ID]))
+        enrichment.get(DATA_KEY, {}).get(DOMAIN_Q_KEY, {})[HOST_KEY] = hosted_enrichment
 
 
 # setup logging
@@ -174,7 +235,7 @@ def _load_and_enrich_data(self, data):
     domain_name = data.get('sourceDomainOrIp')
     sub_domain_name = data.get('sourceSubDomain')
     timeout_in_seconds = 2
-    domain_name_ip = sub_domain_ip = None
+    domain_name_ip = sub_domain_ip = ip = None
     cmap_data = {}
     cmap_helper = CmapServiceHelper(app_settings)
 
@@ -193,14 +254,20 @@ def _load_and_enrich_data(self, data):
     # If the domain and sub-domain ips match, then send a CMAP query for the domain, as the domain
     # query is more likely to return a guid than the sub-domain query
     domain = domain_name
+    ip = domain_name_ip
     if sub_domain_name and sub_domain_ip and domain_name_ip != sub_domain_ip:
         domain = sub_domain_name
+        ip = sub_domain_ip
     elif domain_name in app_settings.ENRICH_ON_SUBDOMAIN:
         domain = sub_domain_name
 
     try:
         # Retrieve CMAP data from CMapServiceHelper
         cmap_data = cmap_helper.domain_query(domain)
+
+        if data.get(KEY_ABUSE_VERIFIED):
+            validate_abuse_verified(data, cmap_data, domain, ip)
+
         if not enrichment_succeeded(cmap_data):
             raise Exception('Failed to correctly enrich required fields')
         elif had_failed_enrichment:

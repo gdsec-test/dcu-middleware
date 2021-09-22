@@ -1,14 +1,16 @@
+from unittest.case import TestCase
+
 from dateutil import parser
 from mock import patch
-from nose.tools import assert_is_none, assert_raises, assert_true
+from nose.tools import (assert_dict_equal, assert_is_none, assert_raises,
+                        assert_true)
 
 from dcumiddleware.cmapservicehelper import CmapServiceHelper
+from tests.test_settings import TestingConfig
 
-from .test_settings import TestingConfig
 
-
-class TestCmapServiceHelper:
-    def __init__(self):
+class TestCmapServiceHelper(TestCase):
+    def setUp(self):
         config = TestingConfig()
         self.cmapservice = CmapServiceHelper(config)
 
@@ -222,3 +224,17 @@ class TestCmapServiceHelper:
     def test_validate_dq_structure_missing_data(self):
         test_data = {}
         assert_raises(TypeError, self.cmapservice._validate_dq_structure, test_data)
+
+    @patch.object(CmapServiceHelper, 'cmap_query')
+    def test_product_lookup(self, cmap_query):
+        cmap_query.return_value = {'example': 'data'}
+        result = self.cmapservice.product_lookup('domain', 'test-guid', 'ip', 'product')
+        cmap_query.assert_called_with('{"domain": "domain", "guid": "test-guid", "ip": "ip", "product": "product"}', '/v1/hosted/lookup')
+        assert_dict_equal(result, cmap_query.return_value)
+
+    @patch.object(CmapServiceHelper, 'cmap_query')
+    def test_shopper_lookup(self, cmap_query):
+        cmap_query.return_value = {'example': 'data'}
+        result = self.cmapservice.shopper_lookup('shopper')
+        cmap_query.assert_called_with('{"shopper_id": "shopper"}', '/v1/shopper/lookup')
+        assert_dict_equal(result, cmap_query.return_value)

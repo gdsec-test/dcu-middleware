@@ -20,24 +20,18 @@ class CmapServiceHelper(object):
 
     def __init__(self, settings):
         self._logger = logging.getLogger(__name__)
-        self._graphene_url = settings.CMAP_SERVICE + '/graphql'
+        self._base_url = settings.CMAP_SERVICE
 
         self._sso_endpoint = settings.SSO_URL + '/v1/secure/api/token'
         self._cert = (settings.CMAP_CERT, settings.CMAP_KEY)
         self._post_headers.update({'Authorization': f'sso-jwt {self._get_jwt(self._cert)}'})
 
-    def cmap_query(self, query, domain):
-        """
-        Returns query result of cmap service given a query
-        :param query:
-        :param domain:
-        :return query result:
-        """
+    def cmap_query(self, query: str, url: str = '/graphql') -> dict:
         with sessions.Session() as session:
-            re = session.post(url=self._graphene_url, headers=self._post_headers, data=query)
+            re = session.post(url=self._base_url + url, headers=self._post_headers, data=query)
             if re.status_code == 401 or re.status_code == 403:
                 self._post_headers.update({'Authorization': f'sso-jwt {self._get_jwt(self._cert)}'})
-                re = session.post(url=self._graphene_url, headers=self._post_headers, data=query)
+                re = session.post(url=self._base_url + url, headers=self._post_headers, data=query)
             return json.loads(re.text)
 
     def _validate_dq_structure(self, data: dict) -> None:
@@ -55,6 +49,25 @@ class CmapServiceHelper(object):
         for field in self._domain_query_dicts:
             if not isinstance(dq.get(field), dict):
                 raise TypeError(f'Returned object for {field} not a dict')
+
+    def product_lookup(self, domain: str, guid: str, ip: str, product: str) -> dict:
+        return self.cmap_query(
+            json.dumps({
+                'domain': domain,
+                'guid': guid,
+                'ip': ip,
+                'product': product
+            }),
+            '/v1/hosted/lookup'
+        )
+
+    def shopper_lookup(self, shopper: str) -> dict:
+        return self.cmap_query(
+            json.dumps({
+                'shopper_id': shopper
+            }),
+            '/v1/shopper/lookup'
+        )
 
     def domain_query(self, domain: str) -> dict:
         """
@@ -123,7 +136,7 @@ class CmapServiceHelper(object):
               }
             }
           ''')
-        query_result = self.cmap_query(query, domain)
+        query_result = self.cmap_query(query)
 
         if not isinstance(query_result, dict) or 'errors' in query_result:
             raise Exception('Unexpected query result')

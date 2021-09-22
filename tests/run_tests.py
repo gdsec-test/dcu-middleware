@@ -1,7 +1,9 @@
 import socket
+from unittest.case import TestCase
 
 from dcdatabase.phishstorymongo import PhishstoryMongo
 from mock import patch
+from mock.mock import MagicMock
 from nose.tools import (assert_dict_equal, assert_false, assert_is_none,
                         assert_true)
 from pymongo.collection import Collection
@@ -50,7 +52,7 @@ class MockCmapServiceHelper:
         return _return
 
 
-class TestRun:
+class TestRun(TestCase):
     FOREIGN_BRAND = 'FOREIGN'
     DATA_KEY = 'data'
     DOMAIN_QUERY_KEY = 'domainQuery'
@@ -62,6 +64,25 @@ class TestRun:
     REGISTRAR_KEY = 'registrar'
     DOMAIN_KEY = 'domainId'
     SHOPPER_INFO_KEY = 'shopperInfo'
+
+    def setUp(self):
+        self.incident = {
+            run.KEY_METADATA: {
+                run.KEY_PRODUCT: 'test',
+                run.KEY_GUID: 'test-guid'
+            }
+        }
+
+        self.enrichment = {
+            run.DATA_KEY: {
+                run.DOMAIN_Q_KEY: {
+                    run.HOST_KEY: {
+                        run.KEY_PRODUCT: 'test',
+                        run.KEY_GUID: 'test-guid'
+                    }
+                }
+            }
+        }
 
     # Test successful load and enrichment
     @patch.object(PhishstoryMongo, 'update_incident', return_value=None)
@@ -200,3 +221,27 @@ class TestRun:
         mock_close_incident.assert_called()
         mock_update_actions.assert_called()
         assert_is_none(result)
+
+    @patch('run.CmapServiceHelper')
+    def test_validate_abuse_verified_matching(self, mock_cmap):
+        mock_cmap.return_value = MagicMock()
+
+        run.validate_abuse_verified(self.incident, self.enrichment, 'test.com', '127.0.0.1')
+        assert_dict_equal(self.incident[run.KEY_METADATA], self.enrichment[run.DATA_KEY][run.DOMAIN_Q_KEY][run.HOST_KEY])
+        mock_cmap.return_value.product_lookup.assert_not_called()
+        mock_cmap.return_value.shopper_lookup.assert_not_called()
+
+    @patch('run.CmapServiceHelper')
+    def test_validate_abuse_verified_mismatch(self, mock_cmap):
+        mock_cmap.return_value = MagicMock(
+            product_lookup=MagicMock(return_value={run.KEY_SHOPPER_ID: 'test_shopper'}),
+            shopper_lookup=MagicMock(return_value={'dummy': 'random'})
+        )
+        self.enrichment[run.DATA_KEY][run.DOMAIN_Q_KEY][run.HOST_KEY][run.KEY_PRODUCT] = 'random'
+        run.validate_abuse_verified(self.incident, self.enrichment, 'test.com', '127.0.0.1')
+        mock_cmap.return_value.product_lookup.assert_called_with('test.com', 'test-guid', '127.0.0.1', 'test')
+        mock_cmap.return_value.shopper_lookup.assert_called_with('test_shopper')
+        assert_dict_equal(
+            self.enrichment[run.DATA_KEY][run.DOMAIN_Q_KEY][run.HOST_KEY],
+            {'dummy': 'random', 'shopperId': 'test_shopper'}
+        )
