@@ -21,6 +21,9 @@ class CeleryConfig:
     task_acks_late = True
     worker_prefetch_multiplier = 1
     worker_send_task_events = False
+    # Force kill a task if it takes longer than three minutes.
+    task_time_limit = 180
+
     task_queues = (
         Queue(app_settings.APIQUEUE, Exchange(app_settings.APIQUEUE), routing_key=app_settings.APIQUEUE),
     )
