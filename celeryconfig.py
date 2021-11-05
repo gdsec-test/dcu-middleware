@@ -1,12 +1,11 @@
 import os
-import urllib.parse
 
 from kombu import Exchange, Queue
 
-from settings import config_by_name
+from settings import AppConfig, config_by_name
 
 # Grab the correct settings based on environment
-app_settings = config_by_name[os.getenv('sysenv') or 'dev']
+app_settings: AppConfig = config_by_name[os.getenv('sysenv') or 'dev']
 
 
 class CeleryConfig:
@@ -34,8 +33,5 @@ class CeleryConfig:
     }
 
     def __init__(self):
-        self.BROKER_PASS = urllib.parse.quote(os.getenv('BROKER_PASS', 'password'))
-        if os.getenv('BROKER_URL'):
-            self.broker_url = os.getenv('BROKER_URL')
-        else:
-            self.broker_url = 'amqp://02d1081iywc7Av2:' + self.BROKER_PASS + '@rmq-dcu.int.godaddy.com:5672/grandma'
+        self.BROKER_PASS = app_settings.BROKER_PASS
+        self.broker_url = app_settings.BROKER_URL
