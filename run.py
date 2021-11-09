@@ -269,7 +269,8 @@ def _load_and_enrich_data(self, data):
             validate_abuse_verified(data, cmap_data, domain, ip)
 
         if not enrichment_succeeded(cmap_data):
-            raise Exception('Failed to correctly enrich required fields')
+            data[FAILED_ENRICHMENT_KEY] = True
+            failedEnrichmentCounter.labels(env=env).inc()
         elif had_failed_enrichment:
             db.remove_field(ticket_id, FAILED_ENRICHMENT_KEY)
     except Exception as e:
