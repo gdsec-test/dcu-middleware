@@ -111,6 +111,7 @@ class CmapServiceHelper(object):
                   friendlyName
                   privateLabelId
                   username
+                  managedLevel
                   vip {
                     blacklist
                     portfolioType
