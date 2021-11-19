@@ -112,6 +112,8 @@ class CmapServiceHelper(object):
                   privateLabelId
                   username
                   managedLevel
+                  firstPassEnrichment
+                  secondPassEnrichment
                   vip {
                     blacklist
                     portfolioType
@@ -124,6 +126,7 @@ class CmapServiceHelper(object):
                   domainId
                   registrarAbuseEmail
                   registrarName
+                  firstPassEnrichment
                 }
                 shopperInfo {
                   domainCount
