@@ -150,6 +150,10 @@ def validate_abuse_verified(ticket: dict, enrichment: dict, domain: str, ip: str
         hosted_enrichment[KEY_GUID] = metadata.get(KEY_GUID)
         mismatch = True
 
+    if metadata.get(KEY_SHOPPER_ID) != hosted_enrichment.get(KEY_SHOPPER_ID):
+        hosted_enrichment[KEY_SHOPPER_ID] = metadata.get(KEY_SHOPPER_ID)
+        mismatch = True
+
     if mismatch:
         # Remove all other enriched fields.
         hosted_enrichment.pop(KEY_DC, None)
