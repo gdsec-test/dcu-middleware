@@ -4,7 +4,6 @@ DOCKERREPO=docker-dcu-local.artifactory.secureserver.net/dcumiddleware
 DATE=$(shell date)
 COMMIT=
 BUILD_BRANCH=origin/main
-SHELL=/bin/bash
 
 all: env
 

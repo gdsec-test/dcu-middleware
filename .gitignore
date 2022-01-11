@@ -12,3 +12,5 @@ integration_test.py
 nosetests.xml
 .envrc
 coverage.xml
+shell.nix
+.direnv
