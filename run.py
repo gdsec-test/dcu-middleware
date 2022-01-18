@@ -2,6 +2,7 @@ import logging.config
 import os
 import socket
 from typing import Union
+from urllib.parse import urlparse
 
 import yaml
 from celery import Celery, chain
@@ -238,6 +239,8 @@ def _load_and_enrich_data(self, data):
     ticket_id = data.get('ticketId')
     domain_name = data.get('sourceDomainOrIp')
     sub_domain_name = data.get('sourceSubDomain')
+    source = data.get('source')
+    url_path = urlparse(source).path
     timeout_in_seconds = 2
     domain_name_ip = sub_domain_ip = ip = None
     cmap_data = {}
@@ -267,7 +270,7 @@ def _load_and_enrich_data(self, data):
 
     try:
         # Retrieve CMAP data from CMapServiceHelper
-        cmap_data = cmap_helper.domain_query(domain)
+        cmap_data = cmap_helper.domain_query(domain, url_path)
 
         if data.get(KEY_ABUSE_VERIFIED):
             validate_abuse_verified(data, cmap_data, domain, ip)

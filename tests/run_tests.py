@@ -42,7 +42,7 @@ class MockCmapServiceHelper:
     def __init__(self, _settings):
         pass
 
-    def domain_query(self, _domain):
+    def domain_query(self, _domain, _path):
         return {'status': 'good'}
 
     def api_cmap_merge(self, _dict1, _dict2):

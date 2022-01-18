@@ -69,13 +69,14 @@ class CmapServiceHelper(object):
             '/v1/shopper/lookup'
         )
 
-    def domain_query(self, domain: str) -> dict:
+    def domain_query(self, domain: str, path: str) -> dict:
         """
         Query CMAP service for information related to a domain.
         """
         query = ('''
              {
-              domainQuery(domain: "''' + domain + '''") {
+              domainQuery(domain: "''' + domain + '''", path: "''' + path + '''") {
+
                 alexaRank
                 apiReseller {
                   child

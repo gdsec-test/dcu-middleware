@@ -77,7 +77,8 @@ class TestCmapServiceHelper(TestCase):
             }
         }
         domain = 'example.com'
-        doc = self.cmapservice.domain_query(domain)
+        path = '/folder/file.ext'
+        doc = self.cmapservice.domain_query(domain, path)
         assert_true('data' in doc)
         assert_true('domainQuery' in doc['data'])
         assert_true('alexaRank' in doc['data']['domainQuery'])
