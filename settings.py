@@ -77,6 +77,21 @@ class OTEAppConfig(AppConfig):
         super(OTEAppConfig, self).__init__()
 
 
+class TestAppConfig(AppConfig):
+    DB = 'testphishstory'
+    DB_HOST = '10.36.156.188'
+    DB_USER = 'testuser'
+
+    APIQUEUE = 'testdcumiddleware'
+    GDBRANDSERVICESQUEUE = 'testgdbrandservice'
+    EMEABRANDSERVICESQUEUE = 'testemeabrandservice'
+
+    SSO_URL = 'https://sso.test-godaddy.com'
+
+    def __init__(self):
+        super(TestAppConfig, self).__init__()
+
+
 class DevelopmentAppConfig(AppConfig):
     DB = 'devphishstory'
     DB_HOST = '10.36.156.188'
@@ -92,7 +107,7 @@ class DevelopmentAppConfig(AppConfig):
         super(DevelopmentAppConfig, self).__init__()
 
 
-class TestAppConfig(AppConfig):
+class UnitTestAppConfig(AppConfig):
     DBURL = 'mongodb://devuser:phishstory@10.36.156.188/devphishstory'
     DB = 'devphishstory'
 
@@ -103,4 +118,4 @@ class TestAppConfig(AppConfig):
     SSO_URL = 'https://sso.godaddy.com'
 
 
-config_by_name = {'dev': DevelopmentAppConfig, 'prod': ProductionAppConfig, 'ote': OTEAppConfig, 'test': TestAppConfig}
+config_by_name = {'dev': DevelopmentAppConfig, 'prod': ProductionAppConfig, 'ote': OTEAppConfig, 'unit-test': UnitTestAppConfig, 'test': TestAppConfig}

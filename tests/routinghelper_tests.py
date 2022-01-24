@@ -7,7 +7,7 @@ from nose.tools import assert_equal, assert_is_none
 from celeryconfig import CeleryConfig
 from dcumiddleware.apihelper import APIHelper
 from dcumiddleware.routinghelper import RoutingHelper
-from settings import TestAppConfig
+from settings import UnitTestAppConfig
 
 
 class MockMongo:
@@ -36,7 +36,7 @@ class TestRoutingHelper(TestCase):
     @patch.object(APIHelper, '_get_jwt')
     def setupClass(cls, mock_jwt):
         cls._routing_helper = RoutingHelper(Celery().config_from_object(CeleryConfig),
-                                            APIHelper(TestAppConfig()),
+                                            APIHelper(UnitTestAppConfig()),
                                             MockMongo())
 
     def test_find_brands_to_route_no_host_no_registrar(self):
