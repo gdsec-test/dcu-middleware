@@ -34,6 +34,7 @@ BLACKLIST_KEY = 'blacklist'
 BLACKLIST_ENTITY_KEY = 'entity'
 BRAND_KEY = 'brand'
 DATA_KEY = 'data'
+DIABLO_WHMCS = 'Diablo WHMCS'
 DOMAIN_ID_KEY = 'domainId'
 DOMAIN_Q_KEY = 'domainQuery'
 FAILED_ENRICHMENT_KEY = 'failedEnrichment'
@@ -57,7 +58,9 @@ KEY_PORTFOLIO_TYPE = 'portfolioType'
 KEY_PRIVATE_LABEL_ID = 'privateLabelId'
 KEY_RESELLER = 'reseller'
 KEY_SHOPPER_ID = 'shopperId'
+KEY_USERNAME = 'username'
 KEY_VIP = 'vip'
+NOT_FOUND = 'NotFound'
 REGISTRAR_KEY = 'registrar'
 RESOLVED = 'resolved'
 SHOPPER_INFO_KEY = 'shopperInfo'
@@ -123,7 +126,8 @@ def enrichment_succeeded(data):
     miss_shopper = hosted.get(SHOPPER_KEY, None) is None
     miss_product = product is None
     miss_guid = hosted.get(GUID_KEY, None) is None
-    host_enrich_fail = host_here and (miss_shopper or miss_product or miss_guid)
+    miss_whmcs_user = product == DIABLO_WHMCS and hosted.get(KEY_USERNAME, None) in (None, NOT_FOUND)
+    host_enrich_fail = host_here and (miss_shopper or miss_product or miss_guid or miss_whmcs_user)
 
     registered_here = domain.get(BRAND_KEY, None) == GODADDY_BRAND
     missing_domain = domain.get(DOMAIN_ID_KEY, None) is None
