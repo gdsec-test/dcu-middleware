@@ -7,7 +7,7 @@ RUN pip3 install -U pip
 
 FROM base as deliverable
 
-COPY ./run.py ./settings.py ./logging.yaml ./celeryconfig.py ./*.sh /app/
+COPY ./run.py ./settings.py ./logging.yaml ./celeryconfig.py ./*.sh ./apm.py /app/
 
 # Compile the Flask API
 RUN mkdir /tmp/build
