@@ -10,10 +10,14 @@ from celery.utils.log import get_task_logger
 from dcdatabase.phishstorymongo import PhishstoryMongo
 from dcuprometheuscelery.metrics import getRegistry, setupMetrics
 from dcustructuredlogging import celerylogger  # noqa: F401
+from elasticapm import Client, instrument
+from elasticapm.contrib.celery import (register_exception_tracking,
+                                       register_instrumentation)
 from func_timeout import FunctionTimedOut, func_timeout
 from prometheus_client import Counter
 from pymongo import MongoClient
 
+from apm import register_dcu_transaction_handler
 from celeryconfig import CeleryConfig
 from dcumiddleware.apihelper import APIHelper
 from dcumiddleware.cmapservicehelper import CmapServiceHelper
@@ -68,6 +72,12 @@ SHOPPER_KEY = 'shopperId'
 SOURCE_KEY = 'sourceDomainOrIp'
 TICKET_ID_KEY = '_id'
 VIP_KEY = 'vip'
+
+instrument()
+apm = Client(service_name='middlware', env=env)
+register_exception_tracking(apm)
+register_instrumentation(apm)
+register_dcu_transaction_handler(apm)
 
 # Configure DCU celery metrics
 setupMetrics(logger)

@@ -10,6 +10,7 @@ click-repl==0.2.0
 dcdatabase==1.3
 dcu-prometheus-celery==1.0.1
 dcu-structured-logging-celery==1.1.1
+elastic-apm[celery]==6.8.0
 func-timeout==4.3.5
 idna==2.10
 importlib-metadata==4.0.1

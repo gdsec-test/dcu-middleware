@@ -72,6 +72,16 @@ spec:
             value: /cmap_certs/tls.key
           - name: METRICS_ENABLED
             value: 'yes'
+          - name: ELASTIC_APM_SERVER_URL
+            valueFrom:
+              secretKeyRef:
+                name: apm-access
+                key: url
+          - name: ELASTIC_APM_SECRET_TOKEN
+            valueFrom:
+              secretKeyRef:
+                name: apm-access
+                key: secret
           volumeMounts:
           - name: tls-cmap-files
             mountPath: /cmap_certs
