@@ -81,6 +81,8 @@ spec:
               secretKeyRef:
                 name: apm-access
                 key: secret
+          - name: ELASTIC_APM_ENVIRONMENT
+            value: dev
           volumeMounts:
           - name: tls-cmap-files
             mountPath: /cmap_certs
