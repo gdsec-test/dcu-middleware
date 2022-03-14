@@ -76,6 +76,7 @@ prod-deploy: prep
 	git fetch && git checkout $(BUILD_BRANCH)
 	$(eval COMMIT:=$(shell git rev-parse --short HEAD))
 	$(call deploy_k8s,prod,$(COMMIT))
+	git checkout main
 
 .PHONY: clean
 clean:
