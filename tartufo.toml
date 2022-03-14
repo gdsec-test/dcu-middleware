@@ -1,7 +1,8 @@
 [tool.tartufo]
 repo-path = "."
 exclude-path-patterns = [
-    'tartufo.*'
+    'tartufo.*',
+    'poetry.lock'
 ]
 exclude-signatures = [
     'fee1cd4f962f5427bdc245769200d5703565d702fd7e3a6ff35e02ade5676bd1',

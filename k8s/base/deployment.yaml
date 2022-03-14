@@ -3,7 +3,6 @@ apiVersion: "apps/v1"
 kind: "Deployment"
 metadata:
   name: "middleware"
-  namespace: "abuse-api-ote"
   labels:
     app: "middleware"
 spec:
@@ -16,19 +15,13 @@ spec:
     metadata:
       labels:
         app: "middleware"
-      annotations:
-        prometheus.io/scrape: "true"
-        prometheus.io/port: "9091"
     spec:
       imagePullSecrets:
-        -
-          name: "dcu-artifactory-creds"
+        - name: "dcu-artifactory-creds"
       containers:
-        - name: pushgateway
-          image: prom/pushgateway:v1.4.0
         - name: "middleware"
           imagePullPolicy: "Always"
-          image: "docker-dcu-local.artifactory.secureserver.net/dcumiddleware:ote"
+          image: docker-dcu-local.artifactory.secureserver.net/dcumiddleware
           livenessProbe:
             exec:
               command:
@@ -36,10 +29,6 @@ spec:
             initialDelaySeconds: 10
             periodSeconds: 10
           env:
-          - name: BUILD_DATE
-            value: 'THIS_STRING_IS_REPLACED_DURING_BUILD'
-          - name: sysenv
-            value: ote
           - name: BROKER_PASS
             valueFrom:
               secretKeyRef:
@@ -55,17 +44,11 @@ spec:
               secretKeyRef:
                 name: abuse-api-user
                 key: password
-          - name: ABUSE_API_URL
-            value: http://api.abuse-api-ote.svc.cluster.local:5000/v1/abuse/tickets
-          - name: SERVICE_URL
-            value: http://cmap-service.abuse-api-ote.svc.cluster.local:5000
           - name: DB_PASS
             valueFrom:
               secretKeyRef:
                 name: db-phishstory-v2
                 key: password
-          - name: LOG_LEVEL
-            value: DEBUG
           - name: CMAP_CERT
             value: /cmap_certs/tls.crt
           - name: CMAP_KEY
@@ -82,8 +65,6 @@ spec:
               secretKeyRef:
                 name: apm-access
                 key: secret
-          - name: ELASTIC_APM_ENVIRONMENT
-            value: ote
           volumeMounts:
           - name: tls-cmap-files
             mountPath: /cmap_certs

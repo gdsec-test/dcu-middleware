@@ -1,0 +1,56 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+- ../base
+
+namespace: abuse-api-prod
+images:
+- name: docker-dcu-local.artifactory.secureserver.net/dcumiddleware
+  newTag: prod
+
+patches:
+- patch: |-
+    - op: add
+      path: "/spec/template/spec/containers/0/env/-"
+      value:
+        name: LOG_LEVEL
+        value: INFO
+  target:
+    kind: Deployment
+    name: middleware
+- patch: |-
+    - op: add
+      path: "/spec/template/spec/containers/0/env/-"
+      value:
+        name: ELASTIC_APM_ENVIRONMENT
+        value: prod
+  target:
+    kind: Deployment
+    name: middleware
+- patch: |-
+    - op: add
+      path: "/spec/template/spec/containers/0/env/-"
+      value:
+        name: ABUSE_API_URL
+        value: http://api.abuse-api-prod.svc.cluster.local:5000/v1/abuse/tickets
+  target:
+    kind: Deployment
+    name: middleware
+- patch: |-
+    - op: add
+      path: "/spec/template/spec/containers/0/env/-"
+      value:
+        name: SERVICE_URL
+        value: http://cmap-service.abuse-api-prod.svc.cluster.local:5000
+  target:
+    kind: Deployment
+    name: middleware
+- patch: |-
+    - op: add
+      path: "/spec/template/spec/containers/0/env/-"
+      value:
+        name: sysenv
+        value: prod
+  target:
+    kind: Deployment
+    name: middleware

@@ -17,12 +17,12 @@ from func_timeout import FunctionTimedOut, func_timeout
 from prometheus_client import Counter
 from pymongo import MongoClient
 
-from apm import register_dcu_transaction_handler
-from celeryconfig import CeleryConfig
-from dcumiddleware.apihelper import APIHelper
-from dcumiddleware.cmapservicehelper import CmapServiceHelper
-from dcumiddleware.routinghelper import RoutingHelper
-from settings import config_by_name
+from dcumiddleware.apm import register_dcu_transaction_handler
+from dcumiddleware.celeryconfig import CeleryConfig
+from dcumiddleware.settings import config_by_name
+from dcumiddleware.utilities.apihelper import APIHelper
+from dcumiddleware.utilities.cmapservicehelper import CmapServiceHelper
+from dcumiddleware.utilities.routinghelper import RoutingHelper
 
 # Grab the correct settings based on environment
 env = os.getenv('sysenv', 'dev')
@@ -199,7 +199,7 @@ def validate_abuse_verified(ticket: dict, enrichment: dict, domain: str, ip: str
 
 
 # setup logging
-path = 'logging.yaml'
+path = '/app/logging.yaml'
 if os.path.exists(path):
     with open(path, 'rt') as f:
         lconfig = yaml.safe_load(f.read())
@@ -228,7 +228,7 @@ Sample data:
 """
 
 
-@app.task
+@app.task(name='run.process')
 def process(data):
     """
     Main processing pipeline for incidents submitted from the API
@@ -243,7 +243,7 @@ def process(data):
 ''' PRIVATE TASKS'''
 
 
-@app.task(bind=True, default_retry_delay=app_settings.TASK_TIMEOUT, max_retries=app_settings.TASK_MAX_RETRIES)
+@app.task(name='run._load_and_enrich_data', bind=True, default_retry_delay=app_settings.TASK_TIMEOUT, max_retries=app_settings.TASK_MAX_RETRIES)
 def _load_and_enrich_data(self, data):
     """
     Loads the data from CMAP and merges it with information gained from CMAP Service
@@ -311,7 +311,7 @@ def _load_and_enrich_data(self, data):
     return db.update_incident(ticket_id, cmap_helper.api_cmap_merge(data, cmap_data))
 
 
-@app.task
+@app.task(name='run._check_for_blacklist_auto_actions')
 def _check_for_blacklist_auto_actions(data):
     """
     Checks if ticket is on blocklist and performs automated actions if applicable
@@ -336,7 +336,7 @@ def _check_for_blacklist_auto_actions(data):
     return data
 
 
-@app.task
+@app.task(name='run._route_to_brand_services')
 def _route_to_brand_services(data):
     """
     Routes data to the appropriate Brand Service to be processed further

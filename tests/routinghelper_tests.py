@@ -2,12 +2,11 @@ from unittest.case import TestCase
 
 from celery import Celery
 from mock import patch
-from nose.tools import assert_equal, assert_is_none
 
-from celeryconfig import CeleryConfig
-from dcumiddleware.apihelper import APIHelper
-from dcumiddleware.routinghelper import RoutingHelper
-from settings import UnitTestAppConfig
+from dcumiddleware.celeryconfig import CeleryConfig
+from dcumiddleware.utilities.apihelper import APIHelper
+from dcumiddleware.utilities.routinghelper import RoutingHelper
+from dcumiddleware.settings import UnitTestAppConfig
 
 
 class MockMongo:
@@ -32,72 +31,70 @@ class TestRoutingHelper(TestCase):
     KEY_REGISTRAR = 'registrar'
     KEY_TICKET_ID = 'ticketId'
 
-    @classmethod
-    @patch.object(APIHelper, '_get_jwt')
-    def setupClass(cls, mock_jwt):
-        cls._routing_helper = RoutingHelper(Celery().config_from_object(CeleryConfig),
-                                            APIHelper(UnitTestAppConfig()),
-                                            MockMongo())
+    def setUp(self):
+        self._routing_helper = RoutingHelper(Celery().config_from_object(CeleryConfig),
+                                             APIHelper(UnitTestAppConfig()),
+                                             MockMongo())
 
     def test_find_brands_to_route_no_host_no_registrar(self):
         brands = self._routing_helper._find_brands_to_route(None, None)
-        assert_equal(brands, {self.GODADDY})
+        self.assertEqual(brands, {self.GODADDY})
 
     def test_find_brands_to_route_host_no_registrar_branded(self):
         brands = self._routing_helper._find_brands_to_route(self.GODADDY, None)
-        assert_equal(brands, {self.GODADDY})
+        self.assertEqual(brands, {self.GODADDY})
 
     def test_find_brands_to_route_registrar_no_host_branded(self):
         brands = self._routing_helper._find_brands_to_route(None, self.EMEA)
-        assert_equal(brands, {self.EMEA})
+        self.assertEqual(brands, {self.EMEA})
 
     def test_find_brands_to_route_registrar_no_host_not_branded(self):
         brands = self._routing_helper._find_brands_to_route(None, self.FOREIGN)
-        assert_equal(brands, {self.FOREIGN})
+        self.assertEqual(brands, {self.FOREIGN})
 
     def test_find_brands_to_route_host_no_registrar_not_branded(self):
         brands = self._routing_helper._find_brands_to_route(self.FOREIGN, None)
-        assert_equal(brands, {self.FOREIGN})
+        self.assertEqual(brands, {self.FOREIGN})
 
     def test_find_brands_to_route_registrar_and_host_both_branded_same(self):
         brands = self._routing_helper._find_brands_to_route(self.EMEA, self.EMEA)
-        assert_equal(brands, {self.EMEA})
+        self.assertEqual(brands, {self.EMEA})
 
     def test_find_brands_to_route_host_registrar_both_branded_different(self):
         brands = self._routing_helper._find_brands_to_route(self.GODADDY, self.EMEA)
-        assert_equal(brands, {self.GODADDY, self.EMEA})
+        self.assertEqual(brands, {self.GODADDY, self.EMEA})
 
     def test_find_brands_to_route_registrar_branded_hosted_not_branded(self):
         brands = self._routing_helper._find_brands_to_route(self.FOREIGN, self.EMEA)
-        assert_equal(brands, {self.FOREIGN, self.EMEA})
+        self.assertEqual(brands, {self.FOREIGN, self.EMEA})
 
     def test_find_brands_to_route_foreign(self):
         brands = self._routing_helper._find_brands_to_route(self.FOREIGN, self.FOREIGN)
-        assert_equal(brands, {self.FOREIGN})
+        self.assertEqual(brands, {self.FOREIGN})
 
     def test_find_brands_to_route_123reg_hosted(self):
         brands = self._routing_helper._find_brands_to_route(self.REG123, self.EMEA)
-        assert_equal(brands, {self.REG123, self.EMEA})
+        self.assertEqual(brands, {self.REG123, self.EMEA})
 
     def test_find_brands_to_route_123reg_registered(self):
         brands = self._routing_helper._find_brands_to_route(self.EMEA, self.REG123)
-        assert_equal(brands, {self.EMEA, self.REG123})
+        self.assertEqual(brands, {self.EMEA, self.REG123})
 
     def test_find_brands_to_route_123reg_registered_and_hosted(self):
         brands = self._routing_helper._find_brands_to_route(self.REG123, self.REG123)
-        assert_equal(brands, {self.REG123})
+        self.assertEqual(brands, {self.REG123})
 
     def test_find_brands_to_route_123reg_hosted_foreign_registered(self):
         brands = self._routing_helper._find_brands_to_route(self.REG123, self.FOREIGN)
-        assert_equal(brands, {self.GODADDY})
+        self.assertEqual(brands, {self.GODADDY})
 
     def test_find_brands_to_route_gd_hosted_foreign_registered(self):
         brands = self._routing_helper._find_brands_to_route(self.GODADDY, self.FOREIGN)
-        assert_equal(brands, {self.GODADDY})
+        self.assertEqual(brands, {self.GODADDY})
 
     def test_find_brands_to_route_123reg_hosted_gd_registered(self):
         brands = self._routing_helper._find_brands_to_route(self.REG123, self.GODADDY)
-        assert_equal(brands, {self.GODADDY})
+        self.assertEqual(brands, {self.GODADDY})
 
     @patch.object(APIHelper, 'close_incident')
     def test_close_emea_only_ticket(self, mock_api):
@@ -107,7 +104,7 @@ class TestRoutingHelper(TestCase):
                 self.KEY_REGISTRAR: {self.KEY_BRAND: self.EMEA}
             }
         }}
-        assert_is_none(self._routing_helper._close_emea_only_ticket(ticket_data))
+        self.assertIsNone(self._routing_helper._close_emea_only_ticket(ticket_data))
 
     @patch.object(RoutingHelper, '_route_to_brand')
     def test_route_godaddy(self, _route_to_brand):
@@ -118,4 +115,4 @@ class TestRoutingHelper(TestCase):
             }
         }}
         returned_data = self._routing_helper.route(ticket_data)
-        assert_equal(returned_data, ticket_data)
+        self.assertEqual(returned_data, ticket_data)

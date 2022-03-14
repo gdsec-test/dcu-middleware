@@ -1,0 +1,56 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+- ../base
+
+namespace: abuse-api-ote
+images:
+- name: docker-dcu-local.artifactory.secureserver.net/dcumiddleware
+  newTag: ote
+
+patches:
+- patch: |-
+    - op: add
+      path: "/spec/template/spec/containers/0/env/-"
+      value:
+        name: LOG_LEVEL
+        value: INFO
+  target:
+    kind: Deployment
+    name: middleware
+- patch: |-
+    - op: add
+      path: "/spec/template/spec/containers/0/env/-"
+      value:
+        name: ELASTIC_APM_ENVIRONMENT
+        value: ote
+  target:
+    kind: Deployment
+    name: middleware
+- patch: |-
+    - op: add
+      path: "/spec/template/spec/containers/0/env/-"
+      value:
+        name: ABUSE_API_URL
+        value: http://api.abuse-api-ote.svc.cluster.local:5000/v1/abuse/tickets
+  target:
+    kind: Deployment
+    name: middleware
+- patch: |-
+    - op: add
+      path: "/spec/template/spec/containers/0/env/-"
+      value:
+        name: SERVICE_URL
+        value: http://cmap-service.abuse-api-ote.svc.cluster.local:5000
+  target:
+    kind: Deployment
+    name: middleware
+- patch: |-
+    - op: add
+      path: "/spec/template/spec/containers/0/env/-"
+      value:
+        name: sysenv
+        value: ote
+  target:
+    kind: Deployment
+    name: middleware

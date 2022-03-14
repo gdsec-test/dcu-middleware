@@ -1,5 +1,6 @@
 import json
 import logging
+from typing import Optional
 
 import requests
 from dateutil import parser
@@ -24,13 +25,14 @@ class CmapServiceHelper(object):
 
         self._sso_endpoint = settings.SSO_URL + '/v1/secure/api/token'
         self._cert = (settings.CMAP_CERT, settings.CMAP_KEY)
-        self._post_headers.update({'Authorization': f'sso-jwt {self._get_jwt(self._cert)}'})
+        self._cached_jwt = None
 
     def cmap_query(self, query: str, url: str = '/graphql') -> dict:
+        self._post_headers.update({'Authorization': f'sso-jwt {self.get_jwt()}'})
         with sessions.Session() as session:
             re = session.post(url=self._base_url + url, headers=self._post_headers, data=query)
             if re.status_code == 401 or re.status_code == 403:
-                self._post_headers.update({'Authorization': f'sso-jwt {self._get_jwt(self._cert)}'})
+                self._post_headers.update({'Authorization': f'sso-jwt {self.get_jwt(True)}'})
                 re = session.post(url=self._base_url + url, headers=self._post_headers, data=query)
             return json.loads(re.text)
 
@@ -198,18 +200,18 @@ class CmapServiceHelper(object):
                 apidata['ticketId'], e))
             return apidata
 
-    def _get_jwt(self, cert):
+    def get_jwt(self, force_refresh: bool = False) -> Optional[str]:
         """
         Attempt to retrieve the JWT associated with the cert/key pair from SSO
-        :param cert:
-        :return: jwt
         """
-        try:
-            response = requests.post(self._sso_endpoint, data={'realm': 'cert'}, cert=cert)
-            response.raise_for_status()
+        if self._cached_jwt is None or force_refresh:
+            try:
+                response = requests.post(self._sso_endpoint, data={'realm': 'cert'}, cert=self._cert)
+                response.raise_for_status()
 
-            body = json.loads(response.text)
-            return body.get('data')  # {'type': 'signed-jwt', 'id': 'XXX', 'code': 1, 'message': 'Success', 'data': JWT}
-        except Exception as e:
-            self._logger.error(e)
-        return None
+                body = json.loads(response.text)
+                self._cached_jwt = body.get('data')  # {'type': 'signed-jwt', 'id': 'XXX', 'code': 1, 'message': 'Success', 'data': JWT}
+            except Exception as e:
+                self._logger.error(e)
+
+        return self._cached_jwt

@@ -4,12 +4,10 @@ from unittest.case import TestCase
 from dcdatabase.phishstorymongo import PhishstoryMongo
 from mock import patch
 from mock.mock import MagicMock
-from nose.tools import (assert_dict_equal, assert_false, assert_is_none,
-                        assert_true)
 from pymongo.collection import Collection
 
-import run
-from dcumiddleware.apihelper import APIHelper
+from dcumiddleware import run
+from dcumiddleware.utilities.apihelper import APIHelper
 
 HOSTED = 'HOSTED'
 KEY_BLACKLIST = 'blacklist'
@@ -86,7 +84,7 @@ class TestRun(TestCase):
 
     # Test successful load and enrichment
     @patch.object(PhishstoryMongo, 'update_incident', return_value=None)
-    @patch('run.CmapServiceHelper', return_value=MockCmapServiceHelper({}))
+    @patch('dcumiddleware.run.CmapServiceHelper', return_value=MockCmapServiceHelper({}))
     @patch.object(socket, 'gethostbyname', return_value='1.1.1.1')
     def test_load_and_enrich_data_success(self, mock_socket, mock_cmap, mock_db):
         run._load_and_enrich_data(AUTO_SUSPEND_DOMAIN)
@@ -119,72 +117,72 @@ class TestRun(TestCase):
     def test_enrichment_status_check_hosted_registered(self):
         data = self.build_cmap_data_object()
         status = run.enrichment_succeeded(data)
-        assert_true(status)
+        self.assertTrue(status)
 
     def test_enrichment_status_check_hosted_not_registered(self):
         data = self.build_cmap_data_object(domain_brand=self.FOREIGN_BRAND, domain_id=None)
         status = run.enrichment_succeeded(data)
-        assert_true(status)
+        self.assertTrue(status)
 
     def test_enrichment_status_check_not_hosted_not_registered(self):
         data = self.build_cmap_data_object(shopper_brand=self.FOREIGN_BRAND, shopper_id=None, domain_brand=self.FOREIGN_BRAND, domain_id=None)
         status = run.enrichment_succeeded(data)
-        assert_true(status)
+        self.assertTrue(status)
 
     def test_enrichment_status_check_not_hosted_registered(self):
         data = self.build_cmap_data_object(shopper_brand=self.FOREIGN_BRAND, shopper_id=None)
         status = run.enrichment_succeeded(data)
-        assert_true(status)
+        self.assertTrue(status)
 
     def test_enrichment_status_check_hosted_registered_no_shopper(self):
         data = self.build_cmap_data_object(shopper_id=None)
         status = run.enrichment_succeeded(data)
-        assert_false(status)
+        self.assertFalse(status)
 
     def test_enrichment_status_check_hosted_registered_no_domainid(self):
         data = self.build_cmap_data_object(domain_id=None)
         status = run.enrichment_succeeded(data)
-        assert_false(status)
+        self.assertFalse(status)
 
     def test_enrichment_status_check_hosted_registered_no_domain_shopper(self):
         data = self.build_cmap_data_object(domain_shopper=None)
         status = run.enrichment_succeeded(data)
-        assert_false(status)
+        self.assertFalse(status)
 
     def test_enrichment_status_check_hosted_registered_no_id(self):
         data = self.build_cmap_data_object(domain_id=None, shopper_id=None)
         status = run.enrichment_succeeded(data)
-        assert_false(status)
+        self.assertFalse(status)
 
     def test_enrichment_status_check_missing_fields(self):
         data = {self.DATA_KEY: {}}
         status = run.enrichment_succeeded(data)
-        assert_true(status)
+        self.assertTrue(status)
 
     def test_enrichment_status_check_hosted_no_guid(self):
         data = self.build_cmap_data_object()
         del data[self.DATA_KEY][self.DOMAIN_QUERY_KEY][self.HOST_KEY][self.GUID_KEY]
         status = run.enrichment_succeeded(data)
-        assert_false(status)
+        self.assertFalse(status)
 
     def test_enrichment_status_check_hosted_no_product(self):
         data = self.build_cmap_data_object()
         del data[self.DATA_KEY][self.DOMAIN_QUERY_KEY][self.HOST_KEY][self.PRODUCT_KEY]
         status = run.enrichment_succeeded(data)
-        assert_false(status)
+        self.assertFalse(status)
 
     def test_enrichment_status_check_hosted_non_registered_product(self):
         data = self.build_cmap_data_object()
         data[self.DATA_KEY][self.DOMAIN_QUERY_KEY][self.HOST_KEY][self.PRODUCT_KEY] = 'Shortener'
         del data[self.DATA_KEY][self.DOMAIN_QUERY_KEY][self.HOST_KEY][self.GUID_KEY]
         status = run.enrichment_succeeded(data)
-        assert_true(status)
+        self.assertTrue(status)
 
     @patch.object(Collection, 'find_one', return_value=None)
     def test_blacklist_is_false(self, mock_find_one):
         result = run._check_for_blacklist_auto_actions(NOT_BLACKLISTED_TICKET)
         mock_find_one.assert_not_called()
-        assert_dict_equal(result, NOT_BLACKLISTED_TICKET)
+        self.assertDictEqual(result, NOT_BLACKLISTED_TICKET)
 
     @patch.object(PhishstoryMongo, 'update_actions_sub_document', return_value=None)
     @patch.object(Collection, 'find_one', return_value={'entity': 'test.com'})
@@ -192,7 +190,7 @@ class TestRun(TestCase):
         result = run._check_for_blacklist_auto_actions(BLACKLISTED_TICKET)
         mock_find_one.assert_called()
         mock_update_actions.assert_not_called()
-        assert_dict_equal(result, BLACKLISTED_TICKET)
+        self.assertDictEqual(result, BLACKLISTED_TICKET)
 
     @patch.object(PhishstoryMongo, 'update_actions_sub_document', return_value=None)
     @patch.object(Collection, 'find_one', return_value={'entity': 'test.com', 'action': ['nonsense']})
@@ -200,7 +198,7 @@ class TestRun(TestCase):
         result = run._check_for_blacklist_auto_actions(BLACKLISTED_TICKET)
         mock_find_one.assert_called()
         mock_update_actions.assert_not_called()
-        assert_dict_equal(result, BLACKLISTED_TICKET)
+        self.assertDictEqual(result, BLACKLISTED_TICKET)
 
     @patch.object(PhishstoryMongo, 'update_actions_sub_document', return_value=None)
     @patch.object(APIHelper, 'close_incident', return_value=None)
@@ -210,7 +208,7 @@ class TestRun(TestCase):
         mock_find_one.assert_called()
         mock_close_incident.assert_called()
         mock_update_actions.assert_called()
-        assert_is_none(result)
+        self.assertIsNone(result)
 
     @patch.object(PhishstoryMongo, 'update_actions_sub_document', return_value=None)
     @patch.object(APIHelper, 'close_incident', return_value=None)
@@ -220,18 +218,18 @@ class TestRun(TestCase):
         mock_find_one.assert_called()
         mock_close_incident.assert_called()
         mock_update_actions.assert_called()
-        assert_is_none(result)
+        self.assertIsNone(result)
 
-    @patch('run.CmapServiceHelper')
+    @patch('dcumiddleware.run.CmapServiceHelper')
     def test_validate_abuse_verified_matching(self, mock_cmap):
         mock_cmap.return_value = MagicMock()
 
         run.validate_abuse_verified(self.incident, self.enrichment, 'test.com', '127.0.0.1')
-        assert_dict_equal(self.incident[run.KEY_METADATA], self.enrichment[run.DATA_KEY][run.DOMAIN_Q_KEY][run.HOST_KEY])
+        self.assertDictEqual(self.incident[run.KEY_METADATA], self.enrichment[run.DATA_KEY][run.DOMAIN_Q_KEY][run.HOST_KEY])
         mock_cmap.return_value.product_lookup.assert_not_called()
         mock_cmap.return_value.shopper_lookup.assert_not_called()
 
-    @patch('run.CmapServiceHelper')
+    @patch('dcumiddleware.run.CmapServiceHelper')
     def test_validate_abuse_verified_mismatch(self, mock_cmap):
         mock_cmap.return_value = MagicMock(
             product_lookup=MagicMock(return_value={run.KEY_SHOPPER_ID: 'test_shopper'}),
@@ -241,7 +239,7 @@ class TestRun(TestCase):
         run.validate_abuse_verified(self.incident, self.enrichment, 'test.com', '127.0.0.1')
         mock_cmap.return_value.product_lookup.assert_called_with('test.com', 'test-guid', '127.0.0.1', 'test')
         mock_cmap.return_value.shopper_lookup.assert_called_with('test_shopper')
-        assert_dict_equal(
+        self.assertDictEqual(
             self.enrichment[run.DATA_KEY][run.DOMAIN_Q_KEY][run.HOST_KEY],
             {'dummy': 'random', 'shopperId': 'test_shopper'}
         )

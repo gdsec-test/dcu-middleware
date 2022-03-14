@@ -4,13 +4,11 @@
 *.coverage
 tests/cover
 *sublime*
-.vscode/*
 .noseids
-.tool-versions
 integration_test.py
 .venv
 nosetests.xml
-.envrc
 coverage.xml
 shell.nix
 .direnv
+dist/

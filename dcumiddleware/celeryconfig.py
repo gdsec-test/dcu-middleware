@@ -2,7 +2,7 @@ import os
 
 from kombu import Exchange, Queue
 
-from settings import AppConfig, config_by_name
+from dcumiddleware.settings import AppConfig, config_by_name
 
 # Grab the correct settings based on environment
 app_settings: AppConfig = config_by_name[os.getenv('sysenv') or 'dev']
@@ -14,7 +14,7 @@ class CeleryConfig:
     task_serializer = 'pickle'
     result_serializer = 'pickle'
     accept_content = ['json', 'pickle']
-    imports = 'run'
+    imports = 'dcumiddleware'
     worker_hijack_root_logger = False
     task_default_queue = app_settings.APIQUEUE
     task_acks_late = True

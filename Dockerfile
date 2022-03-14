@@ -1,24 +1,21 @@
-FROM python:3.7.10-slim as base
+FROM python:3.7.10-slim
+LABEL MAINTAINER=dcueng@godaddy.com
 
-LABEL MAINTAINER="dcueng@godaddy.com"
+COPY dist/requirements.txt /tmp/
+RUN pip install -r /tmp/requirements.txt
+RUN rm /tmp/requirements.txt
 
-# pip installs
-RUN pip3 install -U pip
+COPY dist/*.whl /tmp/
+RUN pip install /tmp/*.whl
+RUN rm /tmp/*.whl
 
-FROM base as deliverable
-
-COPY ./run.py ./settings.py ./logging.yaml ./celeryconfig.py ./*.sh ./apm.py /app/
-
-# Compile the Flask API
-RUN mkdir /tmp/build
-COPY . /tmp/build
-RUN PIP_CONFIG_FILE=/tmp/build/pip_config/pip.conf pip3 install --compile /tmp/build
-RUN rm -rf /tmp/build
-
-# Fix permissions.
+RUN mkdir /app
+COPY health.sh /app
+COPY logging.yaml /app
+RUN chmod +x /app/health.sh
 RUN addgroup dcu && adduser --disabled-password --disabled-login --no-create-home --ingroup dcu --system dcu
 RUN chown -R dcu:dcu /app
 
 WORKDIR /app
-
-ENTRYPOINT ["/app/run.sh"]
+USER dcu
+ENTRYPOINT [ "/usr/local/bin/celery", "-A", "dcumiddleware", "worker", "-l", "INFO", "--without-gossip", "--without-heartbeat", "--without-mingle" ]
