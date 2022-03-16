@@ -72,7 +72,7 @@ TICKET_ID_KEY = '_id'
 VIP_KEY = 'vip'
 
 instrument()
-apm = Client(service_name='middlware', env=env, metrics_sets=['dcumiddleware.metrics.Metrics'])
+apm = Client(service_name='middleware', env=env, metrics_sets=['dcumiddleware.metrics.Metrics'])
 register_exception_tracking(apm)
 register_instrumentation(apm)
 register_dcu_transaction_handler(apm)
