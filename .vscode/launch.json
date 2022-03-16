@@ -12,7 +12,7 @@
             "console": "integratedTerminal",
             "args": [
                 "-A",
-                "dcumiddleware",
+                "dcumiddleware.run",
                 "worker",
                 "-l",
                 "debug",

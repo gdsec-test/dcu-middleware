@@ -14,7 +14,7 @@ class CeleryConfig:
     task_serializer = 'pickle'
     result_serializer = 'pickle'
     accept_content = ['json', 'pickle']
-    imports = 'dcumiddleware'
+    imports = 'dcumiddleware.run'
     worker_hijack_root_logger = False
     task_default_queue = app_settings.APIQUEUE
     task_acks_late = True

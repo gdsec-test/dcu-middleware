@@ -8,13 +8,11 @@ import yaml
 from celery import Celery, chain
 from celery.utils.log import get_task_logger
 from dcdatabase.phishstorymongo import PhishstoryMongo
-from dcuprometheuscelery.metrics import getRegistry, setupMetrics
 from dcustructuredlogging import celerylogger  # noqa: F401
 from elasticapm import Client, instrument
 from elasticapm.contrib.celery import (register_exception_tracking,
                                        register_instrumentation)
 from func_timeout import FunctionTimedOut, func_timeout
-from prometheus_client import Counter
 from pymongo import MongoClient
 
 from dcumiddleware.apm import register_dcu_transaction_handler
@@ -74,25 +72,13 @@ TICKET_ID_KEY = '_id'
 VIP_KEY = 'vip'
 
 instrument()
-apm = Client(service_name='middlware', env=env)
+apm = Client(service_name='middlware', env=env, metrics_sets=['dcumiddleware.metrics.Metrics'])
 register_exception_tracking(apm)
 register_instrumentation(apm)
 register_dcu_transaction_handler(apm)
 
 # Configure DCU celery metrics
-setupMetrics(logger)
-failedEnrichmentCounter = Counter(
-    'failed_enrichment',
-    'Count enrichment failures for processed tickets',
-    ['env'],
-    registry=getRegistry()
-)
-enrichmentCounter = Counter(
-    'enrichment',
-    'Count enrichment attempts for processed tickets',
-    ['env'],
-    registry=getRegistry()
-)
+metricset = apm._metrics.get_metricset('dcumiddleware.metrics.Metrics')
 
 
 def get_blacklist_info(source: str, domain_shopper: str, host_shopper: str) -> Union[list, None]:
@@ -291,7 +277,7 @@ def _load_and_enrich_data(self, data):
 
         if not enrichment_succeeded(cmap_data):
             data[FAILED_ENRICHMENT_KEY] = True
-            failedEnrichmentCounter.labels(env=env).inc()
+            metricset.counter('failed_enrichment', reset_on_collect=True).inc(1)
         elif had_failed_enrichment:
             db.remove_field(ticket_id, FAILED_ENRICHMENT_KEY)
     except Exception as e:
@@ -300,13 +286,12 @@ def _load_and_enrich_data(self, data):
             logger.error(f'Max retries exceeded for {ticket_id} : {e}')
             # Flag DB for the enrichment failure
             data[FAILED_ENRICHMENT_KEY] = True
-            failedEnrichmentCounter.labels(env=env).inc()
-
+            metricset.counter('failed_enrichment', reset_on_collect=True).inc(1)
         else:
             logger.error(f'Error while processing: {ticket_id}. Retrying...')
             self.retry(exc=e)
 
-    enrichmentCounter.labels(env=env).inc()
+    metricset.counter('successful_enrichment', reset_on_collect=True).inc(1)
     # return the result of merging the CMap data with data gathered from the API
     return db.update_incident(ticket_id, cmap_helper.api_cmap_merge(data, cmap_data))
 

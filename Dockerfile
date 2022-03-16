@@ -18,4 +18,4 @@ RUN chown -R dcu:dcu /app
 
 WORKDIR /app
 USER dcu
-ENTRYPOINT [ "/usr/local/bin/celery", "-A", "dcumiddleware", "worker", "-l", "INFO", "--without-gossip", "--without-heartbeat", "--without-mingle" ]
+ENTRYPOINT [ "/usr/local/bin/celery", "-A", "dcumiddleware.run", "worker", "-l", "INFO", "--without-gossip", "--without-heartbeat", "--without-mingle" ]

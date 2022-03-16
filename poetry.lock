@@ -238,22 +238,6 @@ url = "https://artifactory.secureserver.net/artifactory/api/pypi/python-virt/sim
 reference = "gddy-artifactory"
 
 [[package]]
-name = "dcu-prometheus-celery"
-version = "1.0.1"
-description = "Setup celery prometheus metric gathering for DCU applications"
-category = "main"
-optional = false
-python-versions = "*"
-
-[package.dependencies]
-prometheus-client = "0.10.1"
-
-[package.source]
-type = "legacy"
-url = "https://artifactory.secureserver.net/artifactory/api/pypi/python-virt/simple"
-reference = "gddy-artifactory"
-
-[[package]]
 name = "dcu-structured-logging-celery"
 version = "1.1.1"
 description = "Structured logging formatters for DCU applications"
@@ -735,7 +719,7 @@ reference = "gddy-artifactory"
 [metadata]
 lock-version = "1.1"
 python-versions = "3.7.10"
-content-hash = "0b20b2016a20f166d348cca0a7d8ff86671ae96d71f523cc0e8b1427617a4aac"
+content-hash = "51b63dff4120018325021fcac71ed653bb6a7f669294b112c6c4b18a2dbf9280"
 
 [metadata.files]
 amqp = [
@@ -837,9 +821,6 @@ coverage = [
 ]
 dcdatabase = [
     {file = "dcdatabase-1.3-py3-none-any.whl", hash = "sha256:bae0ad87255702f57a5727a65536e67260d2ff87c76c6c895fc80b73978c1b5c"},
-]
-dcu-prometheus-celery = [
-    {file = "dcu_prometheus_celery-1.0.1-py3-none-any.whl", hash = "sha256:39f770d9d47c02cccadb535edb0d91d63e3614a567133f44a188b7cf66afc8cb"},
 ]
 dcu-structured-logging-celery = [
     {file = "dcu_structured_logging_celery-1.1.1-py3-none-any.whl", hash = "sha256:2719bbe4175ab79fa7b2516f79357c603832d2394e59725fe981c1e2c1d40b34"},
