@@ -53,6 +53,10 @@ spec:
             value: /cmap_certs/tls.crt
           - name: CMAP_KEY
             value: /cmap_certs/tls.key
+          - name: SHOPPER_API_CERT_PATH
+            value: /shopper_certs/tls.crt
+          - name: SHOPPER_API_KEY_PATH
+            value: /shopper_certs/tls.key
           - name: METRICS_ENABLED
             value: 'yes'
           - name: ELASTIC_APM_SERVER_URL
@@ -69,7 +73,13 @@ spec:
           - name: tls-cmap-files
             mountPath: /cmap_certs
             readOnly: true
+          - name: tls-shopper-files
+            mountPath: /shopper_certs
+            readOnly: true
       volumes:
         - name: tls-cmap-files
           secret:
             secretName: tls-cmap
+        - name: tls-shopper-files
+          secret:
+            secretName: tls-shopper-api

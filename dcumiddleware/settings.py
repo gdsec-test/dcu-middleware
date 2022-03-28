@@ -26,6 +26,10 @@ class AppConfig(object):
     CMAP_CERT = os.getenv('CMAP_CERT')
     CMAP_KEY = os.getenv('CMAP_KEY')
 
+    SHOPPER_API_URL = os.getenv('SHOPPER_API_URL')
+    SHOPPER_API_CERT_PATH = os.getenv('SHOPPER_API_CERT_PATH')
+    SHOPPER_API_KEY_PATH = os.getenv('SHOPPER_API_KEY_PATH')
+
     REGISTERED_ONLY_PRODUCTS = {'Shortener', 'Parked', 'EOL', 'GEM'}
     SSO_URL = 'https://sso.dev-godaddy.com'
     SSO_USER = os.getenv('SSO_USER', 'user')
