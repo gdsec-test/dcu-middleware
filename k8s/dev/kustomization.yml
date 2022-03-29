@@ -5,8 +5,8 @@ resources:
 
 namespace: abuse-api-dev
 images:
-- digest: sha256:4e292379863f849db653172771a18fd98f11c82cbe01ac337f7b69293dadeb62
-  name: docker-dcu-local.artifactory.secureserver.net/dcumiddleware
+- name: docker-dcu-local.artifactory.secureserver.net/dcumiddleware
+  newTag: dev
 
 patches:
 - patch: |-

@@ -250,9 +250,9 @@ def _load_and_enrich_data(self, data):
     shopper_api_helper = ShopperApiHelper(app_settings.SHOPPER_API_URL, app_settings.SHOPPER_API_CERT_PATH, app_settings.SHOPPER_API_KEY_PATH)
     had_failed_enrichment = data.pop(FAILED_ENRICHMENT_KEY, False)
 
-    if KEY_METADATA in data and KEY_SHOPPER_ID not in data[KEY_METADATA] and KEY_CUSTOMER_ID in data[KEY_METADATA]:
-        data[KEY_SHOPPER_ID] = shopper_api_helper.get_shopper_id(data[KEY_CUSTOMER_ID])
-        logger.info(f'Obtained shopper id {data[KEY_SHOPPER_ID]} for customer id {data[KEY_CUSTOMER_ID]}')
+    if KEY_METADATA in data and (KEY_SHOPPER_ID not in data[KEY_METADATA] or data[KEY_METADATA][KEY_SHOPPER_ID] == '') and KEY_CUSTOMER_ID in data[KEY_METADATA]:
+        data[KEY_METADATA][KEY_SHOPPER_ID] = shopper_api_helper.get_shopper_id(data[KEY_METADATA][KEY_CUSTOMER_ID])
+        logger.info(f'Obtained shopper id {data[KEY_METADATA][KEY_SHOPPER_ID]} for customer id {data[KEY_METADATA][KEY_CUSTOMER_ID]}')
 
     try:
         domain_name_ip = func_timeout(timeout_in_seconds, socket.gethostbyname, args=(domain_name,))
