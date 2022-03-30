@@ -21,6 +21,7 @@ from dcumiddleware.settings import config_by_name
 from dcumiddleware.utilities.apihelper import APIHelper
 from dcumiddleware.utilities.cmapservicehelper import CmapServiceHelper
 from dcumiddleware.utilities.routinghelper import RoutingHelper
+from dcumiddleware.utilities.shopperhelper import ShopperApiHelper
 
 # Grab the correct settings based on environment
 env = os.getenv('sysenv', 'dev')
@@ -60,6 +61,7 @@ KEY_PORTFOLIO_TYPE = 'portfolioType'
 KEY_PRIVATE_LABEL_ID = 'privateLabelId'
 KEY_RESELLER = 'reseller'
 KEY_SHOPPER_ID = 'shopperId'
+KEY_CUSTOMER_ID = 'customerId'
 KEY_USERNAME = 'username'
 KEY_VIP = 'vip'
 NOT_FOUND = 'NotFound'
@@ -245,8 +247,12 @@ def _load_and_enrich_data(self, data):
     domain_name_ip = sub_domain_ip = ip = None
     cmap_data = {}
     cmap_helper = CmapServiceHelper(app_settings)
-
+    shopper_api_helper = ShopperApiHelper(app_settings.SHOPPER_API_URL, app_settings.SHOPPER_API_CERT_PATH, app_settings.SHOPPER_API_KEY_PATH)
     had_failed_enrichment = data.pop(FAILED_ENRICHMENT_KEY, False)
+
+    if KEY_METADATA in data and (KEY_SHOPPER_ID not in data[KEY_METADATA] or data[KEY_METADATA][KEY_SHOPPER_ID] == '') and KEY_CUSTOMER_ID in data[KEY_METADATA]:
+        data[KEY_METADATA][KEY_SHOPPER_ID] = shopper_api_helper.get_shopper_id(data[KEY_METADATA][KEY_CUSTOMER_ID])
+        logger.info(f'Obtained shopper id {data[KEY_METADATA][KEY_SHOPPER_ID]} for customer id {data[KEY_METADATA][KEY_CUSTOMER_ID]}')
 
     try:
         domain_name_ip = func_timeout(timeout_in_seconds, socket.gethostbyname, args=(domain_name,))

@@ -51,6 +51,15 @@ patches:
   target:
     kind: Deployment
     name: middleware
+- patch: |-
+    - op: add
+      path: "/spec/template/spec/containers/0/env/-"
+      value:
+        name: SHOPPER_API_URL
+        value: https://shopper.api.int.test-godaddy.com
+  target:
+    kind: Deployment
+    name: middleware
 images:
 - name: docker-dcu-local.artifactory.secureserver.net/dcumiddleware
   newTag: test
