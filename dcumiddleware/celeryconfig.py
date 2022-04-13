@@ -22,9 +22,12 @@ class CeleryConfig:
     worker_send_task_events = False
     # Force kill a task if it takes longer than three minutes.
     task_time_limit = 180
+    # TODO CMAPT-5032: set this to 'quorum'
+    queue_type = app_settings.QUEUE_TYPE
 
     task_queues = (
-        Queue(app_settings.APIQUEUE, Exchange(app_settings.APIQUEUE), routing_key=app_settings.APIQUEUE),
+        Queue(app_settings.APIQUEUE, Exchange(app_settings.APIQUEUE), routing_key=app_settings.APIQUEUE,
+              queue_arguments={'x-queue-type': queue_type}),
     )
 
     task_routes = {
@@ -33,5 +36,4 @@ class CeleryConfig:
     }
 
     def __init__(self):
-        self.BROKER_PASS = app_settings.BROKER_PASS
         self.broker_url = app_settings.BROKER_URL

@@ -10,7 +10,7 @@ define deploy_k8s
 	docker build -t $(DOCKERREPO):$(2) .
 	docker push $(DOCKERREPO):$(2)
 	cd k8s/$(1) && kustomize edit set image $$(docker inspect --format='{{index .RepoDigests 0}}' $(DOCKERREPO):$(2))
-	kubectl --context $(1)-dcu apply -k k8s/$(1)
+	kubectl --context $(1)-admin apply -k k8s/$(1)
 	cd k8s/$(1) && kustomize edit set image $(DOCKERREPO):$(1)
 endef
 
