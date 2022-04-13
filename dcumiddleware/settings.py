@@ -43,8 +43,6 @@ class AppConfig(object):
     def __init__(self):
         self.DB_PASS = urllib.parse.quote(os.getenv('DB_PASS', 'password'))
         self.DBURL = 'mongodb://{}:{}@{}/{}'.format(self.DB_USER, self.DB_PASS, self.DB_HOST, self.DB)
-        if os.getenv('BROKER_URL'):
-            self.BROKER_URL = os.getenv('BROKER_URL')
 
 
 class ProductionAppConfig(AppConfig):
@@ -121,4 +119,5 @@ class UnitTestAppConfig(AppConfig):
     SSO_URL = 'https://sso.godaddy.com'
 
 
-config_by_name = {'dev': DevelopmentAppConfig, 'prod': ProductionAppConfig, 'ote': OTEAppConfig, 'unit-test': UnitTestAppConfig, 'test': TestAppConfig}
+config_by_name = {'dev': DevelopmentAppConfig, 'prod': ProductionAppConfig, 'ote': OTEAppConfig,
+                  'unit-test': UnitTestAppConfig, 'test': TestAppConfig}

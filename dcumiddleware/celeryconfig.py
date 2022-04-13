@@ -4,6 +4,7 @@ from kombu import Exchange, Queue
 
 from dcumiddleware.settings import AppConfig, config_by_name
 
+
 # Grab the correct settings based on environment
 app_settings: AppConfig = config_by_name[os.getenv('sysenv') or 'dev']
 
