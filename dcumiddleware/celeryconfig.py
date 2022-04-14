@@ -22,6 +22,8 @@ class CeleryConfig:
     worker_send_task_events = False
     # Force kill a task if it takes longer than three minutes.
     task_time_limit = 180
+    WORKER_ENABLE_REMOTE_CONTROL = False
+
     # TODO CMAPT-5032: set this to 'quorum'
     queue_type = app_settings.QUEUE_TYPE
 

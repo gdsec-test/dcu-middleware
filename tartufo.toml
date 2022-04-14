@@ -2,7 +2,8 @@
 repo-path = "."
 exclude-path-patterns = [
     'tartufo.*',
-    'poetry.lock'
+    'poetry.lock',
+    'certs/'
 ]
 exclude-signatures = [
     '5288f73270e526f31909d31fb8ba448e83dcd5cc4022e0fb5a015412b3370380',

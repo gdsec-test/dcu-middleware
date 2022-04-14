@@ -5,7 +5,7 @@ from typing import Union
 from urllib.parse import urlparse
 
 import yaml
-from celery import Celery, chain
+from celery import Celery, bootsteps, chain
 from celery.utils.log import get_task_logger
 from dcdatabase.phishstorymongo import PhishstoryMongo
 from dcustructuredlogging import celerylogger  # noqa: F401
@@ -13,6 +13,7 @@ from elasticapm import Client, instrument
 from elasticapm.contrib.celery import (register_exception_tracking,
                                        register_instrumentation)
 from func_timeout import FunctionTimedOut, func_timeout
+from kombu.common import QoS
 from pymongo import MongoClient
 
 from dcumiddleware.apm import register_dcu_transaction_handler
@@ -78,6 +79,27 @@ apm = Client(service_name='middleware', env=env, metrics_sets=['dcumiddleware.me
 register_exception_tracking(apm)
 register_instrumentation(apm)
 register_dcu_transaction_handler(apm)
+
+
+# turning off global qos in celery
+class NoChannelGlobalQoS(bootsteps.StartStopStep):
+    requires = {'celery.worker.consumer.tasks:Tasks'}
+
+    def start(self, c):
+        qos_global = False
+
+        c.connection.default_channel.basic_qos(0, c.initial_prefetch_count, qos_global)
+
+        def set_prefetch_count(prefetch_count):
+            return c.task_consumer.qos(
+                prefetch_count=prefetch_count,
+                apply_global=qos_global,
+            )
+
+        c.qos = QoS(set_prefetch_count, c.initial_prefetch_count)
+
+
+app.steps['consumer'].add(NoChannelGlobalQoS)
 
 # Configure DCU celery metrics
 metricset = apm._metrics.get_metricset('dcumiddleware.metrics.Metrics')
@@ -231,7 +253,8 @@ def process(data):
 ''' PRIVATE TASKS'''
 
 
-@app.task(name='run._load_and_enrich_data', bind=True, default_retry_delay=app_settings.TASK_TIMEOUT, max_retries=app_settings.TASK_MAX_RETRIES)
+@app.task(name='run._load_and_enrich_data', bind=True, default_retry_delay=app_settings.TASK_TIMEOUT,
+          max_retries=app_settings.TASK_MAX_RETRIES)
 def _load_and_enrich_data(self, data):
     """
     Loads the data from CMAP and merges it with information gained from CMAP Service
@@ -247,12 +270,16 @@ def _load_and_enrich_data(self, data):
     domain_name_ip = sub_domain_ip = ip = None
     cmap_data = {}
     cmap_helper = CmapServiceHelper(app_settings)
-    shopper_api_helper = ShopperApiHelper(app_settings.SHOPPER_API_URL, app_settings.SHOPPER_API_CERT_PATH, app_settings.SHOPPER_API_KEY_PATH)
+    shopper_api_helper = ShopperApiHelper(app_settings.SHOPPER_API_URL, app_settings.SHOPPER_API_CERT_PATH,
+                                          app_settings.SHOPPER_API_KEY_PATH)
     had_failed_enrichment = data.pop(FAILED_ENRICHMENT_KEY, False)
 
-    if KEY_METADATA in data and (KEY_SHOPPER_ID not in data[KEY_METADATA] or data[KEY_METADATA][KEY_SHOPPER_ID] == '') and KEY_CUSTOMER_ID in data[KEY_METADATA]:
+    if KEY_METADATA in data and (
+            KEY_SHOPPER_ID not in data[KEY_METADATA] or data[KEY_METADATA][KEY_SHOPPER_ID] == '') and KEY_CUSTOMER_ID in \
+            data[KEY_METADATA]:
         data[KEY_METADATA][KEY_SHOPPER_ID] = shopper_api_helper.get_shopper_id(data[KEY_METADATA][KEY_CUSTOMER_ID])
-        logger.info(f'Obtained shopper id {data[KEY_METADATA][KEY_SHOPPER_ID]} for customer id {data[KEY_METADATA][KEY_CUSTOMER_ID]}')
+        logger.info(
+            f'Obtained shopper id {data[KEY_METADATA][KEY_SHOPPER_ID]} for customer id {data[KEY_METADATA][KEY_CUSTOMER_ID]}')
 
     try:
         domain_name_ip = func_timeout(timeout_in_seconds, socket.gethostbyname, args=(domain_name,))

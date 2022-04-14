@@ -44,7 +44,7 @@ spec:
             valueFrom:
               secretKeyRef:
                 name: amqp-shared-creds
-                key: multiple_brokers
+                key: multiple_brokers_grandma
           - name: SSO_USER
             valueFrom:
               secretKeyRef:
