@@ -16,7 +16,6 @@ class CeleryConfig:
     accept_content = ['json', 'pickle']
     imports = 'dcumiddleware.run'
     worker_hijack_root_logger = False
-    task_default_queue = app_settings.APIQUEUE
     task_acks_late = True
     worker_prefetch_multiplier = 1
     worker_send_task_events = False
@@ -26,7 +25,8 @@ class CeleryConfig:
 
     # TODO CMAPT-5032: set this to 'quorum'
     queue_type = app_settings.QUEUE_TYPE
-
+    task_default_queue = Queue(app_settings.APIQUEUE, Exchange(app_settings.APIQUEUE),
+                               routing_key=app_settings.APIQUEUE, queue_arguments={'x-queue-type': queue_type})
     task_queues = (
         Queue(app_settings.APIQUEUE, Exchange(app_settings.APIQUEUE), routing_key=app_settings.APIQUEUE,
               queue_arguments={'x-queue-type': queue_type}),
