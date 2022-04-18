@@ -23,18 +23,22 @@ class CeleryConfig:
     task_time_limit = 180
     WORKER_ENABLE_REMOTE_CONTROL = False
 
-    # TODO CMAPT-5032: set this to 'quorum'
-    queue_type = app_settings.QUEUE_TYPE
-    task_default_queue = Queue(app_settings.APIQUEUE, Exchange(app_settings.APIQUEUE),
-                               routing_key=app_settings.APIQUEUE, queue_arguments={'x-queue-type': queue_type})
+    # TODO CMAPT-5032: set this to 'x-queue-type': 'quorum'
+    queue_args = {'x-queue-type': 'quorum'} if app_settings.QUEUE_TYPE == 'quorum' else None
+    api_queue = Queue(app_settings.APIQUEUE, Exchange(app_settings.APIQUEUE), routing_key=app_settings.APIQUEUE,
+                      queue_arguments=queue_args)
+    task_default_queue = api_queue
     task_queues = (
-        Queue(app_settings.APIQUEUE, Exchange(app_settings.APIQUEUE), routing_key=app_settings.APIQUEUE,
-              queue_arguments={'x-queue-type': queue_type}),
+        api_queue,
     )
 
     task_routes = {
-        'run.process_gd': {'queue': app_settings.GDBRANDSERVICESQUEUE, 'routing_key': app_settings.GDBRANDSERVICESQUEUE},
-        'run.process_emea': {'queue': app_settings.EMEABRANDSERVICESQUEUE, 'routing_key': app_settings.EMEABRANDSERVICESQUEUE}
+        'run.process_gd': {
+            'queue': Queue(app_settings.GDBRANDSERVICESQUEUE, Exchange(app_settings.GDBRANDSERVICESQUEUE),
+                           routing_key=app_settings.GDBRANDSERVICESQUEUE, queue_arguments=queue_args)},
+        'run.process_emea': {
+            'queue': Queue(app_settings.EMEABRANDSERVICESQUEUE, Exchange(app_settings.EMEABRANDSERVICESQUEUE),
+                           routing_key=app_settings.EMEABRANDSERVICESQUEUE, queue_arguments=queue_args)},
     }
 
     def __init__(self):
