@@ -3,8 +3,8 @@ services:
     image: docker-dcu-local.artifactory.secureserver.net/dcumiddleware:dev
     environment:
       ABUSE_API_URL: ${ABUSE_API_URL}
-      BROKER_PASS: ${BROKER_PASS}
-      BROKER_URL: amqp://guest@rabbitmq:5672//
+      BROKER_URL: ${BROKER_URL}
+      QUEUE_TYPE: 'quorum'
       DB_PASS: ${DB_PASS}
       CMAP_CERT: '/tmp/certs/cmapservice.int.dev-godaddy.com.crt'
       CMAP_KEY: '/tmp/certs/cmapservice.int.dev-godaddy.com.key'
