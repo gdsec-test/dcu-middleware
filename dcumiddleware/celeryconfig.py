@@ -27,7 +27,7 @@ class CeleryConfig:
     queue_args = {'x-queue-type': 'quorum'} if app_settings.QUEUE_TYPE == 'quorum' else None
     api_queue = Queue(app_settings.APIQUEUE, Exchange(app_settings.APIQUEUE), routing_key=app_settings.APIQUEUE,
                       queue_arguments=queue_args)
-    task_default_queue = api_queue
+    task_default_queue = app_settings.APIQUEUE
     task_queues = (
         api_queue,
     )
