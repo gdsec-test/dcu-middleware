@@ -16,22 +16,30 @@ class CeleryConfig:
     accept_content = ['json', 'pickle']
     imports = 'dcumiddleware.run'
     worker_hijack_root_logger = False
-    task_default_queue = app_settings.APIQUEUE
     task_acks_late = True
     worker_prefetch_multiplier = 1
     worker_send_task_events = False
     # Force kill a task if it takes longer than three minutes.
     task_time_limit = 180
+    WORKER_ENABLE_REMOTE_CONTROL = False
 
+    # TODO CMAPT-5032: set this to 'x-queue-type': 'quorum'
+    queue_args = {'x-queue-type': 'quorum'} if app_settings.QUEUE_TYPE == 'quorum' else None
+    api_queue = Queue(app_settings.APIQUEUE, Exchange(app_settings.APIQUEUE), routing_key=app_settings.APIQUEUE,
+                      queue_arguments=queue_args)
+    task_default_queue = app_settings.APIQUEUE
     task_queues = (
-        Queue(app_settings.APIQUEUE, Exchange(app_settings.APIQUEUE), routing_key=app_settings.APIQUEUE),
+        api_queue,
     )
 
     task_routes = {
-        'run.process_gd': {'queue': app_settings.GDBRANDSERVICESQUEUE, 'routing_key': app_settings.GDBRANDSERVICESQUEUE},
-        'run.process_emea': {'queue': app_settings.EMEABRANDSERVICESQUEUE, 'routing_key': app_settings.EMEABRANDSERVICESQUEUE}
+        'run.process_gd': {
+            'queue': Queue(app_settings.GDBRANDSERVICESQUEUE, Exchange(app_settings.GDBRANDSERVICESQUEUE),
+                           routing_key=app_settings.GDBRANDSERVICESQUEUE, queue_arguments=queue_args)},
+        'run.process_emea': {
+            'queue': Queue(app_settings.EMEABRANDSERVICESQUEUE, Exchange(app_settings.EMEABRANDSERVICESQUEUE),
+                           routing_key=app_settings.EMEABRANDSERVICESQUEUE, queue_arguments=queue_args)},
     }
 
     def __init__(self):
-        self.BROKER_PASS = app_settings.BROKER_PASS
         self.broker_url = app_settings.BROKER_URL

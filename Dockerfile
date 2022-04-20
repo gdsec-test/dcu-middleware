@@ -9,6 +9,12 @@ COPY dist/*.whl /tmp/
 RUN pip install /tmp/*.whl
 RUN rm /tmp/*.whl
 
+COPY . /tmp
+# install custom root certificates
+RUN mkdir -p /usr/local/share/ca-certificates/
+RUN cp /tmp/certs/* /usr/local/share/ca-certificates/
+RUN update-ca-certificates
+
 RUN mkdir /app
 COPY health.sh /app
 COPY logging.yaml /app
