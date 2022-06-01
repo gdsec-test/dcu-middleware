@@ -80,7 +80,7 @@ class OTEAppConfig(AppConfig):
 
 class TestAppConfig(AppConfig):
     DB = 'testphishstory'
-    DB_HOST = '10.36.156.188'
+    DB_HOST = '10.36.190.222'
     DB_USER = 'testuser'
 
     APIQUEUE = 'testdcumiddleware'
@@ -95,7 +95,7 @@ class TestAppConfig(AppConfig):
 
 class DevelopmentAppConfig(AppConfig):
     DB = 'devphishstory'
-    DB_HOST = '10.36.156.188'
+    DB_HOST = '10.36.190.222'
     DB_USER = 'devuser'
 
     APIQUEUE = 'devdcumiddleware'
