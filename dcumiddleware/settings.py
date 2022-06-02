@@ -35,10 +35,7 @@ class AppConfig(object):
     SSO_USER = os.getenv('SSO_USER', 'user')
     SSO_PASSWORD = os.getenv('SSO_PASSWORD', 'password')
 
-    # TODO CMAPT-5032: remove this
-    QUEUE_TYPE = os.getenv('QUEUE_TYPE', 'classic')
-    # TODO CMAPT-5032: remove everything after & including "if QUORUMQUEUE"
-    BROKER_URL = os.getenv('MULTIPLE_BROKERS') if QUEUE_TYPE == 'quorum' else os.getenv('SINGLE_BROKER')
+    BROKER_URL = os.getenv('MULTIPLE_BROKERS')
 
     def __init__(self):
         self.DB_PASS = urllib.parse.quote(os.getenv('DB_PASS', 'password'))

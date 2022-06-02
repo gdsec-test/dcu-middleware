@@ -23,8 +23,7 @@ class CeleryConfig:
     task_time_limit = 180
     WORKER_ENABLE_REMOTE_CONTROL = True
 
-    # TODO CMAPT-5032: set this to 'x-queue-type': 'quorum'
-    queue_args = {'x-queue-type': 'quorum'} if app_settings.QUEUE_TYPE == 'quorum' else None
+    queue_args = {'x-queue-type': 'quorum'}
     api_queue = Queue(app_settings.APIQUEUE, Exchange(app_settings.APIQUEUE), routing_key=app_settings.APIQUEUE,
                       queue_arguments=queue_args)
     task_default_queue = app_settings.APIQUEUE
