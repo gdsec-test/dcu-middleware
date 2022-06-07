@@ -245,6 +245,7 @@ def process(data):
     :param data:
     :return:
     """
+    data = db.get_incident(data.get('ticketId'))
     chain(_load_and_enrich_data.s(data),
           _check_for_blacklist_auto_actions.s(),
           _route_to_brand_services.s())()
