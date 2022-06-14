@@ -60,6 +60,8 @@ KEY_MWP_ID = 'mwpId'
 KEY_PRODUCT = 'product'
 KEY_PORTFOLIO_TYPE = 'portfolioType'
 KEY_PRIVATE_LABEL_ID = 'privateLabelId'
+KEY_REPORTER = 'reporter'
+KEY_REPORTER_CID = 'reporting_customer_id'
 KEY_RESELLER = 'reseller'
 KEY_SHOPPER_ID = 'shopperId'
 KEY_CUSTOMER_ID = 'customerId'
@@ -266,6 +268,8 @@ def _load_and_enrich_data(self, data):
     domain_name = data.get('sourceDomainOrIp')
     sub_domain_name = data.get('sourceSubDomain')
     source = data.get('source')
+    reporter: str = data.get(KEY_REPORTER)
+
     url_path = urlparse(source).path
     timeout_in_seconds = 2
     domain_name_ip = sub_domain_ip = ip = None
@@ -274,6 +278,11 @@ def _load_and_enrich_data(self, data):
     shopper_api_helper = ShopperApiHelper(app_settings.SHOPPER_API_URL, app_settings.SHOPPER_API_CERT_PATH,
                                           app_settings.SHOPPER_API_KEY_PATH)
     had_failed_enrichment = data.pop(FAILED_ENRICHMENT_KEY, False)
+
+    # The transition to customer IDs instead of shopper IDs is starting, but we need to move a portion of the pipeline at a time.
+    if reporter and not reporter.isnumeric():
+        data[KEY_REPORTER] = shopper_api_helper.get_shopper_id(reporter)
+        data[KEY_REPORTER_CID] = reporter
 
     if KEY_METADATA in data and (
             KEY_SHOPPER_ID not in data[KEY_METADATA] or data[KEY_METADATA][KEY_SHOPPER_ID] == '') and KEY_CUSTOMER_ID in \
