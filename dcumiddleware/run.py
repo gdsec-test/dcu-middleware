@@ -7,16 +7,12 @@ from urllib.parse import urlparse
 import yaml
 from celery import Celery, bootsteps, chain
 from celery.utils.log import get_task_logger
+from csetutils.celery import instrument
 from dcdatabase.phishstorymongo import PhishstoryMongo
-from dcustructuredlogging import celerylogger  # noqa: F401
-from elasticapm import Client, instrument
-from elasticapm.contrib.celery import (register_exception_tracking,
-                                       register_instrumentation)
 from func_timeout import FunctionTimedOut, func_timeout
 from kombu.common import QoS
 from pymongo import MongoClient
 
-from dcumiddleware.apm import register_dcu_transaction_handler
 from dcumiddleware.celeryconfig import CeleryConfig
 from dcumiddleware.settings import config_by_name
 from dcumiddleware.utilities.apihelper import APIHelper
@@ -76,11 +72,7 @@ SOURCE_KEY = 'sourceDomainOrIp'
 TICKET_ID_KEY = '_id'
 VIP_KEY = 'vip'
 
-instrument()
-apm = Client(service_name='middleware', env=env, metrics_sets=['dcumiddleware.metrics.Metrics'])
-register_exception_tracking(apm)
-register_instrumentation(apm)
-register_dcu_transaction_handler(apm)
+apm = instrument('middleware', env=env, metric_sets=['dcumiddleware.metrics.Metrics'])
 
 
 # turning off global qos in celery
