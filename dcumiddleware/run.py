@@ -272,7 +272,7 @@ def _load_and_enrich_data(self, data):
     had_failed_enrichment = data.pop(FAILED_ENRICHMENT_KEY, False)
 
     # The transition to customer IDs instead of shopper IDs is starting, but we need to move a portion of the pipeline at a time.
-    if reporter and not reporter.isnumeric():
+    if reporter and not reporter.isnumeric() and 'jomax' not in reporter:
         data[KEY_REPORTER] = shopper_api_helper.get_shopper_id(reporter)
         data[KEY_REPORTER_CID] = reporter
 
