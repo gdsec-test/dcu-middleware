@@ -315,11 +315,11 @@ reference = "gddy-artifactory"
 
 [[package]]
 name = "csetutils"
-version = "0.1.6"
+version = "0.1.8"
 description = ""
 category = "main"
 optional = false
-python-versions = "==3.7.10"
+python-versions = ">=3.7.10,<4.0.0"
 
 [package.dependencies]
 celery = ">=5.2.6,<6.0.0"
@@ -352,7 +352,7 @@ reference = "gddy-artifactory"
 
 [[package]]
 name = "elastic-apm"
-version = "6.9.1"
+version = "6.10.0"
 description = "The official Python module for Elastic APM"
 category = "main"
 optional = false
@@ -988,7 +988,7 @@ reference = "gddy-artifactory"
 [metadata]
 lock-version = "1.1"
 python-versions = "3.7.10"
-content-hash = "4db1d9a46497d10f49041a59ca2da5548fde3b559a4222bb29b5e496f06c41a2"
+content-hash = "8dbaa33fbe7b419f832392376543b16a64ec3068be5d21cdc9000147d5826919"
 
 [metadata.files]
 amqp = [
@@ -1176,33 +1176,33 @@ cryptography = [
     {file = "cryptography-37.0.2.tar.gz", hash = "sha256:f224ad253cc9cea7568f49077007d2263efa57396a2f2f78114066fd54b5c68e"},
 ]
 csetutils = [
-    {file = "csetutils-0.1.6-py3-none-any.whl", hash = "sha256:5901778d8971fc5fd248e5ee0f1e944942a665cbad6ac321e4844a93390f0000"},
+    {file = "csetutils-0.1.8-py3-none-any.whl", hash = "sha256:4252a86e4a952fec2945400b8e60cfea9e88089a68d0e71a58d70636b2a4d1e8"},
 ]
 dcdatabase = [
     {file = "dcdatabase-1.3-py3-none-any.whl", hash = "sha256:bae0ad87255702f57a5727a65536e67260d2ff87c76c6c895fc80b73978c1b5c"},
 ]
 elastic-apm = [
-    {file = "elastic-apm-6.9.1.tar.gz", hash = "sha256:4413325523c68e8ae9c6ae7b2adcd8ab7a43dfb18e51543b9917d9904bea3a6c"},
-    {file = "elastic_apm-6.9.1-cp310-cp310-manylinux_2_5_i686.manylinux1_i686.manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:73ae22e1fe32103609e6222fbba613b8ccfe831849e3c8a4890ea227b88801e6"},
-    {file = "elastic_apm-6.9.1-cp310-cp310-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:85409407b8e3513c1907b5448e4f320b9598f94d82ca94548ba4d9dc8ce08237"},
-    {file = "elastic_apm-6.9.1-cp310-cp310-musllinux_1_1_i686.whl", hash = "sha256:977a442d5567c7cb4d75b58b1fff5b96c09975f40462385a8cede451c9c80c3c"},
-    {file = "elastic_apm-6.9.1-cp310-cp310-musllinux_1_1_x86_64.whl", hash = "sha256:6809559ff54b5595985b67feef832d3ba7c2a764df4922643ade55e8632eb732"},
-    {file = "elastic_apm-6.9.1-cp36-cp36m-manylinux_2_5_i686.manylinux1_i686.manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:58d759f355db84e7542f823d2e0cf9b320d74089661a4068f0c277fe01b309a5"},
-    {file = "elastic_apm-6.9.1-cp36-cp36m-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:c63a8ececb2cfdcfe1ecc319e00c358a6a779c7ca2958aac2762892cee902bd2"},
-    {file = "elastic_apm-6.9.1-cp36-cp36m-musllinux_1_1_i686.whl", hash = "sha256:bc6870f8bb2debd43e0a49d5ca16d5eb1b98decf91e63017c746e72bfc22c56c"},
-    {file = "elastic_apm-6.9.1-cp36-cp36m-musllinux_1_1_x86_64.whl", hash = "sha256:a1c420f9acab76e0eca8b316907cddd3403d09c99d44ad338fdaa53c83a16380"},
-    {file = "elastic_apm-6.9.1-cp37-cp37m-manylinux_2_5_i686.manylinux1_i686.manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:fb73349d557bc6c9b67616965009821087b4f99591407bcabb67425a1c3cd411"},
-    {file = "elastic_apm-6.9.1-cp37-cp37m-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:3ed01b32b18569a77e95cc9b7de5cfca49769b8595a7bb96cf9de0ddf6d9e7f6"},
-    {file = "elastic_apm-6.9.1-cp37-cp37m-musllinux_1_1_i686.whl", hash = "sha256:416c0b6fa0f445784e86babeff007a61271f2060928a838ff8771e3072b435b2"},
-    {file = "elastic_apm-6.9.1-cp37-cp37m-musllinux_1_1_x86_64.whl", hash = "sha256:a4f82a0d9f4bda6e7affed172bb5165261f20a783afc61d8c57ac4713fd4215d"},
-    {file = "elastic_apm-6.9.1-cp38-cp38-manylinux_2_5_i686.manylinux1_i686.manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:ef5dcc1ae8d412536bb5b098f6c4ef98c344a96a3f63de75ac3d735e2a7d19c1"},
-    {file = "elastic_apm-6.9.1-cp38-cp38-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:a229e0635b6e27bb9c00b0e6dfde8702c2de3822c6430ac42b650d2a4209b0ef"},
-    {file = "elastic_apm-6.9.1-cp38-cp38-musllinux_1_1_i686.whl", hash = "sha256:0329c98104fdbed2b12b3ce7a2e9975cfbae006a47157d3db273c35ca4cb2e6e"},
-    {file = "elastic_apm-6.9.1-cp38-cp38-musllinux_1_1_x86_64.whl", hash = "sha256:e4abd83ec8724c2cfb77df25e323c99239f39919801f24a9de02fbfb85ab5ffa"},
-    {file = "elastic_apm-6.9.1-cp39-cp39-manylinux_2_5_i686.manylinux1_i686.manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:dfa2a326c1d9d5bdbceb515db3924001ed6fe4f0fd74c7f6a0ade36940893f63"},
-    {file = "elastic_apm-6.9.1-cp39-cp39-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:b856b59d324470ad8fb0641d7db3200f09cb6273ccf5e99daeb525b77fe1cf70"},
-    {file = "elastic_apm-6.9.1-cp39-cp39-musllinux_1_1_i686.whl", hash = "sha256:7a73fc38be0e5a541365479e422493fd5fbd40e634afd27c44f0663626ef34d0"},
-    {file = "elastic_apm-6.9.1-cp39-cp39-musllinux_1_1_x86_64.whl", hash = "sha256:6c547122808a3e0773119a3a90610e79ad904194c0ce580d71714adc67c98e8f"},
+    {file = "elastic-apm-6.10.0.tar.gz", hash = "sha256:cf4be53142d7359a61f604d5c7f07544f9fa1e8f6d8e01e9c5b0dcd3ace998db"},
+    {file = "elastic_apm-6.10.0-cp310-cp310-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:907b52fcdad281d19b01345abd79cdb680a473298cacacc36b84b71363d490fb"},
+    {file = "elastic_apm-6.10.0-cp310-cp310-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:a23eaba04a6b745ed4f529e697b610999d38d438879b4ca21a9fc736dc9066dd"},
+    {file = "elastic_apm-6.10.0-cp310-cp310-musllinux_1_1_aarch64.whl", hash = "sha256:f35cf370d18c35a15e9790c3b9102575149ded3017943e77360a4956561af75d"},
+    {file = "elastic_apm-6.10.0-cp310-cp310-musllinux_1_1_x86_64.whl", hash = "sha256:9f879a9bea67579246f132075b5dd30b87e593879d9557a06a8d38f302b5c9f7"},
+    {file = "elastic_apm-6.10.0-cp36-cp36m-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:ffc01d361b88d27790fa07fbfffaaf793b8a36d2b27135ff99fddd53e1486db1"},
+    {file = "elastic_apm-6.10.0-cp36-cp36m-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:55639f2395afc74642d98725c2e8acfc12ca07cebf50c975744b4c8271cd2903"},
+    {file = "elastic_apm-6.10.0-cp36-cp36m-musllinux_1_1_aarch64.whl", hash = "sha256:b1cbb5ca16f6370f6dc2a441d6958b0b097a3834d7f48d07edc99137578e1c85"},
+    {file = "elastic_apm-6.10.0-cp36-cp36m-musllinux_1_1_x86_64.whl", hash = "sha256:a560eec843c7d2e269e648bb836ab4aa031fa41e3c606a3e1bd18f46356f08d6"},
+    {file = "elastic_apm-6.10.0-cp37-cp37m-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:46c164146e443f1c9d9875f4e75c45857d359beb441c5b3911d295d06ff902f4"},
+    {file = "elastic_apm-6.10.0-cp37-cp37m-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:a81dab48610f7aac608bc77979eeaf2cebcf9af53cb7b36fd23fc2a377717319"},
+    {file = "elastic_apm-6.10.0-cp37-cp37m-musllinux_1_1_aarch64.whl", hash = "sha256:20a38f27a7579583a92f1d0e30ebbb3b1b981fc01480d4aad7e0bf562f05f721"},
+    {file = "elastic_apm-6.10.0-cp37-cp37m-musllinux_1_1_x86_64.whl", hash = "sha256:7eb28252a64d7a7db96830bf9e9f2d5c8b40062a0ce4bd2bee33db5edb5d1b27"},
+    {file = "elastic_apm-6.10.0-cp38-cp38-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:5c2c2d7bf9f3db338fe2b77946b35ea5db3d18a526f339fd37b9aa8c5b805be8"},
+    {file = "elastic_apm-6.10.0-cp38-cp38-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:3b099b55c39a845a5a4be24c30b5da1f1ef7c5188f0ac0fd0beaacc3fc144861"},
+    {file = "elastic_apm-6.10.0-cp38-cp38-musllinux_1_1_aarch64.whl", hash = "sha256:bbc96c3cb95f7176c15f7157fa48bffb859aed8ce509762d70489234809c81ea"},
+    {file = "elastic_apm-6.10.0-cp38-cp38-musllinux_1_1_x86_64.whl", hash = "sha256:56ff46fb3f9c3a42a181c2cd7adf7fbdfb023b20e5ed6d3a6253c73863468ad3"},
+    {file = "elastic_apm-6.10.0-cp39-cp39-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:780fa733046f4e87dd3fa81de9a5ecfde41c91d855da8ee9891a037bb71c681b"},
+    {file = "elastic_apm-6.10.0-cp39-cp39-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:890ffdf2051504eec62c7f80ea408092531a246137899d10ad93826585c4f5ac"},
+    {file = "elastic_apm-6.10.0-cp39-cp39-musllinux_1_1_aarch64.whl", hash = "sha256:3d88c68d929760307ec995f446cf7324d9b1a4d4d419521becebe5454927ad44"},
+    {file = "elastic_apm-6.10.0-cp39-cp39-musllinux_1_1_x86_64.whl", hash = "sha256:522ea8e487cd1c5339b38ef8f52d4c80e38705721d056719200a80c91fe16aca"},
 ]
 flake8 = [
     {file = "flake8-4.0.0-py2.py3-none-any.whl", hash = "sha256:124554bfd067e04d891258c0208a764b512ca3a94c8a3c06bea56af539dd74db"},
