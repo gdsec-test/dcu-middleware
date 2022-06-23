@@ -30,10 +30,10 @@ class CmapServiceHelper(object):
     def cmap_query(self, query: str, url: str = '/graphql') -> dict:
         self._post_headers.update({'Authorization': f'sso-jwt {self.get_jwt()}'})
         with sessions.Session() as session:
-            re = session.post(url=self._base_url + url, headers=self._post_headers, data=query)
+            re = session.post(url=self._base_url + url, headers=self._post_headers, data=query.encode('utf-8'))
             if re.status_code == 401 or re.status_code == 403:
                 self._post_headers.update({'Authorization': f'sso-jwt {self.get_jwt(True)}'})
-                re = session.post(url=self._base_url + url, headers=self._post_headers, data=query)
+                re = session.post(url=self._base_url + url, headers=self._post_headers, data=query.encode('utf-8'))
             return json.loads(re.text)
 
     def _validate_dq_structure(self, data: dict) -> None:
