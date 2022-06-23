@@ -232,6 +232,12 @@ Sample data:
 """
 
 
+@app.task(name='run.sync_customer_security')
+def sync_customer_security(data):
+    db.add_new_incident(data.get('ticketId'), data)
+    chain(process.s(data))()
+
+
 @app.task(name='run.process')
 def process(data):
     """
