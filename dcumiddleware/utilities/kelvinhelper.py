@@ -84,7 +84,7 @@ class KelvinHelper:
         source = data['source']
         # Shadowfax reporter is allowed to submit duplicate request
         reporter_email = data['reporterEmail']
-        if reporter is not self._shadowfax_reporter_id and self._is_duplicate(source):
+        if reporter not in [self._shadowfax_reporter_id, self._shadowfax_reporter_cid] and self._is_duplicate(source):
             self._update_report_count(source=source)
             self._write_reporter_email_todb(source=source, reporter_email=reporter_email)
             return
@@ -98,7 +98,8 @@ class KelvinHelper:
         data['hostedStatus'] = self._determine_hosted_status(cmap_response)
         data['data'] = cmap_response.get('data', {})
 
-        if reporter in [self._shadowfax_reporter_id, self._pdna_reporter_id]:
+        if reporter in [self._shadowfax_reporter_id, self._pdna_reporter_id,
+                        self._shadowfax_reporter_cid, self._pdna_reporter_cid]:
             data['kelvinStatus'] = 'AWAITING_INVESTIGATION'
         else:
             data['kelvinStatus'] = 'OPEN'
