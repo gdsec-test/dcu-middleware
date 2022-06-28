@@ -82,6 +82,12 @@ class TestRun(TestCase):
             }
         }
 
+    # Test sync_attribute
+    @patch.object(PhishstoryMongo, 'update_incident', return_value=None)
+    def test_sync_attribute(self, mock_db):
+        run.sync_attribute(KEY_TICKET_ID, 'field', 'value')
+        mock_db.assert_called_with(KEY_TICKET_ID, {'field': 'value'})
+
     # Test successful load and enrichment
     @patch.object(PhishstoryMongo, 'update_incident', return_value=None)
     @patch('dcumiddleware.run.CmapServiceHelper', return_value=MockCmapServiceHelper({}))

@@ -251,6 +251,20 @@ def process(data):
           _route_to_brand_services.s())()
 
 
+@app.task(name='run.sync_attribute')
+def sync_attribute(ticket_id, field, value):
+    """
+    Updates P3 mongo ticketId field name with new value.
+    :param ticket_id:
+    :param field:
+    :param value:
+    :return:
+    """
+
+    # return the result of updating the specified ticket with the given Key:Value
+    return db.update_incident(ticket_id, {field: value})
+
+
 ''' PRIVATE TASKS'''
 
 
