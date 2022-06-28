@@ -382,8 +382,3 @@ def _route_to_brand_services(data):
         return
 
     return routing_helper.route(data)
-
-
-@app.task(name='run._sync_child_safety')
-def _route_sync_child_safety(data):
-    pass
