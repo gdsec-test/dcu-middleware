@@ -17,6 +17,7 @@ from dcumiddleware.celeryconfig import CeleryConfig
 from dcumiddleware.settings import config_by_name
 from dcumiddleware.utilities.apihelper import APIHelper
 from dcumiddleware.utilities.cmapservicehelper import CmapServiceHelper
+from dcumiddleware.utilities.kelvinhelper import KelvinHelper
 from dcumiddleware.utilities.routinghelper import RoutingHelper
 from dcumiddleware.utilities.shopperhelper import ShopperApiHelper
 
@@ -218,6 +219,9 @@ routing_helper = RoutingHelper(app, api, db)
 blacklist_client = MongoClient(app_settings.DBURL)
 blacklist_db = blacklist_client[app_settings.DB]
 blacklist_collection = blacklist_db[app_settings.BLACKLIST_COLLECTION]
+kelvin_mongo = MongoClient(app_settings.KELVIN_DB_URL)
+kelvin_helper = KelvinHelper(kelvinmongo=kelvin_mongo, kelvindbname=app_settings.KELVIN_DBNAME,
+                             cmapHelper=CmapServiceHelper(app_settings), config=app_settings)
 
 """
 Sample data:
@@ -230,6 +234,11 @@ Sample data:
  'proxy': u'Must be viewed from an German IP',
  'type': u'PHISHING'}
 """
+
+
+@app.task(name='run.sync_child_safety')
+def sync_child_safety(data):
+    kelvin_helper.process(data)
 
 
 @app.task(name='run.sync_customer_security')
@@ -373,3 +382,8 @@ def _route_to_brand_services(data):
         return
 
     return routing_helper.route(data)
+
+
+@app.task(name='run._sync_child_safety')
+def _route_sync_child_safety(data):
+    pass

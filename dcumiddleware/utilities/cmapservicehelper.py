@@ -71,6 +71,60 @@ class CmapServiceHelper(object):
             '/v1/shopper/lookup'
         )
 
+    def _format_cmap_response_dates(self, data: dict):
+        ddq = data.get('data', {}).get('domainQuery', {})
+        reg_create_date = ddq.get('registrar', {}).get('domainCreateDate')
+        if reg_create_date:
+            data['data']['domainQuery']['registrar']['domainCreateDate'] = \
+                self._date_time_format(reg_create_date)
+
+        shp_create_date = ddq.get('shopperInfo', {}).get('shopperCreateDate')
+        if shp_create_date:
+            data['data']['domainQuery']['shopperInfo']['shopperCreateDate'] = \
+                self._date_time_format(shp_create_date)
+
+        host_sh_create = ddq.get('host', {}).get('shopperCreateDate')
+        if host_sh_create:
+            data[self.DATA_KEY][self.DOMAIN_Q_KEY][self.HOST_KEY][self.SHOPPER_CREATE_KEY] = self._date_time_format(host_sh_create)
+
+        hosting_create_date = ddq.get('host', {}).get('createdDate')
+        if hosting_create_date:
+            data['data']['domainQuery']['host']['createdDate'] = self._date_time_format(hosting_create_date)
+        return data
+
+    def domain_query_for_kelvindb(self, domain: str) -> dict:
+        query = ('''
+        {
+            domainQuery(domain: "''' + domain + '''") {
+                domain
+                host {
+                    brand
+                    guid
+                    hostingAbuseEmail
+                    hostingCompanyName
+                    ip
+                    product
+                    shopperId
+                }
+                registrar {
+                    brand
+                    domainCreateDate
+                    domainId
+                    registrarAbuseEmail
+                    registrarName
+                }
+                shopperInfo {
+                    shopperCreateDate
+                    shopperId
+                }
+            }
+        }''')
+        query_result = self.cmap_query(query)
+        if not isinstance(query_result, dict) or 'errors' in query_result:
+            raise Exception('Unexpected query result')
+        query_result = self._format_cmap_response_dates(query_result)
+        return query_result
+
     def domain_query(self, domain: str, path: str) -> dict:
         """
         Query CMAP service for information related to a domain.
@@ -151,25 +205,9 @@ class CmapServiceHelper(object):
 
         self._validate_dq_structure(query_result)
 
+        query_result = self._format_cmap_response_dates(query_result)
+
         ddq = query_result.get('data', {}).get('domainQuery', {})
-        reg_create_date = ddq.get('registrar', {}).get('domainCreateDate')
-        if reg_create_date:
-            query_result['data']['domainQuery']['registrar']['domainCreateDate'] = \
-                self._date_time_format(reg_create_date)
-
-        shp_create_date = ddq.get('shopperInfo', {}).get('shopperCreateDate')
-        if shp_create_date:
-            query_result['data']['domainQuery']['shopperInfo']['shopperCreateDate'] = \
-                self._date_time_format(shp_create_date)
-
-        host_sh_create = ddq.get('host', {}).get('shopperCreateDate')
-        if host_sh_create:
-            query_result[self.DATA_KEY][self.DOMAIN_Q_KEY][self.HOST_KEY][self.SHOPPER_CREATE_KEY] = self._date_time_format(host_sh_create)
-
-        hosting_create_date = ddq.get('host', {}).get('createdDate')
-        if hosting_create_date:
-            query_result['data']['domainQuery']['host']['createdDate'] = self._date_time_format(hosting_create_date)
-
         private_label_id = ddq.get('host', {}).get('privateLabelId')
         query_result['data']['domainQuery']['host']['reseller'] = self._reseller_id_map.get(private_label_id)
 

@@ -59,6 +59,11 @@ spec:
             value: /shopper_certs/tls.key
           - name: METRICS_ENABLED
             value: 'yes'
+          - name: KELVIN_DB_URL
+            valueFrom:
+              secretKeyRef:
+                name: kelvin-mongourl
+                key: mongoURL
           - name: ELASTIC_APM_SERVER_URL
             valueFrom:
               secretKeyRef:
