@@ -219,9 +219,7 @@ routing_helper = RoutingHelper(app, api, db)
 blacklist_client = MongoClient(app_settings.DBURL)
 blacklist_db = blacklist_client[app_settings.DB]
 blacklist_collection = blacklist_db[app_settings.BLACKLIST_COLLECTION]
-kelvin_mongo = MongoClient(app_settings.KELVIN_DB_URL)
-kelvin_helper = KelvinHelper(kelvinmongo=kelvin_mongo, kelvindbname=app_settings.KELVIN_DBNAME,
-                             cmapHelper=CmapServiceHelper(app_settings), config=app_settings)
+kelvin_helper = KelvinHelper(config=app_settings)
 
 """
 Sample data:

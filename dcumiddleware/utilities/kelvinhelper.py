@@ -4,6 +4,7 @@ import smtplib
 from email.message import EmailMessage
 
 from pymongo import MongoClient
+from dcumiddleware.settings import AppConfig
 
 from dcumiddleware.utilities.cmapservicehelper import CmapServiceHelper
 
@@ -13,10 +14,10 @@ class KelvinHelper:
                        'sourceDomainOrIP', 'type', 'info', 'target', 'proxy',
                        'reporter', 'reporterEmail']
 
-    def __init__(self, kelvinmongo: MongoClient, kelvindbname: str, cmapHelper: CmapServiceHelper, config):
+    def __init__(self, config: AppConfig):
         self._logger = logging.getLogger(__name__)
-        self._kelvindb = kelvinmongo[kelvindbname]
-        self._cmapHelper = cmapHelper
+        self._kelvindb = MongoClient(config.KELVIN_DB_URL)[config.KELVIN_DBNAME]
+        self._cmapHelper = CmapServiceHelper(config)
         self._genpact_sender = config.GENPACT_SENDER
         self._genpact_receiver = config.GENPACT_RECEIVER
         self._pdna_reporter_id = config.PDNA_REPORTER_ID
