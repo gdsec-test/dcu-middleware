@@ -315,7 +315,7 @@ reference = "gddy-artifactory"
 
 [[package]]
 name = "csetutils"
-version = "0.1.8"
+version = "0.2.1"
 description = ""
 category = "main"
 optional = false
@@ -988,7 +988,7 @@ reference = "gddy-artifactory"
 [metadata]
 lock-version = "1.1"
 python-versions = "3.7.10"
-content-hash = "8dbaa33fbe7b419f832392376543b16a64ec3068be5d21cdc9000147d5826919"
+content-hash = "812e82431b3700f2349d6e6fd17d4ce7d7df885c9e15aba91abdda9fec325c3a"
 
 [metadata.files]
 amqp = [
@@ -1176,7 +1176,7 @@ cryptography = [
     {file = "cryptography-37.0.2.tar.gz", hash = "sha256:f224ad253cc9cea7568f49077007d2263efa57396a2f2f78114066fd54b5c68e"},
 ]
 csetutils = [
-    {file = "csetutils-0.1.8-py3-none-any.whl", hash = "sha256:4252a86e4a952fec2945400b8e60cfea9e88089a68d0e71a58d70636b2a4d1e8"},
+    {file = "csetutils-0.2.1-py3-none-any.whl", hash = "sha256:089b6b38fd07a0e2a38e2e870c05699086a0b3ded3ec9ef428c92aba89280f9d"},
 ]
 dcdatabase = [
     {file = "dcdatabase-1.3-py3-none-any.whl", hash = "sha256:bae0ad87255702f57a5727a65536e67260d2ff87c76c6c895fc80b73978c1b5c"},

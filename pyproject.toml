@@ -33,7 +33,7 @@ urllib3 = "1.26.5"
 vine = "5.0.0"
 wcwidth = "0.2.5"
 zipp = "3.4.1"
-csetutils = ">=0.1.8"
+csetutils = ">=0.2.1"
 
 [tool.poetry.dev-dependencies]
 coverage = "5.5"
