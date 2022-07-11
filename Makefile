@@ -30,7 +30,7 @@ lint:
 .PHONY: unit-test
 unit-test:
 	@echo "----- Running tests -----"
-	python -m unittest discover tests "*_tests.py"
+	@poetry run python -m unittest discover tests "*_tests.py"
 
 .PHONY: testcov
 testcov:

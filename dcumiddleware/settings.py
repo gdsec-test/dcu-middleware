@@ -34,6 +34,15 @@ class AppConfig(object):
     SSO_URL = 'https://sso.dev-godaddy.com'
     SSO_USER = os.getenv('SSO_USER', 'user')
     SSO_PASSWORD = os.getenv('SSO_PASSWORD', 'password')
+    # config for kelvin sync
+    SHADOWFAX_REPORTER_ID = ''
+    SHADOWFAX_REPORTER_CID = ''
+    PDNA_REPORTER_ID = ''
+    PDNA_REPORTER_CID = ''
+    GENPACT_SENDER = ''
+    GENPACT_RECEIVER = ''
+    KELVIN_DB_URL = os.getenv('KELVIN_DB_URL')
+    KELVIN_DBNAME = ''
 
     BROKER_URL = os.getenv('MULTIPLE_BROKERS')
 
@@ -54,6 +63,14 @@ class ProductionAppConfig(AppConfig):
     TASK_TIMEOUT = 60 * 60
     TASK_MAX_RETRIES = 4
 
+    PDNA_REPORTER_ID = '222151473'
+    PDNA_REPORTER_CID = 'c4e19017-2259-453a-96d0-95466f144ded'
+    SHADOWFAX_REPORTER_ID = '350853785'
+    SHADOWFAX_REPORTER_CID = 'f8a4ab73-8892-486f-98b9-4f6ba6d1048a'
+    GENPACT_SENDER = 'cst-gp@godaddy.com'
+    GENPACT_RECEIVER = 'prod_trustandsafety@z-c2fbrs90d9ediwdjd88zl485ikgyej58hyuf56omumxiclcih.f2-1g8e2eak.na173.apex.salesforce.com'
+    KELVIN_DBNAME = 'dcu_kelvin'
+
     SSO_URL = 'https://sso.godaddy.com'
 
     def __init__(self):
@@ -68,6 +85,14 @@ class OTEAppConfig(AppConfig):
     APIQUEUE = 'otedcumiddleware'
     GDBRANDSERVICESQUEUE = 'otegdbrandservice'
     EMEABRANDSERVICESQUEUE = 'oteemeabrandservice'
+
+    PDNA_REPORTER_ID = '1500319040'
+    PDNA_REPORTER_CID = 'eb80d7fe-1c19-419e-9039-da36b53bdee8'
+    SHADOWFAX_REPORTER_ID = '1500566424'
+    SHADOWFAX_REPORTER_CID = 'c490ad3c-a501-45e2-80a5-cfbf2a890f65'
+    GENPACT_SENDER = 'test-cst-gp@godaddy.com'
+    GENPACT_RECEIVER = 'test-cst-gp@2w2zapmulv96i8lbcolvhkwvoy5fkpvaexo0bnci8klryyaokx.29-ekkfea4.cs19.apex.sandbox.salesforce.com'
+    KELVIN_DBNAME = 'ote_dcu_kelvin'
 
     SSO_URL = 'https://sso.ote-godaddy.com'
 
@@ -84,6 +109,14 @@ class TestAppConfig(AppConfig):
     GDBRANDSERVICESQUEUE = 'testgdbrandservice'
     EMEABRANDSERVICESQUEUE = 'testemeabrandservice'
 
+    PDNA_REPORTER_ID = '4051952'
+    PDNA_REPORTER_CID = 'f2f9341e-48e8-4db1-8152-05da9609b99b'
+    SHADOWFAX_REPORTER_ID = '4051952'
+    SHADOWFAX_REPORTER_CID = 'f2f9341e-48e8-4db1-8152-05da9609b99b'
+    GENPACT_SENDER = 'test-cst-gp@godaddy.com'
+    GENPACT_RECEIVER = 'test-cst-gp@2w2zapmulv96i8lbcolvhkwvoy5fkpvaexo0bnci8klryyaokx.29-ekkfea4.cs19.apex.sandbox.salesforce.com'
+    KELVIN_DBNAME = 'testkelvin'
+
     SSO_URL = 'https://sso.test-godaddy.com'
 
     def __init__(self):
@@ -98,6 +131,14 @@ class DevelopmentAppConfig(AppConfig):
     APIQUEUE = 'devdcumiddleware'
     GDBRANDSERVICESQUEUE = 'devgdbrandservice'
     EMEABRANDSERVICESQUEUE = 'devemeabrandservice'
+
+    PDNA_REPORTER_ID = '1767806'
+    PDNA_REPORTER_CID = '4eddbbb1-2abc-4c82-a129-3209723ffc12'
+    SHADOWFAX_REPORTER_ID = '4051952'
+    SHADOWFAX_REPORTER_CID = 'f2f9341e-48e8-4db1-8152-05da9609b99b'
+    GENPACT_SENDER = 'test-cst-gp@godaddy.com'
+    GENPACT_RECEIVER = 'test-cst-gp@2w2zapmulv96i8lbcolvhkwvoy5fkpvaexo0bnci8klryyaokx.29-ekkfea4.cs19.apex.sandbox.salesforce.com'
+    KELVIN_DBNAME = 'devkelvin'
 
     SSO_URL = 'https://sso.dev-godaddy.com'
 
