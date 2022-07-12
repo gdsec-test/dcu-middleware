@@ -4,8 +4,8 @@ import smtplib
 from email.message import EmailMessage
 
 from pymongo import MongoClient
-from dcumiddleware.settings import AppConfig
 
+from dcumiddleware.settings import AppConfig
 from dcumiddleware.utilities.cmapservicehelper import CmapServiceHelper
 
 
