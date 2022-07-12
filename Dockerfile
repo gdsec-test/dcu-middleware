@@ -3,6 +3,7 @@ LABEL MAINTAINER=dcueng@godaddy.com
 USER root
 
 COPY dist/requirements.txt /tmp/
+RUN python -m pip install --upgrade pip pip==20.2.4
 RUN pip install -r /tmp/requirements.txt
 RUN rm /tmp/requirements.txt
 
