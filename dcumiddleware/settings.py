@@ -31,7 +31,7 @@ class AppConfig(object):
     SHOPPER_API_KEY_PATH = os.getenv('SHOPPER_API_KEY_PATH')
 
     REGISTERED_ONLY_PRODUCTS = {'Shortener', 'Parked', 'EOL', 'GEM'}
-    SSO_URL = 'https://sso.dev-godaddy.com'
+    SSO_URL = 'https://sso.dev-gdcorp.tools'
     SSO_USER = os.getenv('SSO_USER', 'user')
     SSO_PASSWORD = os.getenv('SSO_PASSWORD', 'password')
     # config for kelvin sync
@@ -71,7 +71,7 @@ class ProductionAppConfig(AppConfig):
     GENPACT_RECEIVER = 'prod_trustandsafety@z-c2fbrs90d9ediwdjd88zl485ikgyej58hyuf56omumxiclcih.f2-1g8e2eak.na173.apex.salesforce.com'
     KELVIN_DBNAME = 'dcu_kelvin'
 
-    SSO_URL = 'https://sso.godaddy.com'
+    SSO_URL = 'https://sso.gdcorp.tools'
 
     def __init__(self):
         super(ProductionAppConfig, self).__init__()
@@ -94,7 +94,7 @@ class OTEAppConfig(AppConfig):
     GENPACT_RECEIVER = 'test-cst-gp@2w2zapmulv96i8lbcolvhkwvoy5fkpvaexo0bnci8klryyaokx.29-ekkfea4.cs19.apex.sandbox.salesforce.com'
     KELVIN_DBNAME = 'ote_dcu_kelvin'
 
-    SSO_URL = 'https://sso.ote-godaddy.com'
+    SSO_URL = 'https://sso.ote-gdcorp.tools'
 
     def __init__(self):
         super(OTEAppConfig, self).__init__()
@@ -117,7 +117,7 @@ class TestAppConfig(AppConfig):
     GENPACT_RECEIVER = 'test-cst-gp@2w2zapmulv96i8lbcolvhkwvoy5fkpvaexo0bnci8klryyaokx.29-ekkfea4.cs19.apex.sandbox.salesforce.com'
     KELVIN_DBNAME = 'testkelvin'
 
-    SSO_URL = 'https://sso.test-godaddy.com'
+    SSO_URL = 'https://sso.test-gdcorp.tools'
 
     def __init__(self):
         super(TestAppConfig, self).__init__()
@@ -140,7 +140,7 @@ class DevelopmentAppConfig(AppConfig):
     GENPACT_RECEIVER = 'test-cst-gp@2w2zapmulv96i8lbcolvhkwvoy5fkpvaexo0bnci8klryyaokx.29-ekkfea4.cs19.apex.sandbox.salesforce.com'
     KELVIN_DBNAME = 'devkelvin'
 
-    SSO_URL = 'https://sso.dev-godaddy.com'
+    SSO_URL = 'https://sso.dev-gdcorp.tools'
 
     def __init__(self):
         super(DevelopmentAppConfig, self).__init__()
@@ -154,7 +154,7 @@ class UnitTestAppConfig(AppConfig):
     GDBRANDSERVICESQUEUE = ''
     EMEABRANDSERVICESQUEUE = ''
 
-    SSO_URL = 'https://sso.godaddy.com'
+    SSO_URL = 'https://sso.gdcorp.tools'
 
 
 config_by_name = {'dev': DevelopmentAppConfig, 'prod': ProductionAppConfig, 'ote': OTEAppConfig,
