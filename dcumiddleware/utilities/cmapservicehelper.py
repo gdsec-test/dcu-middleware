@@ -105,6 +105,7 @@ class CmapServiceHelper(object):
                     ip
                     product
                     shopperId
+                    customerId
                 }
                 registrar {
                     brand
@@ -116,6 +117,7 @@ class CmapServiceHelper(object):
                 shopperInfo {
                     shopperCreateDate
                     shopperId
+                    customerId
                 }
             }
         }''')
@@ -162,6 +164,7 @@ class CmapServiceHelper(object):
                   os
                   product
                   shopperId
+                  customerId
                   shopperCreateDate
                   mwpId
                   createdDate
@@ -189,6 +192,7 @@ class CmapServiceHelper(object):
                   domainCount
                   shopperCreateDate
                   shopperId
+                  customerId
                   vip {
                     blacklist
                     portfolioType

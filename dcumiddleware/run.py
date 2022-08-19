@@ -69,6 +69,7 @@ REGISTRAR_KEY = 'registrar'
 RESOLVED = 'resolved'
 SHOPPER_INFO_KEY = 'shopperInfo'
 SHOPPER_KEY = 'shopperId'
+CUSTOMER_KEY = 'customerId'
 SOURCE_KEY = 'sourceDomainOrIp'
 TICKET_ID_KEY = '_id'
 VIP_KEY = 'vip'
@@ -139,15 +140,17 @@ def enrichment_succeeded(data):
     host_here = hosted.get(BRAND_KEY, None) == GODADDY_BRAND and product not in app_settings.REGISTERED_ONLY_PRODUCTS
 
     miss_shopper = hosted.get(SHOPPER_KEY, None) is None
+    miss_customer = hosted.get(CUSTOMER_KEY, None) is None
     miss_product = product is None
     miss_guid = hosted.get(GUID_KEY, None) is None
     miss_whmcs_user = product == DIABLO_WHMCS and hosted.get(KEY_USERNAME, None) in (None, NOT_FOUND)
-    host_enrich_fail = host_here and (miss_shopper or miss_product or miss_guid or miss_whmcs_user)
+    host_enrich_fail = host_here and (miss_shopper or miss_customer or miss_product or miss_guid or miss_whmcs_user)
 
     registered_here = domain.get(BRAND_KEY, None) == GODADDY_BRAND
     missing_domain = domain.get(DOMAIN_ID_KEY, None) is None
     missing_domain_shopper = shopper.get(SHOPPER_KEY, None) is None
-    domain_enrich_fail = registered_here and (missing_domain or missing_domain_shopper)
+    missing_domain_customer = shopper.get(CUSTOMER_KEY, None) is None
+    domain_enrich_fail = registered_here and (missing_domain or missing_domain_shopper or missing_domain_customer)
 
     if host_enrich_fail or domain_enrich_fail:
         return False
@@ -354,6 +357,7 @@ def _load_and_enrich_data(self, data):
             self.retry(exc=e)
 
     metricset.counter('successful_enrichment', reset_on_collect=True).inc(1)
+    # TODO CMAPT-5069: remove 'shopperID' from cmap_data before sending it to the DB
     # return the result of merging the CMap data with data gathered from the API
     return db.update_incident(ticket_id, cmap_helper.api_cmap_merge(data, cmap_data))
 

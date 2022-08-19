@@ -59,6 +59,7 @@ class TestRun(TestCase):
     PRODUCT_KEY = 'product'
     BRAND_KEY = 'brand'
     SHOPPER_KEY = 'shopperId'
+    CUSTOMER_KEY = 'customerId'
     REGISTRAR_KEY = 'registrar'
     DOMAIN_KEY = 'domainId'
     SHOPPER_INFO_KEY = 'shopperInfo'
@@ -98,13 +99,14 @@ class TestRun(TestCase):
         mock_cmap.assert_called()
         mock_db.assert_called()
 
-    def build_cmap_data_object(self, shopper_brand='GODADDY', shopper_id='123456', domain_brand='GODADDY', domain_id='123456', domain_shopper='123456'):
+    def build_cmap_data_object(self, shopper_brand='GODADDY', shopper_id='123456', customer_id='123456', domain_brand='GODADDY', domain_id='123456', domain_shopper='123456', domain_customer='123456'):
         data = {
             self.DATA_KEY: {
                 self.DOMAIN_QUERY_KEY: {
                     self.HOST_KEY: {
                         self.BRAND_KEY: shopper_brand,
                         self.SHOPPER_KEY: shopper_id,
+                        self.CUSTOMER_KEY: customer_id,
                         self.GUID_KEY: 'random',
                         self.PRODUCT_KEY: 'DIABLO'
                     },
@@ -113,7 +115,8 @@ class TestRun(TestCase):
                         self.DOMAIN_KEY: domain_id
                     },
                     self.SHOPPER_INFO_KEY: {
-                        self.SHOPPER_KEY: domain_shopper
+                        self.SHOPPER_KEY: domain_shopper,
+                        self.CUSTOMER_KEY: domain_customer
                     }
                 }
             }
@@ -145,6 +148,11 @@ class TestRun(TestCase):
         status = run.enrichment_succeeded(data)
         self.assertFalse(status)
 
+    def test_enrich_status_check_hosted_registerd_no_customer(self):
+        data = self.build_cmap_data_object(customer_id=None)
+        status = run.enrichment_succeeded(data)
+        self.assertFalse(status)
+
     def test_enrichment_status_check_hosted_registered_no_domainid(self):
         data = self.build_cmap_data_object(domain_id=None)
         status = run.enrichment_succeeded(data)
@@ -152,6 +160,11 @@ class TestRun(TestCase):
 
     def test_enrichment_status_check_hosted_registered_no_domain_shopper(self):
         data = self.build_cmap_data_object(domain_shopper=None)
+        status = run.enrichment_succeeded(data)
+        self.assertFalse(status)
+
+    def test_enrichment_status_check_hosted_registered_no_domain_customer(self):
+        data = self.build_cmap_data_object(domain_customer=None)
         status = run.enrichment_succeeded(data)
         self.assertFalse(status)
 
