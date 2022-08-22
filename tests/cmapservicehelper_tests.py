@@ -46,6 +46,7 @@ class TestCmapServiceHelper(TestCase):
                         'os': None,
                         'product': None,
                         'shopperId': None,
+                        'customerId': None,
                         'shopperCreateDate': '2003-01-19',
                         'privateLabelId': None,
                         'vip': {
@@ -65,6 +66,7 @@ class TestCmapServiceHelper(TestCase):
                         'domainCount': None,
                         'shopperCreateDate': '2003-01-19',
                         'shopperId': None,
+                        'customerId': None,
                         'vip': {
                             'blacklist': False,
                             'portfolioType': None,
@@ -102,6 +104,7 @@ class TestCmapServiceHelper(TestCase):
         self.assertTrue('os' in doc['data']['domainQuery']['host'])
         self.assertTrue('product' in doc['data']['domainQuery']['host'])
         self.assertTrue('shopperId' in doc['data']['domainQuery']['host'])
+        self.assertTrue('customerId' in doc['data']['domainQuery']['host'])
         self.assertTrue('shopperCreateDate' in doc['data']['domainQuery']['host'])
         self.assertTrue('privateLabelId' in doc['data']['domainQuery']['host'])
         self.assertTrue('vip' in doc['data']['domainQuery']['host'])
@@ -116,6 +119,7 @@ class TestCmapServiceHelper(TestCase):
         self.assertTrue('domainCount' in doc['data']['domainQuery']['shopperInfo'])
         self.assertTrue('shopperCreateDate' in doc['data']['domainQuery']['shopperInfo'])
         self.assertTrue('shopperId' in doc['data']['domainQuery']['shopperInfo'])
+        self.assertTrue('customerId' in doc['data']['domainQuery']['shopperInfo'])
         self.assertTrue('vip' in doc['data']['domainQuery']['shopperInfo'])
         self.assertTrue('blacklist' in doc['data']['domainQuery']['shopperInfo']['vip'])
         self.assertTrue('portfolioType' in doc['data']['domainQuery']['shopperInfo']['vip'])
@@ -146,6 +150,7 @@ class TestCmapServiceHelper(TestCase):
                 },
                 'shopperInfo': {
                     'shopperId': '49047180',
+                    'customerId': "1234-5678-9012",
                     'shopperCreateDate': '2012-01-09',
                     'domainCount': 9,
                     'vip': {
@@ -163,6 +168,7 @@ class TestCmapServiceHelper(TestCase):
         self.assertTrue(doc['data']['domainQuery']['apiReseller']['parent'] is None)
         self.assertTrue(doc['data']['domainQuery']['apiReseller']['child'] is None)
         self.assertTrue(doc['data']['domainQuery']['shopperInfo']['shopperId'] == '49047180')
+        self.assertEqual(doc['data']['domainQuery']['shopperInfo']['customerId'], "1234-5678-9012")
         self.assertTrue(doc['data']['domainQuery']['shopperInfo']['shopperCreateDate'] == '2012-01-09')
         self.assertTrue(doc['data']['domainQuery']['shopperInfo']['domainCount'] == 9)
         self.assertTrue(doc['data']['domainQuery']['shopperInfo']['vip']['blacklist'] is True)
