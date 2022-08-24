@@ -5,7 +5,7 @@ description = "middleware for processing API requests"
 authors = ["DCU Engineering <dcueng@godaddy.com>"]
 
 [[tool.poetry.source]]
-name = "gddy-artifactory"
+name = "gddy"
 url = "https://artifactory.secureserver.net/artifactory/api/pypi/python-virt/simple"
 
 [tool.poetry.dependencies]
