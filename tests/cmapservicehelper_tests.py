@@ -46,6 +46,7 @@ class TestCmapServiceHelper(TestCase):
                         'os': None,
                         'product': None,
                         'shopperId': None,
+                        'shopperPlid': None,
                         'customerId': None,
                         'shopperCreateDate': '2003-01-19',
                         'privateLabelId': None,
@@ -67,6 +68,7 @@ class TestCmapServiceHelper(TestCase):
                         'shopperCreateDate': '2003-01-19',
                         'shopperId': None,
                         'customerId': None,
+                        'shopperPlid': None,
                         'vip': {
                             'blacklist': False,
                             'portfolioType': None,
@@ -105,6 +107,7 @@ class TestCmapServiceHelper(TestCase):
         self.assertTrue('product' in doc['data']['domainQuery']['host'])
         self.assertTrue('shopperId' in doc['data']['domainQuery']['host'])
         self.assertTrue('customerId' in doc['data']['domainQuery']['host'])
+        self.assertTrue('shopperPlid' in doc['data']['domainQuery']['host'])
         self.assertTrue('shopperCreateDate' in doc['data']['domainQuery']['host'])
         self.assertTrue('privateLabelId' in doc['data']['domainQuery']['host'])
         self.assertTrue('vip' in doc['data']['domainQuery']['host'])
@@ -120,6 +123,7 @@ class TestCmapServiceHelper(TestCase):
         self.assertTrue('shopperCreateDate' in doc['data']['domainQuery']['shopperInfo'])
         self.assertTrue('shopperId' in doc['data']['domainQuery']['shopperInfo'])
         self.assertTrue('customerId' in doc['data']['domainQuery']['shopperInfo'])
+        self.assertTrue('shopperPlid' in doc['data']['domainQuery']['shopperInfo'])
         self.assertTrue('vip' in doc['data']['domainQuery']['shopperInfo'])
         self.assertTrue('blacklist' in doc['data']['domainQuery']['shopperInfo']['vip'])
         self.assertTrue('portfolioType' in doc['data']['domainQuery']['shopperInfo']['vip'])

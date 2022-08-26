@@ -106,6 +106,7 @@ class CmapServiceHelper(object):
                     product
                     shopperId
                     customerId
+                    shopperPlid
                 }
                 registrar {
                     brand
@@ -118,6 +119,7 @@ class CmapServiceHelper(object):
                     shopperCreateDate
                     shopperId
                     customerId
+                    shopperPlid
                 }
             }
         }''')
@@ -164,6 +166,7 @@ class CmapServiceHelper(object):
                   os
                   product
                   shopperId
+                  shopperPlid
                   customerId
                   shopperCreateDate
                   mwpId
@@ -193,6 +196,7 @@ class CmapServiceHelper(object):
                   shopperCreateDate
                   shopperId
                   customerId
+                  shopperPlid
                   vip {
                     blacklist
                     portfolioType
