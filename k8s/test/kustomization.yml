@@ -29,7 +29,7 @@ patches:
       path: "/spec/template/spec/containers/0/env/-"
       value:
         name: ABUSE_API_URL
-        value: http://api.abuse-api-test.svc.cluster.local:5000/v1/abuse/tickets
+        value: https://abuse.api.int.test-godaddy.com/v1/abuse/tickets
   target:
     kind: Deployment
     name: middleware

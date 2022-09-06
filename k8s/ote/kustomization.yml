@@ -32,7 +32,7 @@ patches:
       path: "/spec/template/spec/containers/0/env/-"
       value:
         name: ABUSE_API_URL
-        value: http://api.abuse-api-ote.svc.cluster.local:5000/v1/abuse/tickets
+        value: https://abuse.api.int.ote-godaddy.com/v1/abuse/tickets
   target:
     kind: Deployment
     name: middleware
