@@ -65,8 +65,8 @@ If you would like to run the dcumiddleware service locally, you will need to spe
 * `DB_PASS` (Password for MongoDB)
 * `BROKER_PASS` (Password for RabbitMQ)
 * `LOG_LEVEL` (DEBUG, INFO)
-* `CMAP_CERT` Path to cmapservice.int certificate file (for connecting to CMAP Service)
-* `CMAP_KEY` Path to cmapservice.int certificate file (for connecting to CMAP Service)
+* `CMAP_CLIENT_CERT` Path to cmapservice.client.cset.int. certificate file (for connecting to CMAP Service)
+* `CMAP_CLIENT_KEY` Path to cmapservice.client.cset.int. key file (for connecting to CMAP Service)
 * `SSO_USER` user to retrieve JWT with.
 * `SSO_PASSWORD` password to retrieve JWT with.
 

@@ -6,8 +6,8 @@ services:
       BROKER_URL: ${BROKER_URL}
       QUEUE_TYPE: 'quorum'
       DB_PASS: ${DB_PASS}
-      CMAP_CERT: '/tmp/certs/cmapservice.int.dev-godaddy.com.crt'
-      CMAP_KEY: '/tmp/certs/cmapservice.int.dev-godaddy.com.key'
+      CMAP_CLIENT_CERT: '/tmp/certs/cmapservice.client.cset.int.dev-gdcorp.tools.crt'
+      CMAP_CLIENT_KEY: '/tmp/certs/cmapservice.client.cset.int.dev-gdcorp.tools.key'
       DISABLESSL: 'True'
       LOG_LEVEL: ${LOG_LEVEL}
       METRICS_ENABLED: 'yes'

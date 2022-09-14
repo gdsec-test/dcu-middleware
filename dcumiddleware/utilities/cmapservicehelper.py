@@ -24,7 +24,7 @@ class CmapServiceHelper(object):
         self._base_url = settings.CMAP_SERVICE
 
         self._sso_endpoint = settings.SSO_URL + '/v1/secure/api/token'
-        self._cert = (settings.CMAP_CERT, settings.CMAP_KEY)
+        self._cert = (settings.CMAP_CLIENT_CERT, settings.CMAP_CLIENT_KEY)
         self._cached_jwt = None
 
     def cmap_query(self, query: str, url: str = '/graphql') -> dict:

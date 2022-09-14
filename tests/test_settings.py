@@ -13,5 +13,5 @@ class TestingConfig:
     API_UPDATE_URL = None
     CMAP_SERVICE = 'http://localhost:5000'
     SSO_URL = ''
-    CMAP_CERT = ''
-    CMAP_KEY = ''
+    CMAP_CLIENT_CERT = ''
+    CMAP_CLIENT_KEY = ''
