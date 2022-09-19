@@ -23,8 +23,8 @@ class AppConfig(object):
     # The number of times to retry a task after every TASK_TIMEOUT seconds
     TASK_MAX_RETRIES = 2
 
-    CMAP_CERT = os.getenv('CMAP_CERT')
-    CMAP_KEY = os.getenv('CMAP_KEY')
+    CMAP_CLIENT_CERT = os.getenv('CMAP_CLIENT_CERT')
+    CMAP_CLIENT_KEY = os.getenv('CMAP_CLIENT_KEY')
 
     SHOPPER_API_URL = os.getenv('SHOPPER_API_URL')
     SHOPPER_API_CERT_PATH = os.getenv('SHOPPER_API_CERT_PATH')

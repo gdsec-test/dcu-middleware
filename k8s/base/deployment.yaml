@@ -49,10 +49,10 @@ spec:
               secretKeyRef:
                 name: db-phishstory-v2
                 key: password
-          - name: CMAP_CERT
-            value: /cmap_certs/tls.crt
-          - name: CMAP_KEY
-            value: /cmap_certs/tls.key
+          - name: CMAP_CLIENT_CERT
+            value: /cmap_client_certs/tls.crt
+          - name: CMAP_CLIENT_KEY
+            value: /cmap_client_certs/tls.key
           - name: SHOPPER_API_CERT_PATH
             value: /shopper_certs/tls.crt
           - name: SHOPPER_API_KEY_PATH
@@ -75,16 +75,16 @@ spec:
                 name: apm-access
                 key: secret
           volumeMounts:
-          - name: tls-cmap-files
-            mountPath: /cmap_certs
+          - name: tls-cmap-client-cert-files
+            mountPath: /cmap_client_certs
             readOnly: true
           - name: tls-shopper-files
             mountPath: /shopper_certs
             readOnly: true
       volumes:
-        - name: tls-cmap-files
+        - name: tls-cmap-client-cert-files
           secret:
-            secretName: tls-cmap
+            secretName: tls-cmapservice-client-cert
         - name: tls-shopper-files
           secret:
             secretName: tls-shopper-api
