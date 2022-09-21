@@ -102,7 +102,7 @@ class OTEAppConfig(AppConfig):
 
 class TestAppConfig(AppConfig):
     DB = 'testphishstory'
-    DB_HOST = '10.36.190.222'
+    DB_HOST = 'mongodb.cset.int.dev-gdcorp.tools'
     DB_USER = 'testuser'
 
     APIQUEUE = 'testdcumiddleware'
@@ -125,7 +125,7 @@ class TestAppConfig(AppConfig):
 
 class DevelopmentAppConfig(AppConfig):
     DB = 'devphishstory'
-    DB_HOST = '10.36.190.222'
+    DB_HOST = 'mongodb.cset.int.dev-gdcorp.tools'
     DB_USER = 'devuser'
 
     APIQUEUE = 'devdcumiddleware'
@@ -147,7 +147,7 @@ class DevelopmentAppConfig(AppConfig):
 
 
 class UnitTestAppConfig(AppConfig):
-    DBURL = 'mongodb://devuser:phishstory@10.36.156.188/devphishstory'
+    DBURL = 'mongodb://devuser:phishstory@mongodb.cset.int.dev-gdcorp.tools/devphishstory'
     DB = 'devphishstory'
 
     APIQUEUE = 'testdcumiddleware'
