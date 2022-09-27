@@ -2,6 +2,7 @@ import datetime
 import logging
 import smtplib
 from email.message import EmailMessage
+from typing import Optional
 
 from pymongo import MongoClient
 
@@ -10,9 +11,7 @@ from dcumiddleware.utilities.cmapservicehelper import CmapServiceHelper
 
 
 class KelvinHelper:
-    REQUIRED_FIELDS = ['createdAt', 'kelvinStatus', 'ticketID', 'source',
-                       'sourceDomainOrIP', 'type', 'info', 'target', 'proxy',
-                       'reporter', 'reporterEmail']
+    REQUIRED_FIELDS = ['createdAt', 'ticketID', 'source', 'sourceDomainOrIP', 'type', 'info', 'target', 'proxy', 'reporter']
 
     def __init__(self, config: AppConfig):
         self._logger = logging.getLogger(__name__)
@@ -65,13 +64,14 @@ class KelvinHelper:
         }
         self._kelvindb['incidents'].update_one(selector, {"$inc": {"report_count": 1}})
 
-    def _write_reporter_email_todb(self, source: str, reporter_email: str):
-        email_document = {
-            'created': datetime.datetime.now(),
-            'email': reporter_email,
-            'source': source
-        }
-        self._kelvindb['acknowledge_email'].insert_one(email_document)
+    def _write_reporter_email_todb(self, source: str, reporter_email: Optional[str]):
+        if reporter_email:
+            email_document = {
+                'created': datetime.datetime.now(),
+                'email': reporter_email,
+                'source': source
+            }
+            self._kelvindb['acknowledge_email'].insert_one(email_document)
 
     def process(self, data: dict):
         incidents_collection = self._kelvindb['incidents']
@@ -80,11 +80,18 @@ class KelvinHelper:
         for field in self.REQUIRED_FIELDS:
             if field not in data:
                 self._logger.error(f'Missing required field: {field} for ticket id: {ticket_id}')
+
+        # We only want to process each ticket once, we will get a large number of these events
+        # during ticket backfills.
+        result = incidents_collection.find_one({'ticketID': ticket_id})
+        if result:
+            return
+
         # Check duplicate logic
         reporter = data['reporter']
         source = data['source']
         # Shadowfax reporter is allowed to submit duplicate request
-        reporter_email = data['reporterEmail']
+        reporter_email = data.get('reporterEmail')
         if reporter not in [self._shadowfax_reporter_id, self._shadowfax_reporter_cid] and self._is_duplicate(source):
             self._update_report_count(source=source)
             self._write_reporter_email_todb(source=source, reporter_email=reporter_email)

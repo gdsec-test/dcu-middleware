@@ -8,6 +8,7 @@ import yaml
 from celery import Celery, bootsteps, chain
 from celery.utils.log import get_task_logger
 from csetutils.celery import instrument
+from dcdatabase.kelvinmongo import KelvinMongo
 from dcdatabase.phishstorymongo import PhishstoryMongo
 from func_timeout import FunctionTimedOut, func_timeout
 from kombu.common import QoS
@@ -222,7 +223,6 @@ routing_helper = RoutingHelper(app, api, db)
 blacklist_client = MongoClient(app_settings.DBURL)
 blacklist_db = blacklist_client[app_settings.DB]
 blacklist_collection = blacklist_db[app_settings.BLACKLIST_COLLECTION]
-kelvin_helper = KelvinHelper(config=app_settings)
 
 """
 Sample data:
@@ -237,15 +237,29 @@ Sample data:
 """
 
 
-@app.task(name='run.sync_child_safety')
+# We want to ack late here - if we get exceptions for any reason, we want the task to keep trying.
+@app.task(name='run.sync_child_safety', acks_late=True)
 def sync_child_safety(data):
+    # Migrate some fields to match legacy kelvin-service behavior.
+    data['ticketID'] = data['ticketId']
+    data['sourceDomainOrIP'] = data['sourceDomainOrIp']
+    if data.get('target') is None:
+        data['target'] = ''
+    if data.get('info') is None:
+        data['info'] = ''
+    kelvin_helper = KelvinHelper(config=app_settings)
     kelvin_helper.process(data)
 
 
-@app.task(name='run.sync_customer_security')
+@app.task(name='run.sync_customer_security', acks_late=True)
 def sync_customer_security(data):
-    db.add_new_incident(data.get('ticketId'), data)
-    chain(process.s(data))()
+    # We only want to process each ticket once, we will get a large number of these events
+    # during ticket backfills.
+    ticketId = data.get('ticketId')
+    result = db.get_incident(ticketId)
+    if not result:
+        db.add_new_incident(ticketId, data)
+        chain(process.s(data))()
 
 
 @app.task(name='run.process')
@@ -261,7 +275,7 @@ def process(data):
           _route_to_brand_services.s())()
 
 
-@app.task(name='run.sync_attribute')
+@app.task(name='run.sync_attribute', acks_late=True)
 def sync_attribute(ticket_id, field, value):
     """
     Updates P3 mongo ticketId field name with new value.
@@ -270,9 +284,11 @@ def sync_attribute(ticket_id, field, value):
     :param value:
     :return:
     """
-
-    # return the result of updating the specified ticket with the given Key:Value
-    return db.update_incident(ticket_id, {field: value})
+    if ticket_id.startswith('DCUK'):
+        kdb = KelvinMongo(app_settings.KELVIN_DBNAME, app_settings.KELVIN_DB_URL, 'incidents')
+        return kdb.update_incident(ticket_id, {field: value})
+    else:
+        return db.update_incident(ticket_id, {field: value})
 
 
 ''' PRIVATE TASKS'''
