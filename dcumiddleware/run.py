@@ -2,7 +2,7 @@ import logging.config
 import os
 import socket
 from typing import Union
-from urllib.parse import urlparse
+from urllib.parse import quote, urlparse
 
 import yaml
 from celery import Celery, bootsteps, chain
@@ -308,7 +308,8 @@ def _load_and_enrich_data(self, data):
     source = data.get('source')
     reporter: str = data.get(KEY_REPORTER)
 
-    url_path = urlparse(source).path
+    # Ensure we correctly encode all special characters.
+    url_path = quote(urlparse(source).path)
     timeout_in_seconds = 2
     domain_name_ip = sub_domain_ip = ip = None
     cmap_data = {}

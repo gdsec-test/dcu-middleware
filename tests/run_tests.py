@@ -22,7 +22,7 @@ OPEN = 'OPEN'
 PHISHING = 'PHISHING'
 
 AUTO_SUSPEND_DOMAIN = {
-    'source': 'https://test1.godaddysites.com/',
+    'source': 'https://test1.godaddysites.com/test me',
     KEY_SOURCE_DOMAIN: 'godaddysites.com',
     KEY_SUBDOMAIN: 'test1.godaddysites.com',
     KEY_TICKET_ID: 'DCU001',
@@ -38,9 +38,10 @@ BLACKLISTED_TICKET = {KEY_BLACKLIST: True}
 
 class MockCmapServiceHelper:
     def __init__(self, _settings):
-        pass
+        self._path = None
 
     def domain_query(self, _domain, _path):
+        self._path = _path
         return {'status': 'good'}
 
     def api_cmap_merge(self, _dict1, _dict2):
@@ -96,7 +97,7 @@ class TestRun(TestCase):
     def test_load_and_enrich_data_success(self, mock_socket, mock_cmap, mock_db):
         run._load_and_enrich_data(AUTO_SUSPEND_DOMAIN)
         mock_socket.assert_called()
-        mock_cmap.assert_called()
+        self.assertEqual(mock_cmap.return_value._path, '/test%20me')
         mock_db.assert_called()
 
     def build_cmap_data_object(self, shopper_brand='GODADDY', shopper_id='123456', customer_id='123456', domain_brand='GODADDY', domain_id='123456', domain_shopper='123456', domain_customer='123456'):
