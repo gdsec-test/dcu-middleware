@@ -6,6 +6,7 @@ import requests
 class ShopperApiHelper:
     SHOPPER_PARAMS = {'auditClientIp': 'cmap.service.int.godaddy.com'}
     SHOPPER_KEY = 'shopperId'
+    CUSTOMER_KEY = 'customerId'
 
     def __init__(self, shopper_url: str, cert_file_path: str, key_file_path: str):
         self._logger = logging.getLogger(__name__)
@@ -22,5 +23,17 @@ class ShopperApiHelper:
             data = resp.json()
             return data[self.SHOPPER_KEY]
         except Exception as e:
-            self._logger.exception(f'Error in shopper request. {e}')
+            self._logger.exception('Error in shopper request.', e)
+            return ''
+
+    def get_customer_id(self, shopper_id: str) -> str:
+        url = f'{self._shopper_url}/v1/shoppers/{shopper_id}'
+        cert = (self._cert_file_path, self._key_file_path)
+        try:
+            resp = requests.get(url, params=self.SHOPPER_PARAMS, cert=cert)
+            resp.raise_for_status()
+            data = resp.json()
+            return data[self.CUSTOMER_KEY]
+        except Exception as e:
+            self._logger.exception('Error in shopper request.', e)
             return ''

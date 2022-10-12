@@ -322,6 +322,10 @@ def _load_and_enrich_data(self, data):
     if reporter and not reporter.isnumeric() and 'jomax' not in reporter:
         data[KEY_REPORTER] = shopper_api_helper.get_shopper_id(reporter)
         data[KEY_REPORTER_CID] = reporter
+    elif reporter and reporter.isnumeric():
+        data[KEY_REPORTER_CID] = shopper_api_helper.get_customer_id(reporter)
+    else:
+        data[KEY_REPORTER_CID] = reporter
 
     if KEY_METADATA in data and (
             KEY_SHOPPER_ID not in data[KEY_METADATA] or data[KEY_METADATA][KEY_SHOPPER_ID] == '') and KEY_CUSTOMER_ID in \
