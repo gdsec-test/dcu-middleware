@@ -106,14 +106,16 @@ class KelvinHelper:
         data['hostedStatus'] = self._determine_hosted_status(cmap_response)
         data['data'] = cmap_response.get('data', {})
 
-        if reporter in [self._shadowfax_reporter_id, self._pdna_reporter_id,
-                        self._shadowfax_reporter_cid, self._pdna_reporter_cid]:
+        if reporter in [self._shadowfax_reporter_id, self._shadowfax_reporter_cid]:
+            data['kelvinStatus'] = 'OPEN'
+        elif reporter in [self._pdna_reporter_id, self._pdna_reporter_cid]:
             data['kelvinStatus'] = 'AWAITING_INVESTIGATION'
         else:
             data['kelvinStatus'] = 'OPEN'
+            # Send email to genpact
+            registrar_name = data.get('data', {}).get('domainQuery', {}).get('registrar', {}).get('registrarName', '')
+            host_name = data.get('data', {}).get('domainQuery', {}).get('host', {}).get('hostingCompanyName', '')
+            self._send_email_to_genpact(source=data['source'], registrar=registrar_name, host=host_name, ticket_id=ticket_id)
+
         incidents_collection.insert_one(data)
         self._write_reporter_email_todb(source=source, reporter_email=reporter_email)
-        # Send email to genpact
-        registrar_name = data.get('data', {}).get('domainQuery', {}).get('registrar', {}).get('registrarName', '')
-        host_name = data.get('data', {}).get('domainQuery', {}).get('host', {}).get('hostingCompanyName', '')
-        self._send_email_to_genpact(source=data['source'], registrar=registrar_name, host=host_name, ticket_id=ticket_id)
