@@ -49,6 +49,9 @@ class KelvinHelper:
         s.send_message(msg)
 
     def _is_duplicate(self, source: str) -> bool:
+        if source == 'NO_SOURCE':
+            return False
+
         result = self._kelvindb['incidents'].find_one({
             'kelvinStatus': {"$in": ['OPEN', 'AWAITING_INVESTIGATION']},
             'source': source
@@ -110,6 +113,9 @@ class KelvinHelper:
             data['kelvinStatus'] = 'OPEN'
         elif reporter in [self._pdna_reporter_id, self._pdna_reporter_cid]:
             data['kelvinStatus'] = 'AWAITING_INVESTIGATION'
+        elif source == 'NO_SOURCE':
+            data['kelvinStatus'] = 'OPEN'
+            data['hostedStatus'] = 'UNKNOWN'
         else:
             data['kelvinStatus'] = 'OPEN'
             # Send email to genpact
