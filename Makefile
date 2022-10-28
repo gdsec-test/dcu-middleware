@@ -14,6 +14,13 @@ define deploy_k8s
 	cd k8s/$(1) && kustomize edit set image $(DOCKERREPO):$(1)
 endef
 
+define deploy_cset_k8s
+	docker build -t $(DOCKERREPO):$(2) .
+	docker push $(DOCKERREPO):$(2)
+	cd k8s/$(1) && kustomize edit set image $$(docker inspect --format='{{index .RepoDigests 0}}' $(DOCKERREPO):$(2))
+	kubectl --context $(1)-cset apply -k k8s/$(1)
+	cd k8s/$(1) && kustomize edit set image $(DOCKERREPO):$(1)
+endef
 
 .PHONY: init
 init:
@@ -54,7 +61,7 @@ image: prep
 .PHONY: dev-deploy
 dev-deploy: prep
 	@echo "----- deploying $(REPONAME) to dev -----"
-	$(call deploy_k8s,dev,dev)
+	$(call deploy_cset_k8s,dev,dev)
 
 .PHONY: ote-deploy
 ote-deploy: prep
@@ -64,7 +71,7 @@ ote-deploy: prep
 .PHONY: test-deploy
 test-deploy: prep
 	@echo "----- deploying $(REPONAME) to test -----"
-	$(call deploy_k8s,test,test)
+	$(call deploy_cset_k8s,test,test)
 
 .PHONY: prod-deploy
 prod-deploy: prep
