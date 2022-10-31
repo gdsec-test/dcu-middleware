@@ -26,8 +26,8 @@ spec:
             exec:
               command:
                 - '/app/health.sh'
-            initialDelaySeconds: 10
-            periodSeconds: 10
+            periodSeconds: 20
+            timeoutSeconds: 10
           env:
           - name: MULTIPLE_BROKERS
             valueFrom:
