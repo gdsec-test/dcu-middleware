@@ -141,6 +141,8 @@ class CmapServiceHelper(object):
                 apiReseller {
                   child
                   parent
+                  parentCustomerId
+                  childCustomerId
                 }
                 blacklist
                 domain
