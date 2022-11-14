@@ -1,5 +1,6 @@
 import os
 
+from celery import Celery
 from kombu import Exchange, Queue
 
 from dcumiddleware.settings import AppConfig, config_by_name
@@ -42,3 +43,7 @@ class CeleryConfig:
 
     def __init__(self):
         self.broker_url = app_settings.BROKER_URL
+
+
+app = Celery()
+app.config_from_object(CeleryConfig())
