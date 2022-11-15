@@ -11,9 +11,6 @@ COPY dist/*.whl /tmp/
 RUN pip install /tmp/*.whl
 RUN rm /tmp/*.whl
 
-COPY . /tmp
-
-
 RUN mkdir /app
 COPY health.sh /app
 COPY logging.yaml /app
