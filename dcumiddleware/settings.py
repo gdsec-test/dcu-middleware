@@ -1,5 +1,5 @@
 import os
-import urllib.parse
+from urllib.parse import quote
 
 
 class AppConfig(object):
@@ -51,8 +51,8 @@ class ProductionAppConfig(AppConfig):
     DB = 'phishstory'
     DB_HOST = '10.22.9.209'
     DB_USER = 'sau_p_phishv2'
-    DB_PASS = urllib.parse.quote(os.getenv('DB_PASS', 'password'))
-    DBURL = 'mongodb://{}:{}@{}/{}'.format(DB_USER, DB_PASS, DB_HOST, DB)
+    DB_PASS = quote(os.getenv('DB_PASS', 'password'))
+    DBURL = f'mongodb://{DB_USER}:{DB_PASS}@{DB_HOST}/?authSource={DB}'
 
     APIQUEUE = 'dcumiddleware'
     GDBRANDSERVICESQUEUE = 'gdbrandservice'
@@ -79,8 +79,8 @@ class OTEAppConfig(AppConfig):
     DB = 'otephishstory'
     DB_HOST = '10.22.9.209'
     DB_USER = 'sau_o_phish'
-    DB_PASS = urllib.parse.quote(os.getenv('DB_PASS', 'password'))
-    DBURL = 'mongodb://{}:{}@{}/{}'.format(DB_USER, DB_PASS, DB_HOST, DB)
+    DB_PASS = quote(os.getenv('DB_PASS', 'password'))
+    DBURL = f'mongodb://{DB_USER}:{DB_PASS}@{DB_HOST}/?authSource={DB}'
 
     APIQUEUE = 'otedcumiddleware'
     GDBRANDSERVICESQUEUE = 'otegdbrandservice'
