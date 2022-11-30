@@ -32,9 +32,6 @@ AUTO_SUSPEND_DOMAIN = {
     KEY_FAILED_ENRICHMENT: True,
 }
 
-NOT_BLACKLISTED_TICKET = {KEY_BLACKLIST: False}
-BLACKLISTED_TICKET = {KEY_BLACKLIST: True}
-
 
 class MockCmapServiceHelper:
     def __init__(self, _settings):
@@ -83,6 +80,9 @@ class TestRun(TestCase):
                 }
             }
         }
+
+        self.NOT_BLACKLISTED_TICKET = {run.DATA_KEY: {run.DOMAIN_Q_KEY: {KEY_BLACKLIST: False}}}
+        self.BLACKLISTED_TICKET = {run.DATA_KEY: {run.DOMAIN_Q_KEY: {KEY_BLACKLIST: True}}}
 
     # Test sync_attribute
     @patch.object(PhishstoryMongo, 'update_incident', return_value=None)
@@ -200,31 +200,31 @@ class TestRun(TestCase):
 
     @patch.object(Collection, 'find_one', return_value=None)
     def test_blacklist_is_false(self, mock_find_one):
-        result = run._check_for_blacklist_auto_actions(NOT_BLACKLISTED_TICKET)
+        result = run._check_for_blacklist_auto_actions(self.NOT_BLACKLISTED_TICKET)
         mock_find_one.assert_not_called()
-        self.assertDictEqual(result, NOT_BLACKLISTED_TICKET)
+        self.assertDictEqual(result, self.NOT_BLACKLISTED_TICKET)
 
     @patch.object(PhishstoryMongo, 'update_actions_sub_document', return_value=None)
     @patch.object(Collection, 'find_one', return_value={'entity': 'test.com'})
     def test_blacklisted_no_action(self, mock_find_one, mock_update_actions):
-        result = run._check_for_blacklist_auto_actions(BLACKLISTED_TICKET)
+        result = run._check_for_blacklist_auto_actions(self.BLACKLISTED_TICKET)
         mock_find_one.assert_called()
         mock_update_actions.assert_not_called()
-        self.assertDictEqual(result, BLACKLISTED_TICKET)
+        self.assertDictEqual(result, self.BLACKLISTED_TICKET)
 
     @patch.object(PhishstoryMongo, 'update_actions_sub_document', return_value=None)
     @patch.object(Collection, 'find_one', return_value={'entity': 'test.com', 'action': ['nonsense']})
     def test_invalid_action(self, mock_find_one, mock_update_actions):
-        result = run._check_for_blacklist_auto_actions(BLACKLISTED_TICKET)
+        result = run._check_for_blacklist_auto_actions(self.BLACKLISTED_TICKET)
         mock_find_one.assert_called()
         mock_update_actions.assert_not_called()
-        self.assertDictEqual(result, BLACKLISTED_TICKET)
+        self.assertDictEqual(result, self.BLACKLISTED_TICKET)
 
     @patch.object(PhishstoryMongo, 'update_actions_sub_document', return_value=None)
     @patch.object(APIHelper, 'close_incident', return_value=None)
     @patch.object(Collection, 'find_one', return_value={'entity': 'test.com', 'action': ['false_positive']})
     def test_fp_auto_action(self, mock_find_one, mock_close_incident, mock_update_actions):
-        result = run._check_for_blacklist_auto_actions(BLACKLISTED_TICKET)
+        result = run._check_for_blacklist_auto_actions(self.BLACKLISTED_TICKET)
         mock_find_one.assert_called()
         mock_close_incident.assert_called()
         mock_update_actions.assert_called()
@@ -234,7 +234,7 @@ class TestRun(TestCase):
     @patch.object(APIHelper, 'close_incident', return_value=None)
     @patch.object(Collection, 'find_one', return_value={'entity': 'test.com', 'action': ['resolved']})
     def test_resolved_auto_action(self, mock_find_one, mock_close_incident, mock_update_actions):
-        result = run._check_for_blacklist_auto_actions(BLACKLISTED_TICKET)
+        result = run._check_for_blacklist_auto_actions(self.BLACKLISTED_TICKET)
         mock_find_one.assert_called()
         mock_close_incident.assert_called()
         mock_update_actions.assert_called()
@@ -263,3 +263,62 @@ class TestRun(TestCase):
             self.enrichment[run.DATA_KEY][run.DOMAIN_Q_KEY][run.HOST_KEY],
             {'dummy': 'random', 'shopperId': 'test_shopper'}
         )
+
+    @patch.object(PhishstoryMongo, 'update_actions_sub_document', return_value=None)
+    @patch.object(APIHelper, 'close_incident', return_value=None)
+    @patch.object(Collection, 'find_one', side_effect=[None, {'entity': 'test.com', 'action': ['false_positive']}, None])
+    def test_host_shopper_only_bl(self, mock_find_one, mock_close_incident, mock_update_actions):
+        self.BLACKLISTED_TICKET[run.DATA_KEY][run.DOMAIN_Q_KEY][run.HOST_KEY] = {run.SHOPPER_KEY: 'test'}
+        result = run._check_for_blacklist_auto_actions(self.BLACKLISTED_TICKET)
+        mock_find_one.assert_called()
+        mock_close_incident.assert_called()
+        mock_update_actions.assert_called()
+        self.assertIsNone(result)
+
+    @patch.object(PhishstoryMongo, 'update_actions_sub_document', return_value=None)
+    @patch.object(APIHelper, 'close_incident', return_value=None)
+    @patch.object(Collection, 'find_one', side_effect=[None, None, {'entity': 'test.com', 'action': ['false_positive']}])
+    def test_domain_shopper_only_bl(self, mock_find_one, mock_close_incident, mock_update_actions):
+        self.BLACKLISTED_TICKET[run.DATA_KEY][run.DOMAIN_Q_KEY][run.SHOPPER_INFO_KEY] = {run.SHOPPER_KEY: 'test'}
+        result = run._check_for_blacklist_auto_actions(self.BLACKLISTED_TICKET)
+        mock_find_one.assert_called()
+        mock_close_incident.assert_called()
+        mock_update_actions.assert_called()
+        self.assertIsNone(result)
+
+    @patch.object(PhishstoryMongo, 'update_actions_sub_document', return_value=None)
+    @patch.object(APIHelper, 'close_incident', return_value=None)
+    @patch.object(Collection, 'find_one', side_effect=[None, {'entity': 'test.com', 'action': ['false_positive']}, {'entity': 'test.com', 'action': ['false_positive']}])
+    def test_both_shopper_bl(self, mock_find_one, mock_close_incident, mock_update_actions):
+        self.BLACKLISTED_TICKET[run.DATA_KEY][run.DOMAIN_Q_KEY][run.SHOPPER_INFO_KEY] = {run.SHOPPER_KEY: 'test'}
+        self.BLACKLISTED_TICKET[run.DATA_KEY][run.DOMAIN_Q_KEY][run.HOST_KEY] = {run.SHOPPER_KEY: 'test'}
+        result = run._check_for_blacklist_auto_actions(self.BLACKLISTED_TICKET)
+        mock_find_one.assert_called()
+        mock_close_incident.assert_called()
+        mock_update_actions.assert_called()
+        self.assertIsNone(result)
+
+    @patch.object(PhishstoryMongo, 'update_actions_sub_document', return_value=None)
+    @patch.object(APIHelper, 'close_incident', return_value=None)
+    @patch.object(Collection, 'find_one', side_effect=[None, None, None])
+    def test_no_shopper_bl(self, mock_find_one, mock_close_incident, mock_update_actions):
+        self.BLACKLISTED_TICKET[run.DATA_KEY][run.DOMAIN_Q_KEY][run.SHOPPER_INFO_KEY] = {run.SHOPPER_KEY: 'test'}
+        self.BLACKLISTED_TICKET[run.DATA_KEY][run.DOMAIN_Q_KEY][run.HOST_KEY] = {run.SHOPPER_KEY: 'test'}
+        result = run._check_for_blacklist_auto_actions(self.BLACKLISTED_TICKET)
+        mock_find_one.assert_called()
+        mock_close_incident.assert_not_called()
+        mock_update_actions.assert_not_called()
+        self.assertEqual(self.BLACKLISTED_TICKET, result)
+
+    @patch.object(PhishstoryMongo, 'update_actions_sub_document', return_value=None)
+    @patch.object(APIHelper, 'close_incident', return_value=None)
+    @patch.object(Collection, 'find_one', side_effect=[None, None, None])
+    def test_failed_enrichment_bl(self, mock_find_one, mock_close_incident, mock_update_actions):
+        self.BLACKLISTED_TICKET[run.DATA_KEY][run.DOMAIN_Q_KEY][run.SHOPPER_INFO_KEY] = {run.SHOPPER_KEY: 'test'}
+        self.BLACKLISTED_TICKET[run.DATA_KEY][run.DOMAIN_Q_KEY][run.HOST_KEY] = {run.SHOPPER_KEY: 'test'}
+        self.BLACKLISTED_TICKET[run.FAILED_ENRICHMENT_KEY] = True
+        result = run._check_for_blacklist_auto_actions(self.BLACKLISTED_TICKET)
+        mock_find_one.assert_not_called()
+        mock_close_incident.assert_not_called()
+        mock_update_actions.assert_not_called()
+        self.assertEqual(self.BLACKLISTED_TICKET, result)

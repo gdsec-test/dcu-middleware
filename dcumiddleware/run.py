@@ -103,13 +103,23 @@ metricset = apm._metrics.get_metricset('dcumiddleware.metrics.Metrics')
 
 
 def get_blacklist_info(source: str, domain_shopper: str, host_shopper: str) -> Union[list, None]:
-    blacklist_record = blacklist_collection.find_one({'$or': [
-        {BLACKLIST_ENTITY_KEY: host_shopper},
-        {BLACKLIST_ENTITY_KEY: domain_shopper},
-        {BLACKLIST_ENTITY_KEY: source}
-    ]})
+    source_bl_record = blacklist_collection.find_one({BLACKLIST_ENTITY_KEY: source})
+    if source_bl_record:
+        return source_bl_record.get(ACTION_KEY) if source_bl_record else None
 
-    return blacklist_record.get(ACTION_KEY) if blacklist_record else None
+    host_shopper_bl_record = blacklist_collection.find_one({BLACKLIST_ENTITY_KEY: host_shopper})
+    domain_shopper_bl_record = blacklist_collection.find_one({BLACKLIST_ENTITY_KEY: domain_shopper})
+
+    if host_shopper and not domain_shopper:
+        return host_shopper_bl_record.get(ACTION_KEY) if host_shopper_bl_record else None
+
+    if domain_shopper and not host_shopper:
+        return domain_shopper_bl_record.get(ACTION_KEY) if domain_shopper_bl_record else None
+
+    if domain_shopper and host_shopper and domain_shopper_bl_record and host_shopper_bl_record:
+        return host_shopper_bl_record.get(ACTION_KEY) if host_shopper_bl_record else None
+
+    return None
 
 
 def replace_dict(dict_to_replace):
@@ -390,7 +400,7 @@ def _check_for_blacklist_auto_actions(data):
     :param data:
     :return:
     """
-    if data.get(BLACKLIST_KEY):
+    if data.get(DATA_KEY, {}).get(DOMAIN_Q_KEY, {}).get(BLACKLIST_KEY) and not data.get(FAILED_ENRICHMENT_KEY, False):
         domain_shopper = data.get(DATA_KEY, {}).get(DOMAIN_Q_KEY, {}).get(SHOPPER_INFO_KEY, {}).get(SHOPPER_KEY, None)
         host_shopper = data.get(DATA_KEY, {}).get(DOMAIN_Q_KEY, {}).get(HOST_KEY, {}).get(SHOPPER_KEY, None)
         source = data.get(SOURCE_KEY)
