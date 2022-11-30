@@ -74,12 +74,17 @@ spec:
               secretKeyRef:
                 name: apm-access
                 key: secret
+          - name: MONGO_CLIENT_CERT
+            value: /mongo_common_certs/mongo_client.pem
           volumeMounts:
           - name: tls-cmap-client-cert-files
             mountPath: /cmap_client_certs
             readOnly: true
           - name: tls-shopper-files
             mountPath: /shopper_certs
+            readOnly: true
+          - name: tls-mongo-common-cert-files
+            mountPath: /mongo_common_certs
             readOnly: true
       volumes:
         - name: tls-cmap-client-cert-files
@@ -88,3 +93,6 @@ spec:
         - name: tls-shopper-files
           secret:
             secretName: tls-shopper-api
+        - name: tls-mongo-common-cert-files
+          secret:
+            secretName: tls-mongo-common-cert-files
