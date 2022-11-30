@@ -403,7 +403,7 @@ def _check_for_blacklist_auto_actions(data):
     if data.get(DATA_KEY, {}).get(DOMAIN_Q_KEY, {}).get(BLACKLIST_KEY) and not data.get(FAILED_ENRICHMENT_KEY, False):
         domain_shopper = data.get(DATA_KEY, {}).get(DOMAIN_Q_KEY, {}).get(SHOPPER_INFO_KEY, {}).get(SHOPPER_KEY, None)
         host_shopper = data.get(DATA_KEY, {}).get(DOMAIN_Q_KEY, {}).get(HOST_KEY, {}).get(SHOPPER_KEY, None)
-        source = data.get(SOURCE_KEY)
+        source = data.get('sourceSubDomain')
         ticket = data.get(TICKET_ID_KEY)
 
         result_action = get_blacklist_info(source, domain_shopper, host_shopper)
