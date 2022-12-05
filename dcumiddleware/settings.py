@@ -131,7 +131,7 @@ class DevelopmentAppConfig(AppConfig):
     DB_HOST = 'mongodb.cset.int.dev-gdcorp.tools'
     DB_USER = 'devuser'
     DB_PASS = os.getenv('DB_PASS', 'password')
-    CLIENT_CERT = os.getenv("MONGO_CLIENT_CERT", '')
+    CLIENT_CERT = os.getenv("MONGO_CLIENT_CERT", 'mongo.crt')
     DBURL = f'mongodb://{DB_USER}:{DB_PASS}@{DB_HOST}/?authSource={DB}&readPreference=primary&directConnection=true&tls=true&tlsCertificateKeyFile={CLIENT_CERT}'
 
     APIQUEUE = 'devdcumiddleware'
