@@ -23,7 +23,7 @@ from dcumiddleware.utilities.routinghelper import RoutingHelper
 from dcumiddleware.utilities.shopperhelper import ShopperApiHelper
 
 # Grab the correct settings based on environment
-env = os.getenv('sysenv', 'dev')
+env = os.getenv('sysenv', 'unit-test')
 app_settings = config_by_name[env]()
 
 app = Celery()

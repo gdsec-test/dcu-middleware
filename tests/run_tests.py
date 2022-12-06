@@ -1,6 +1,5 @@
 import socket
 from unittest.case import TestCase
-import os
 
 from dcdatabase.phishstorymongo import PhishstoryMongo
 from mock import patch
@@ -21,7 +20,6 @@ KEY_TICKET_ID = 'ticketId'
 KEY_TYPE = 'type'
 OPEN = 'OPEN'
 PHISHING = 'PHISHING'
-os.environ["sysenv"] = "unit-test"
 
 AUTO_SUSPEND_DOMAIN = {
     'source': 'https://test1.godaddysites.com/test me',
