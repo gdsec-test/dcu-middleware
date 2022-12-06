@@ -18,8 +18,9 @@ class TestShopperApiHelper(TestCase):
         self.assertEqual(shopperId, '123')
 
     @patch('dcumiddleware.utilities.shopperhelper.requests.get')
-    def test_invalid_get_shopper_id(self, mock_get):
+    @patch('dcumiddleware.utilities.shopperhelper.logging.getLogger')
+    def test_invalid_get_shopper_id(self, mock_log, mock_get):
         shopperApiHelper = ShopperApiHelper('', '', '')
         mock_get.return_value = Mock(status_code=400)
-        shopperId = shopperApiHelper.get_shopper_id('1')
+        shopperId = shopperApiHelper.get_shopper_id('')
         self.assertEqual(shopperId, '')

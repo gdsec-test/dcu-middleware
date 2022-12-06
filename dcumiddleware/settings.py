@@ -1,5 +1,5 @@
 import os
-import urllib.parse
+from urllib.parse import quote
 
 
 class AppConfig(object):
@@ -46,15 +46,13 @@ class AppConfig(object):
 
     BROKER_URL = os.getenv('MULTIPLE_BROKERS')
 
-    def __init__(self):
-        self.DB_PASS = urllib.parse.quote(os.getenv('DB_PASS', 'password'))
-        self.DBURL = 'mongodb://{}:{}@{}/{}'.format(self.DB_USER, self.DB_PASS, self.DB_HOST, self.DB)
-
 
 class ProductionAppConfig(AppConfig):
     DB = 'phishstory'
     DB_HOST = '10.22.9.209'
     DB_USER = 'sau_p_phishv2'
+    DB_PASS = quote(os.getenv('DB_PASS', 'password'))
+    DBURL = f'mongodb://{DB_USER}:{DB_PASS}@{DB_HOST}/?authSource={DB}'
 
     APIQUEUE = 'dcumiddleware'
     GDBRANDSERVICESQUEUE = 'gdbrandservice'
@@ -81,6 +79,8 @@ class OTEAppConfig(AppConfig):
     DB = 'otephishstory'
     DB_HOST = '10.22.9.209'
     DB_USER = 'sau_o_phish'
+    DB_PASS = quote(os.getenv('DB_PASS', 'password'))
+    DBURL = f'mongodb://{DB_USER}:{DB_PASS}@{DB_HOST}/?authSource={DB}'
 
     APIQUEUE = 'otedcumiddleware'
     GDBRANDSERVICESQUEUE = 'otegdbrandservice'
@@ -104,6 +104,9 @@ class TestAppConfig(AppConfig):
     DB = 'testphishstory'
     DB_HOST = 'mongodb.cset.int.dev-gdcorp.tools'
     DB_USER = 'testuser'
+    DB_PASS = os.getenv('DB_PASS', 'password')
+    CLIENT_CERT = os.getenv("MONGO_CLIENT_CERT", '')
+    DBURL = f'mongodb://{DB_USER}:{DB_PASS}@{DB_HOST}/?authSource={DB}&readPreference=primary&directConnection=true&tls=true&tlsCertificateKeyFile={CLIENT_CERT}'
 
     APIQUEUE = 'testdcumiddleware'
     GDBRANDSERVICESQUEUE = 'testgdbrandservice'
@@ -127,6 +130,9 @@ class DevelopmentAppConfig(AppConfig):
     DB = 'devphishstory'
     DB_HOST = 'mongodb.cset.int.dev-gdcorp.tools'
     DB_USER = 'devuser'
+    DB_PASS = os.getenv('DB_PASS', 'password')
+    CLIENT_CERT = os.getenv("MONGO_CLIENT_CERT", 'mongo.crt')
+    DBURL = f'mongodb://{DB_USER}:{DB_PASS}@{DB_HOST}/?authSource={DB}&readPreference=primary&directConnection=true&tls=true&tlsCertificateKeyFile={CLIENT_CERT}'
 
     APIQUEUE = 'devdcumiddleware'
     GDBRANDSERVICESQUEUE = 'devgdbrandservice'
@@ -147,7 +153,7 @@ class DevelopmentAppConfig(AppConfig):
 
 
 class UnitTestAppConfig(AppConfig):
-    DBURL = 'mongodb://devuser:phishstory@mongodb.cset.int.dev-gdcorp.tools/devphishstory'
+    DBURL = 'mongodb://localhost/testDB'
     DB = 'devphishstory'
 
     APIQUEUE = 'testdcumiddleware'
