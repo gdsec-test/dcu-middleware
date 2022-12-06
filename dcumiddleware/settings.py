@@ -153,7 +153,7 @@ class DevelopmentAppConfig(AppConfig):
 
 
 class UnitTestAppConfig(AppConfig):
-    DBURL = 'mongodb://devuser:phishstory@mongodb.cset.int.dev-gdcorp.tools/devphishstory'
+    DBURL = 'mongodb://localhost/testDB'
     DB = 'devphishstory'
 
     APIQUEUE = 'testdcumiddleware'
