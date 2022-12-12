@@ -179,7 +179,7 @@ class CmapServiceHelper(object):
                   managedLevel
                   firstPassEnrichment
                   secondPassEnrichment,
-                  abuse_report_email
+                  abuseReportEmail
                   vip {
                     blacklist
                     portfolioType
@@ -193,7 +193,7 @@ class CmapServiceHelper(object):
                   registrarAbuseEmail
                   registrarName
                   firstPassEnrichment,
-                  abuse_report_email
+                  abuseReportEmail
                 }
                 shopperInfo {
                   domainCount
