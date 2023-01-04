@@ -1,4 +1,5 @@
 import os
+from urllib.parse import quote
 
 
 class AppConfig(object):
@@ -45,14 +46,16 @@ class AppConfig(object):
 
     BROKER_URL = os.getenv('MULTIPLE_BROKERS')
 
+    def __init__(self):
+        self.DB_PASS = quote(os.getenv('DB_PASS', 'password'))
+        self.CLIENT_CERT = os.getenv("MONGO_CLIENT_CERT", '')
+        self.DBURL = f'mongodb://{self.DB_USER}:{self.DB_PASS}@{self.DB_HOST}/?authSource={self.DB}&readPreference=primary&directConnection=true&tls=true&tlsCertificateKeyFile={self.CLIENT_CERT}'
+
 
 class ProductionAppConfig(AppConfig):
     DB = 'phishstory'
     DB_HOST = 'p3plsocritmdb00-00-f0.prod.phx3.gdg'
     DB_USER = 'sau_p_phishv2'
-    DB_PASS = os.getenv('DB_PASS', 'password')
-    CLIENT_CERT = os.getenv("MONGO_CLIENT_CERT", '')
-    DBURL = f'mongodb://{DB_USER}:{DB_PASS}@{DB_HOST}/?authSource={DB}&readPreference=primary&directConnection=true&tls=true&tlsCertificateKeyFile={CLIENT_CERT}'
 
     APIQUEUE = 'dcumiddleware'
     GDBRANDSERVICESQUEUE = 'gdbrandservice'
@@ -79,9 +82,6 @@ class OTEAppConfig(AppConfig):
     DB = 'otephishstory'
     DB_HOST = 'p3plsocritmdb00-00-f0.prod.phx3.gdg'
     DB_USER = 'sau_o_phish'
-    DB_PASS = os.getenv('DB_PASS', 'password')
-    CLIENT_CERT = os.getenv("MONGO_CLIENT_CERT", '')
-    DBURL = f'mongodb://{DB_USER}:{DB_PASS}@{DB_HOST}/?authSource={DB}&readPreference=primary&directConnection=true&tls=true&tlsCertificateKeyFile={CLIENT_CERT}'
 
     APIQUEUE = 'otedcumiddleware'
     GDBRANDSERVICESQUEUE = 'otegdbrandservice'
@@ -105,9 +105,6 @@ class TestAppConfig(AppConfig):
     DB = 'testphishstory'
     DB_HOST = 'mongodb.cset.int.dev-gdcorp.tools'
     DB_USER = 'testuser'
-    DB_PASS = os.getenv('DB_PASS', 'password')
-    CLIENT_CERT = os.getenv("MONGO_CLIENT_CERT", '')
-    DBURL = f'mongodb://{DB_USER}:{DB_PASS}@{DB_HOST}/?authSource={DB}&readPreference=primary&directConnection=true&tls=true&tlsCertificateKeyFile={CLIENT_CERT}'
 
     APIQUEUE = 'testdcumiddleware'
     GDBRANDSERVICESQUEUE = 'testgdbrandservice'
@@ -131,9 +128,6 @@ class DevelopmentAppConfig(AppConfig):
     DB = 'devphishstory'
     DB_HOST = 'mongodb.cset.int.dev-gdcorp.tools'
     DB_USER = 'devuser'
-    DB_PASS = os.getenv('DB_PASS', 'password')
-    CLIENT_CERT = os.getenv("MONGO_CLIENT_CERT", '')
-    DBURL = f'mongodb://{DB_USER}:{DB_PASS}@{DB_HOST}/?authSource={DB}&readPreference=primary&directConnection=true&tls=true&tlsCertificateKeyFile={CLIENT_CERT}'
 
     APIQUEUE = 'devdcumiddleware'
     GDBRANDSERVICESQUEUE = 'devgdbrandservice'
