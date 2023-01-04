@@ -1,5 +1,4 @@
 import os
-from urllib.parse import quote
 
 
 class AppConfig(object):
@@ -49,10 +48,11 @@ class AppConfig(object):
 
 class ProductionAppConfig(AppConfig):
     DB = 'phishstory'
-    DB_HOST = '10.22.9.209'
+    DB_HOST = 'p3plsocritmdb00-00-f0.prod.phx3.gdg'
     DB_USER = 'sau_p_phishv2'
-    DB_PASS = quote(os.getenv('DB_PASS', 'password'))
-    DBURL = f'mongodb://{DB_USER}:{DB_PASS}@{DB_HOST}/?authSource={DB}'
+    DB_PASS = os.getenv('DB_PASS', 'password')
+    CLIENT_CERT = os.getenv("MONGO_CLIENT_CERT", '')
+    DBURL = f'mongodb://{DB_USER}:{DB_PASS}@{DB_HOST}/?authSource={DB}&readPreference=primary&directConnection=true&tls=true&tlsCertificateKeyFile={CLIENT_CERT}'
 
     APIQUEUE = 'dcumiddleware'
     GDBRANDSERVICESQUEUE = 'gdbrandservice'
@@ -77,10 +77,11 @@ class ProductionAppConfig(AppConfig):
 
 class OTEAppConfig(AppConfig):
     DB = 'otephishstory'
-    DB_HOST = '10.22.9.209'
+    DB_HOST = 'p3plsocritmdb00-00-f0.prod.phx3.gdg'
     DB_USER = 'sau_o_phish'
-    DB_PASS = quote(os.getenv('DB_PASS', 'password'))
-    DBURL = f'mongodb://{DB_USER}:{DB_PASS}@{DB_HOST}/?authSource={DB}'
+    DB_PASS = os.getenv('DB_PASS', 'password')
+    CLIENT_CERT = os.getenv("MONGO_CLIENT_CERT", '')
+    DBURL = f'mongodb://{DB_USER}:{DB_PASS}@{DB_HOST}/?authSource={DB}&readPreference=primary&directConnection=true&tls=true&tlsCertificateKeyFile={CLIENT_CERT}'
 
     APIQUEUE = 'otedcumiddleware'
     GDBRANDSERVICESQUEUE = 'otegdbrandservice'
@@ -131,7 +132,7 @@ class DevelopmentAppConfig(AppConfig):
     DB_HOST = 'mongodb.cset.int.dev-gdcorp.tools'
     DB_USER = 'devuser'
     DB_PASS = os.getenv('DB_PASS', 'password')
-    CLIENT_CERT = os.getenv("MONGO_CLIENT_CERT", 'mongo.crt')
+    CLIENT_CERT = os.getenv("MONGO_CLIENT_CERT", '')
     DBURL = f'mongodb://{DB_USER}:{DB_PASS}@{DB_HOST}/?authSource={DB}&readPreference=primary&directConnection=true&tls=true&tlsCertificateKeyFile={CLIENT_CERT}'
 
     APIQUEUE = 'devdcumiddleware'
