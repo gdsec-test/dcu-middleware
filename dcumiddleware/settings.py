@@ -48,7 +48,7 @@ class AppConfig(object):
 
     def __init__(self):
         self.DB_PASS = quote(os.getenv('DB_PASS', 'password'))
-        self.CLIENT_CERT = os.getenv("MONGO_CLIENT_CERT", '')
+        self.CLIENT_CERT = os.getenv("MONGO_CLIENT_CERT", 'mongo.crt')
         self.DBURL = f'mongodb://{self.DB_USER}:{self.DB_PASS}@{self.DB_HOST}/?authSource={self.DB}&readPreference=primary&directConnection=true&tls=true&tlsCertificateKeyFile={self.CLIENT_CERT}'
 
 
@@ -147,7 +147,7 @@ class DevelopmentAppConfig(AppConfig):
         super(DevelopmentAppConfig, self).__init__()
 
 
-class UnitTestAppConfig(AppConfig):
+class UnitTestAppConfig():
     DBURL = 'mongodb://localhost/testDB'
     DB = 'devphishstory'
 
@@ -155,7 +155,50 @@ class UnitTestAppConfig(AppConfig):
     GDBRANDSERVICESQUEUE = ''
     EMEABRANDSERVICESQUEUE = ''
 
+    DBURL = 'localhost'
+    DB = 'test'
+    DB_USER = 'user'
+    DB_HOST = 'localhost'
+    BLACKLIST_COLLECTION = 'blacklist'
+    COLLECTION = 'incidents'
+
     SSO_URL = 'https://sso.gdcorp.tools'
+    ABUSE_API_URL = 'https://abuse.api.int.dev-godaddy.com/v1/abuse/tickets'
+    SSO_URL = 'https://sso.dev-gdcorp.tools'
+    SSO_USER = 'user'
+    SSO_PASSWORD = 'password'
+
+    # Time in seconds to time-out a task
+    TASK_TIMEOUT = 1
+    # The number of times to retry a task after every TASK_TIMEOUT seconds
+    TASK_MAX_RETRIES = 2
+
+    SHOPPER_API_URL = os.getenv('SHOPPER_API_URL')
+    SHOPPER_API_CERT_PATH = os.getenv('SHOPPER_API_CERT_PATH')
+    SHOPPER_API_KEY_PATH = os.getenv('SHOPPER_API_KEY_PATH')
+
+    CMAP_CLIENT_CERT = os.getenv('CMAP_CLIENT_CERT')
+    CMAP_CLIENT_KEY = os.getenv('CMAP_CLIENT_KEY')
+
+    ENRICH_ON_SUBDOMAIN = {'godaddysites.com'}
+
+    CMAP_SERVICE = os.getenv('SERVICE_URL', 'service')
+
+    REGISTERED_ONLY_PRODUCTS = {'Shortener', 'Parked', 'EOL', 'GEM'}
+    SSO_URL = 'https://sso.dev-gdcorp.tools'
+    SSO_USER = os.getenv('SSO_USER', 'user')
+    SSO_PASSWORD = os.getenv('SSO_PASSWORD', 'password')
+    # config for kelvin sync
+    SHADOWFAX_REPORTER_ID = ''
+    SHADOWFAX_REPORTER_CID = ''
+    PDNA_REPORTER_ID = ''
+    PDNA_REPORTER_CID = ''
+    GENPACT_SENDER = ''
+    GENPACT_RECEIVER = ''
+    KELVIN_DB_URL = os.getenv('KELVIN_DB_URL')
+    KELVIN_DBNAME = ''
+
+    BROKER_URL = os.getenv('MULTIPLE_BROKERS')
 
 
 config_by_name = {'dev': DevelopmentAppConfig, 'prod': ProductionAppConfig, 'ote': OTEAppConfig,
