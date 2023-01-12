@@ -9,10 +9,11 @@ name = "gddy"
 url = "https://artifactory.secureserver.net/artifactory/api/pypi/python-virt/simple"
 
 [tool.poetry.dependencies]
-python = "3.7.10"
+python = "3.11.1"
 billiard = "3.6.4.0"
 certifi = "2022.12.07"
 chardet = "4.0.0"
+celery = "5.2.6"
 click = "8.0.3"
 click-didyoumean = "0.0.3"
 click-plugins = "1.1.1"
