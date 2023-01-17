@@ -1453,4 +1453,4 @@ reference = "gddy"
 [metadata]
 lock-version = "2.0"
 python-versions = "3.11.1"
-content-hash = "28ca28fb703c3e10d7bb3c5bd646236a27770a29aa6c3cb2ef66f581ca1f4838"
+content-hash = "af1c1b21c209b7cadb9de45503a6e4ab0253c22bae9c409cd2466ce7204f168b"
