@@ -3,6 +3,7 @@ import os
 import socket
 from typing import Union
 from urllib.parse import quote, urlparse
+from uuid import UUID
 
 import yaml
 from celery import Celery, bootsteps, chain
@@ -304,6 +305,15 @@ def sync_attribute(ticket_id, field, value):
 ''' PRIVATE TASKS'''
 
 
+def _is_uuid(uuid_str: str) -> bool:
+    try:
+        UUID(uuid_str)
+        return True
+    except:  # noqa: E722
+        pass
+    return False
+
+
 @app.task(name='run._load_and_enrich_data', bind=True, default_retry_delay=app_settings.TASK_TIMEOUT,
           max_retries=app_settings.TASK_MAX_RETRIES)
 def _load_and_enrich_data(self, data):
@@ -329,13 +339,13 @@ def _load_and_enrich_data(self, data):
     had_failed_enrichment = data.pop(FAILED_ENRICHMENT_KEY, False)
 
     # The transition to customer IDs instead of shopper IDs is starting, but we need to move a portion of the pipeline at a time.
-    if reporter and not reporter.isnumeric() and 'jomax' not in reporter:
+    if _is_uuid(reporter):
         data[KEY_REPORTER] = shopper_api_helper.get_shopper_id(reporter)
         data[KEY_REPORTER_CID] = reporter
     elif reporter and reporter.isnumeric():
         data[KEY_REPORTER_CID] = shopper_api_helper.get_customer_id(reporter)
     else:
-        data[KEY_REPORTER_CID] = reporter
+        data[KEY_REPORTER_CID] = None
 
     if KEY_METADATA in data and (
             KEY_SHOPPER_ID not in data[KEY_METADATA] or data[KEY_METADATA][KEY_SHOPPER_ID] == '') and KEY_CUSTOMER_ID in \
