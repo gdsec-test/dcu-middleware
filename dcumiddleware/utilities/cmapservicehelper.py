@@ -170,6 +170,7 @@ class CmapServiceHelper(object):
                   shopperId
                   shopperPlid
                   customerId
+                  entitlementId
                   shopperCreateDate
                   mwpId
                   createdDate

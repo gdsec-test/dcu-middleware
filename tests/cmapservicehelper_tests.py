@@ -48,6 +48,7 @@ class TestCmapServiceHelper(TestCase):
                         'shopperId': None,
                         'shopperPlid': None,
                         'customerId': None,
+                        'entitlementId': None,
                         'shopperCreateDate': '2003-01-19',
                         'privateLabelId': None,
                         'vip': {
@@ -107,6 +108,7 @@ class TestCmapServiceHelper(TestCase):
         self.assertTrue('product' in doc['data']['domainQuery']['host'])
         self.assertTrue('shopperId' in doc['data']['domainQuery']['host'])
         self.assertTrue('customerId' in doc['data']['domainQuery']['host'])
+        self.assertTrue('entitlementId' in doc['data']['domainQuery']['host'])
         self.assertTrue('shopperPlid' in doc['data']['domainQuery']['host'])
         self.assertTrue('shopperCreateDate' in doc['data']['domainQuery']['host'])
         self.assertTrue('privateLabelId' in doc['data']['domainQuery']['host'])
