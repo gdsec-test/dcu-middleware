@@ -107,6 +107,7 @@ class CmapServiceHelper(object):
                     shopperId
                     customerId
                     shopperPlid
+                    entitlementId
                 }
                 registrar {
                     brand
