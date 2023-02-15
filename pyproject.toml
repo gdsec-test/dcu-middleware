@@ -34,6 +34,7 @@ vine = "5.0.0"
 wcwidth = "0.2.5"
 zipp = "3.4.1"
 csetutils = ">=0.2.1"
+cryptography = "39.0.1"
 
 [tool.poetry.dev-dependencies]
 coverage = "5.5"
