@@ -244,7 +244,7 @@ class TestCmapServiceHelper(TestCase):
         self.assertDictEqual(result, cmap_query.return_value)
 
     @patch.object(CmapServiceHelper, 'cmap_query')
-    def test_product_lookup_entitlements(self, cmap_query):
+    def test_product_lookup_entitlement(self, cmap_query):
         entitlement_data_non_match = {'data': 'testData1', 'primary_domain': 'nonMatchingDomain.com'}
         entitlement_data_match = {'data': 'testData2', 'primary_domain': 'matchingDomain.com'}
         cmap_query.return_value = [entitlement_data_non_match, entitlement_data_match]
