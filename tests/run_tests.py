@@ -82,6 +82,7 @@ class TestRun(TestCase):
         }
 
         self.enrichment_with_entitlement = {
+            'sourceDomainOrIp': 'testDomain.com',
             run.DATA_KEY: {
                 run.DOMAIN_Q_KEY: {
                     run.HOST_KEY: {
@@ -285,7 +286,7 @@ class TestRun(TestCase):
         )
         self.enrichment_with_entitlement[run.DATA_KEY][run.DOMAIN_Q_KEY][run.HOST_KEY][run.KEY_PRODUCT] = 'random'
         run.validate_abuse_verified(self.incident, self.enrichment_with_entitlement, 'test.com', '127.0.0.1')
-        mock_cmap.return_value.product_lookup_entitlements.assert_called_with('test-customer', 'test-entitlement')
+        mock_cmap.return_value.product_lookup_entitlements.assert_called_with('test-customer', 'test-entitlement', 'testDomain.com')
         mock_cmap.return_value.shopper_lookup.assert_called_with('test_shopper')
         self.assertDictEqual(
             self.enrichment_with_entitlement[run.DATA_KEY][run.DOMAIN_Q_KEY][run.HOST_KEY],

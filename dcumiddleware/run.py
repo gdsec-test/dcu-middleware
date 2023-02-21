@@ -210,13 +210,14 @@ def validate_abuse_verified(ticket: dict, enrichment: dict, domain: str, ip: str
         product = hosted_enrichment.get(KEY_PRODUCT, '')
         entitlement_id = hosted_enrichment.get('entitlementId', '')
         customer_id = hosted_enrichment.get('customerId', '')
+        hosted_enrichment = {}
 
         # Use the entitlements product look up if we have entitlementId and customerId,
         #   and the product is not plesks or diablo
         if entitlement_id and customer_id and product != 'diablo' and product != 'plesk':
             hosted_enrichment = cmap_helper.product_lookup_entitlement(customer_id, entitlement_id, domain)
 
-        else:
+        if hosted_enrichment == {}:
             # Perform a product specific enrichment.
             hosted_enrichment = cmap_helper.product_lookup(
                 domain,
