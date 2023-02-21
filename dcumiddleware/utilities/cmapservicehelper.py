@@ -65,7 +65,7 @@ class CmapServiceHelper(object):
 
     def product_lookup_entitlements(self, customerId: str, entitlementId: str) -> dict:
         # entitlement endpoint is: /v1/nes/<customerId>/<entitlementId>
-        return self.cmap_query('', f'/v1/nes/{customerId}/{entitlementId}')
+        return self.cmap_query('', f'/v1/nes/{customerId}/{entitlementId}')[0]
 
     def shopper_lookup(self, shopper: str) -> dict:
         return self.cmap_query(
