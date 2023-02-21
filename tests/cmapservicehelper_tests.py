@@ -244,6 +244,13 @@ class TestCmapServiceHelper(TestCase):
         self.assertDictEqual(result, cmap_query.return_value)
 
     @patch.object(CmapServiceHelper, 'cmap_query')
+    def test_product_lookup_entitlements(self, cmap_query):
+        cmap_query.return_value = {'data': 'test'}
+        result = self.cmapservice.product_lookup_entitlements('test_customer', 'test_entitlement')
+        cmap_query.assert_called_with('', '/v1/nes/test_customer/test_entitlement')
+        self.assertEqual(result, cmap_query.return_value)
+
+    @patch.object(CmapServiceHelper, 'cmap_query')
     def test_shopper_lookup(self, cmap_query):
         cmap_query.return_value = {'example': 'data'}
         result = self.cmapservice.shopper_lookup('shopper')
