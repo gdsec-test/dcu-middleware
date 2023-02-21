@@ -245,10 +245,21 @@ class TestCmapServiceHelper(TestCase):
 
     @patch.object(CmapServiceHelper, 'cmap_query')
     def test_product_lookup_entitlements(self, cmap_query):
-        cmap_query.return_value = [{'data': 'test'}]
-        result = self.cmapservice.product_lookup_entitlements('test_customer', 'test_entitlement')
+        entitlement_data_non_match = {'data': 'testData1', 'domain': 'nonMatchingDomain.com'}
+        entitlement_data_match = {'data': 'testData2', 'domain': 'matchingDomain.com'}
+        cmap_query.return_value = [entitlement_data_non_match, entitlement_data_match]
+        result = self.cmapservice.product_lookup_entitlement('test_customer', 'test_entitlement', 'matchingDomain.com')
         cmap_query.assert_called_with('', '/v1/nes/test_customer/test_entitlement')
-        self.assertEqual(result, cmap_query.return_value[0])
+        self.assertEqual(result, entitlement_data_match)
+
+    @patch.object(CmapServiceHelper, 'cmap_query')
+    def test_product_lookup_entitlement_no_matching_domain(self, cmap_query):
+        entitlement_data_non_match = {'data': 'testData1', 'domain': 'nonMatchingDomain.com'}
+        entitlement_data_non_match_2 = {'data': 'testData2', 'domain': 'nonMatchingDomain2.com'}
+        cmap_query.return_value = [entitlement_data_non_match, entitlement_data_non_match_2]
+        result = self.cmapservice.product_lookup_entitlement('test_customer', 'test_entitlement', 'matchingDomain.com')
+        cmap_query.assert_called_with('', '/v1/nes/test_customer/test_entitlement')
+        self.assertEqual(result, {})
 
     @patch.object(CmapServiceHelper, 'cmap_query')
     def test_shopper_lookup(self, cmap_query):

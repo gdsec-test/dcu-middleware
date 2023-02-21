@@ -63,9 +63,18 @@ class CmapServiceHelper(object):
             '/v1/hosted/lookup'
         )
 
-    def product_lookup_entitlements(self, customerId: str, entitlementId: str) -> dict:
-        # entitlement endpoint is: /v1/nes/<customerId>/<entitlementId>
-        return self.cmap_query('', f'/v1/nes/{customerId}/{entitlementId}')[0]
+    def product_lookup_entitlement(self, customerId: str, entitlementId: str, domain: str) -> dict:
+        # cmap entitlement endpoint is: /v1/nes/<customerId>/<entitlementId> This returns an array of the
+        #   entitlements for that customer
+        entitlements_array = self.cmap_query('', f'/v1/nes/{customerId}/{entitlementId}')
+
+        # Iterate through the entitlements array and find the one that matches the specified domain
+        for entitlement_data in entitlements_array:
+            if entitlement_data.get('domain', '') == domain:
+                return entitlement_data
+
+        logging.error(f'Domain {domain} not found in entitlements')
+        return {}
 
     def shopper_lookup(self, shopper: str) -> dict:
         return self.cmap_query(
