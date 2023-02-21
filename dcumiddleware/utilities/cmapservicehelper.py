@@ -70,7 +70,7 @@ class CmapServiceHelper(object):
 
         # Iterate through the entitlements array and find the one that matches the specified domain
         for entitlement_data in entitlements_array:
-            if entitlement_data.get('domain', '') == domain:
+            if entitlement_data.get('primary_domain', '') == domain:
                 return entitlement_data
 
         logging.error(f'Domain {domain} not found in entitlements')
