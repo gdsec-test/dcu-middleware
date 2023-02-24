@@ -66,6 +66,7 @@ KEY_SHOPPER_ID = 'shopperId'
 KEY_CUSTOMER_ID = 'customerId'
 KEY_USERNAME = 'username'
 KEY_VIP = 'vip'
+KEY_ENTITLEMENT_ID = 'entitlementId'
 NOT_FOUND = 'NotFound'
 REGISTRAR_KEY = 'registrar'
 RESOLVED = 'resolved'
@@ -208,21 +209,13 @@ def validate_abuse_verified(ticket: dict, enrichment: dict, domain: str, ip: str
         }
 
         product = hosted_enrichment.get(KEY_PRODUCT, '')
-        entitlement_id = hosted_enrichment.get('entitlementId', '')
-        customer_id = hosted_enrichment.get('customerId', '')
-
-        # Use the entitlements product look up if we have entitlementId and customerId,
-        #   and the product is not plesks or diablo
-        if entitlement_id and customer_id and product != 'diablo' and product != 'plesk':
-            hosted_enrichment = cmap_helper.product_lookup_entitlement(customer_id, entitlement_id, domain)
-        else:
-            # Perform a product specific enrichment.
-            hosted_enrichment = cmap_helper.product_lookup(
-                domain,
-                hosted_enrichment[KEY_GUID],
-                ip,
-                product
-            )
+        # Perform a product specific enrichment.
+        hosted_enrichment = cmap_helper.product_lookup(
+            domain,
+            hosted_enrichment[KEY_GUID],
+            ip,
+            product
+        )
 
         hosted_enrichment.update(cmap_helper.shopper_lookup(hosted_enrichment[KEY_SHOPPER_ID]))
         enrichment.get(DATA_KEY, {}).get(DOMAIN_Q_KEY, {})[HOST_KEY] = hosted_enrichment
@@ -388,7 +381,12 @@ def _load_and_enrich_data(self, data):
         # Retrieve CMAP data from CMapServiceHelper
         cmap_data = cmap_helper.domain_query(domain, url_path)
 
-        if data.get(KEY_ABUSE_VERIFIED):
+        if KEY_METADATA in data and KEY_ENTITLEMENT_ID in data[KEY_METADATA] and KEY_CUSTOMER_ID in data[KEY_METADATA]:
+            entitlement_id = data[KEY_METADATA][KEY_ENTITLEMENT_ID]
+            customer_id = data[KEY_METADATA][KEY_CUSTOMER_ID]
+            host_data = cmap_helper.product_lookup_entitlement(customer_id, entitlement_id)
+            cmap_data.get(DATA_KEY, {}).get(DOMAIN_Q_KEY, {})[HOST_KEY] = host_data
+        elif data.get(KEY_ABUSE_VERIFIED):
             validate_abuse_verified(data, cmap_data, domain, ip)
 
         if not enrichment_succeeded(cmap_data):

@@ -82,15 +82,18 @@ class TestRun(TestCase):
         }
 
         self.enrichment_with_entitlement = {
-            run.DATA_KEY: {
-                run.DOMAIN_Q_KEY: {
-                    run.HOST_KEY: {
-                        run.KEY_PRODUCT: 'test',
-                        run.KEY_GUID: 'test-guid',
-                        'entitlementId': 'test-entitlement',
-                        'customerId': 'test-customer'
-                    }
-                }
+            'source': 'https://test1.godaddysites.com/test me',
+            KEY_SOURCE_DOMAIN: 'godaddysites.com',
+            KEY_SUBDOMAIN: 'test1.godaddysites.com',
+            KEY_TICKET_ID: 'DCU001',
+            KEY_PHISHSTORY_STATUS: OPEN,
+            KEY_HOSTED: HOSTED,
+            KEY_TYPE: PHISHING,
+            run.KEY_METADATA: {
+                run.KEY_PRODUCT: 'test',
+                run.KEY_GUID: 'test-guid',
+                run.KEY_CUSTOMER_ID: 'test-customer',
+                run.KEY_ENTITLEMENT_ID: 'test-entitlement'
             }
         }
 
@@ -111,6 +114,19 @@ class TestRun(TestCase):
         run._load_and_enrich_data(AUTO_SUSPEND_DOMAIN)
         mock_socket.assert_called()
         self.assertEqual(mock_cmap.return_value._path, '/test%20me')
+        mock_db.assert_called()
+
+    @patch.object(PhishstoryMongo, 'update_incident', return_value=None)
+    @patch('dcumiddleware.run.CmapServiceHelper')
+    @patch.object(socket, 'gethostbyname', return_value='1.1.1.1')
+    def test_load_and_enrich_entitlement(self, mock_socket, mock_cmap, mock_db):
+        mock_cmap.return_value = MagicMock(
+            product_lookup_entitlement=MagicMock(return_value={run.KEY_SHOPPER_ID: 'test_shopper'}),
+            domain_query=MagicMock(return_value={})
+        )
+        run._load_and_enrich_data(self.enrichment_with_entitlement)
+        mock_socket.assert_called()
+        mock_cmap.return_value.product_lookup_entitlement.assert_called_with('test-customer', 'test-entitlement')
         mock_db.assert_called()
 
     def build_cmap_data_object(self, shopper_brand='GODADDY', shopper_id='123456', customer_id='123456', domain_brand='GODADDY', domain_id='123456', domain_shopper='123456', domain_customer='123456'):
@@ -274,21 +290,6 @@ class TestRun(TestCase):
         mock_cmap.return_value.shopper_lookup.assert_called_with('test_shopper')
         self.assertDictEqual(
             self.enrichment[run.DATA_KEY][run.DOMAIN_Q_KEY][run.HOST_KEY],
-            {'dummy': 'random', 'shopperId': 'test_shopper'}
-        )
-
-    @patch('dcumiddleware.run.CmapServiceHelper')
-    def test_validate_abuse_verified_mismatch_entitlement(self, mock_cmap):
-        mock_cmap.return_value = MagicMock(
-            product_lookup_entitlement=MagicMock(return_value={run.KEY_SHOPPER_ID: 'test_shopper'}),
-            shopper_lookup=MagicMock(return_value={'dummy': 'random'})
-        )
-        self.enrichment_with_entitlement[run.DATA_KEY][run.DOMAIN_Q_KEY][run.HOST_KEY][run.KEY_PRODUCT] = 'random'
-        run.validate_abuse_verified(self.incident, self.enrichment_with_entitlement, 'test.com', '127.0.0.1')
-        mock_cmap.return_value.product_lookup_entitlement.assert_called_with('test-customer', 'test-entitlement', 'test.com')
-        mock_cmap.return_value.shopper_lookup.assert_called_with('test_shopper')
-        self.assertDictEqual(
-            self.enrichment_with_entitlement[run.DATA_KEY][run.DOMAIN_Q_KEY][run.HOST_KEY],
             {'dummy': 'random', 'shopperId': 'test_shopper'}
         )
 
