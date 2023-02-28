@@ -63,6 +63,15 @@ class CmapServiceHelper(object):
             '/v1/hosted/lookup'
         )
 
+    def product_lookup_entitlement(self, customerId: str, entitlementId: str) -> dict:
+        # cmap entitlement endpoint is: /v1/nes/<customerId>/<entitlementId> This returns an array of
+        #   the products for that account
+        entitlements_array = self.cmap_query('', f'/v1/nes/{customerId}/{entitlementId}')
+
+        # Return the first element in the array.  This array *should* only have one element, since we are
+        #   assuming that there can only be one product per entitlement ID
+        return entitlements_array[0]
+
     def shopper_lookup(self, shopper: str) -> dict:
         return self.cmap_query(
             json.dumps({
