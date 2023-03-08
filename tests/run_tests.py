@@ -107,14 +107,16 @@ class TestRun(TestCase):
         mock_db.assert_called_with(KEY_TICKET_ID, {'field': 'value'})
 
     # Test successful load and enrichment
+    @patch.object(PhishstoryMongo, 'remove_field', return_value=None)
     @patch.object(PhishstoryMongo, 'update_incident', return_value=None)
     @patch('dcumiddleware.run.CmapServiceHelper', return_value=MockCmapServiceHelper({}))
     @patch.object(socket, 'gethostbyname', return_value='1.1.1.1')
-    def test_load_and_enrich_data_success(self, mock_socket, mock_cmap, mock_db):
+    def test_load_and_enrich_data_success(self, mock_socket, mock_cmap, mock_db_update, mock_db_remove):
         run._load_and_enrich_data(AUTO_SUSPEND_DOMAIN)
         mock_socket.assert_called()
         self.assertEqual(mock_cmap.return_value._path, '/test%20me')
-        mock_db.assert_called()
+        mock_db_update.assert_called()
+        mock_db_remove.assert_called()
 
     @patch.object(PhishstoryMongo, 'update_incident', return_value=None)
     @patch('dcumiddleware.run.CmapServiceHelper')

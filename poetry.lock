@@ -535,16 +535,17 @@ reference = "gddy"
 
 [[package]]
 name = "dcdatabase"
-version = "1.8.0"
+version = "2.0.0"
 description = "database functionality for DCU"
 category = "main"
 optional = false
 python-versions = "*"
 files = [
-    {file = "dcdatabase-1.8.0-py3-none-any.whl", hash = "sha256:580732b05f45c9aed50d8dc90ccd6b357bedff8324a76feb5dca0150b24b36fb"},
+    {file = "dcdatabase-2.0.0-py3-none-any.whl", hash = "sha256:11c8148221852cd557812d4a4aff2b38afbcfd6ba7f6f5e6d4969d783f9d5002"},
 ]
 
 [package.dependencies]
+cryptography = "39.0.1"
 importlib-metadata = "<5.0"
 pymongo = {version = "3.11.3", extras = ["ocsp"]}
 
@@ -1451,4 +1452,4 @@ reference = "gddy"
 [metadata]
 lock-version = "2.0"
 python-versions = "3.11.1"
-content-hash = "cb49606bb09baae9cb409ffc441441fd944045018b312fb60e5c43d7921c9c6c"
+content-hash = "7f8cf87a044ebd4a66fb59489f382ecdaf293dbd5d304829be1991e64e1d93c7"
