@@ -54,9 +54,9 @@ spec:
           - name: CMAP_CLIENT_KEY
             value: /cmap_client_certs/tls.key
           - name: SHOPPER_API_CERT_PATH
-            value: /shopper_certs/tls.crt
+            value: /cmap_client_certs/tls.crt
           - name: SHOPPER_API_KEY_PATH
-            value: /shopper_certs/tls.key
+            value: /cmap_client_certs/tls.key
           - name: METRICS_ENABLED
             value: 'yes'
           - name: KELVIN_DB_URL
@@ -80,9 +80,6 @@ spec:
           - name: tls-cmap-client-cert-files
             mountPath: /cmap_client_certs
             readOnly: true
-          - name: tls-shopper-files
-            mountPath: /shopper_certs
-            readOnly: true
           - name: tls-mongo-common-cert-files
             mountPath: /mongo_common_certs
             readOnly: true
@@ -90,9 +87,6 @@ spec:
         - name: tls-cmap-client-cert-files
           secret:
             secretName: tls-cmapservice-client-cert
-        - name: tls-shopper-files
-          secret:
-            secretName: tls-shopper-api
         - name: tls-mongo-common-cert-files
           secret:
             secretName: tls-mongo-common-cert-files

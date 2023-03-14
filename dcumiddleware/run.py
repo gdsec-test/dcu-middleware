@@ -343,8 +343,8 @@ def _load_and_enrich_data(self, data):
 
     # The transition to customer IDs instead of shopper IDs is starting, but we need to move a portion of the pipeline at a time.
     if _is_uuid(reporter):
-        data[KEY_REPORTER] = shopper_api_helper.get_shopper_id(reporter)
         data[KEY_REPORTER_CID] = reporter
+        data[KEY_REPORTER] = shopper_api_helper.get_shopper_id(reporter)
     elif reporter and reporter.isnumeric():
         data[KEY_REPORTER_CID] = shopper_api_helper.get_customer_id(reporter)
     else:
