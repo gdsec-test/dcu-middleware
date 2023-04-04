@@ -263,7 +263,7 @@ class TestRun(TestCase):
 
     @patch.object(PhishstoryMongo, 'update_actions_sub_document', return_value=None)
     @patch.object(APIHelper, 'close_incident', return_value=None)
-    @patch.object(Collection, 'find_one', return_value={'entity': 'test.com', 'action': ['resolved']})
+    @patch.object(Collection, 'find_one', return_value={'entity': 'test.com', 'action': ['resolved_no_action']})
     def test_resolved_auto_action(self, mock_find_one, mock_close_incident, mock_update_actions):
         result = run._check_for_blacklist_auto_actions(self.BLACKLISTED_TICKET)
         mock_find_one.assert_called()
