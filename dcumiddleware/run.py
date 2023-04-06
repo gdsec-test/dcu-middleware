@@ -69,7 +69,7 @@ KEY_VIP = 'vip'
 KEY_ENTITLEMENT_ID = 'entitlementId'
 NOT_FOUND = 'NotFound'
 REGISTRAR_KEY = 'registrar'
-RESOLVED = 'resolved'
+RESOLVED_NO_ACTION = 'resolved_no_action'
 SHOPPER_INFO_KEY = 'shopperInfo'
 SHOPPER_KEY = 'shopperId'
 CUSTOMER_KEY = 'customerId'
@@ -429,7 +429,7 @@ def _check_for_blacklist_auto_actions(data):
         if result_action:
             if isinstance(result_action, list):
                 result_action = result_action[0]
-            if result_action in [FALSE_POSITIVE, RESOLVED]:
+            if result_action in [FALSE_POSITIVE, RESOLVED_NO_ACTION]:
                 api.close_incident(ticket, result_action)
                 db.update_actions_sub_document(ticket, f'closed as {result_action}')
                 return
