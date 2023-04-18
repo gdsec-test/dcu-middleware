@@ -77,16 +77,16 @@ spec:
           - name: MONGO_CLIENT_CERT
             value: /mongo_common_certs/mongo_client.pem
           volumeMounts:
-          - name: tls-cmap-client-cert-files
+          - name: tls-middleware-client-cert
             mountPath: /cmap_client_certs
             readOnly: true
           - name: tls-mongo-common-cert-files
             mountPath: /mongo_common_certs
             readOnly: true
       volumes:
-        - name: tls-cmap-client-cert-files
+        - name: tls-middleware-client-cert
           secret:
-            secretName: tls-cmapservice-client-cert
+            secretName: tls-middleware-client-cert
         - name: tls-mongo-common-cert-files
           secret:
             secretName: tls-mongo-common-cert-files
