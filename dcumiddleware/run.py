@@ -78,6 +78,7 @@ TICKET_ID_KEY = '_id'
 VIP_KEY = 'vip'
 
 apm = instrument('middleware', env=env, metric_sets=['dcumiddleware.metrics.Metrics'])
+__db = None
 
 
 # turning off global qos in celery
@@ -221,6 +222,13 @@ def validate_abuse_verified(ticket: dict, enrichment: dict, domain: str, ip: str
         enrichment.get(DATA_KEY, {}).get(DOMAIN_Q_KEY, {})[HOST_KEY] = hosted_enrichment
 
 
+def get_db():
+    global __db
+    if not __db:
+        __db = PhishstoryMongo(app_settings)
+    return __db
+
+
 # setup logging
 path = '/app/logging.yaml'
 if os.path.exists(path):
@@ -231,9 +239,7 @@ if os.path.exists(path):
 else:
     logging.basicConfig(level=logging.INFO)
 
-db = PhishstoryMongo(app_settings)
 api = APIHelper(app_settings)
-routing_helper = RoutingHelper(app, api, db)
 blacklist_client = MongoClient(app_settings.DBURL)
 blacklist_db = blacklist_client[app_settings.DB]
 blacklist_collection = blacklist_db[app_settings.BLACKLIST_COLLECTION]
@@ -270,6 +276,7 @@ def sync_customer_security(data):
     # We only want to process each ticket once, we will get a large number of these events
     # during ticket backfills.
     ticketId = data.get('ticketId')
+    db = get_db()
     result = db.get_incident(ticketId)
     if not result:
         db.add_new_incident(ticketId, data)
@@ -283,6 +290,7 @@ def process(data):
     :param data:
     :return:
     """
+    db = get_db()
     data = db.get_incident(data.get('ticketId'))
     chain(_load_and_enrich_data.s(data),
           _check_for_blacklist_auto_actions.s(),
@@ -302,6 +310,7 @@ def sync_attribute(ticket_id, field, value):
         kdb = KelvinMongo(app_settings.KELVIN_DBNAME, app_settings.KELVIN_DB_URL, 'incidents')
         return kdb.update_incident(ticket_id, {field: value})
     else:
+        db = get_db()
         return db.update_incident(ticket_id, {field: value})
 
 
@@ -339,6 +348,7 @@ def _load_and_enrich_data(self, data):
     cmap_helper = CmapServiceHelper(app_settings)
     shopper_api_helper = ShopperApiHelper(app_settings.SHOPPER_API_URL, app_settings.SHOPPER_API_CERT_PATH,
                                           app_settings.SHOPPER_API_KEY_PATH)
+    db = get_db()
     had_failed_enrichment = data.pop(FAILED_ENRICHMENT_KEY, False)
 
     # The transition to customer IDs instead of shopper IDs is starting, but we need to move a portion of the pipeline at a time.
@@ -431,6 +441,7 @@ def _check_for_blacklist_auto_actions(data):
                 result_action = result_action[0]
             if result_action in [FALSE_POSITIVE, RESOLVED_NO_ACTION]:
                 api.close_incident(ticket, result_action)
+                db = get_db()
                 db.update_actions_sub_document(ticket, f'closed as {result_action}')
                 return
     return data
@@ -446,4 +457,6 @@ def _route_to_brand_services(data):
     if not isinstance(data, dict):
         return
 
+    db = get_db()
+    routing_helper = RoutingHelper(app, api, db)
     return routing_helper.route(data)
