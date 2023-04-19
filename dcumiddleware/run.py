@@ -258,7 +258,7 @@ Sample data:
 
 
 # We want to ack late here - if we get exceptions for any reason, we want the task to keep trying.
-@app.task(name='run.sync_child_safety', acks_late=True, max_retries=0, autoretry_for=(Exception,))
+@app.task(name='run.sync_child_safety', acks_late=True, max_retries=None, autoretry_for=(Exception,))
 def sync_child_safety(data):
     # Migrate some fields to match legacy kelvin-service behavior.
     data['ticketID'] = data['ticketId']
@@ -271,7 +271,7 @@ def sync_child_safety(data):
     kelvin_helper.process(data)
 
 
-@app.task(name='run.sync_customer_security', acks_late=True, max_retries=0, autoretry_for=(Exception,))
+@app.task(name='run.sync_customer_security', acks_late=True, max_retries=None, autoretry_for=(Exception,))
 def sync_customer_security(data):
     # We only want to process each ticket once, we will get a large number of these events
     # during ticket backfills.
@@ -297,7 +297,7 @@ def process(data):
           _route_to_brand_services.s())()
 
 
-@app.task(name='run.sync_attribute', acks_late=True, max_retries=0, autoretry_for=(Exception,))
+@app.task(name='run.sync_attribute', acks_late=True, max_retries=None, autoretry_for=(Exception,))
 def sync_attribute(ticket_id, field, value):
     """
     Updates P3 mongo ticketId field name with new value.
