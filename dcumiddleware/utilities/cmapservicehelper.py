@@ -191,6 +191,7 @@ class CmapServiceHelper(object):
                   firstPassEnrichment
                   secondPassEnrichment,
                   abuseReportEmail
+                  hostingPlan
                   vip {
                     blacklist
                     portfolioType
