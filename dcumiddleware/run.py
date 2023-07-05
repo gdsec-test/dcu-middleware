@@ -279,8 +279,12 @@ def sync_customer_security(data):
     db = get_db()
     result = db.get_incident(ticketId)
     if not result:
-        db.add_new_incident(ticketId, data)
-        chain(process.s(data))()
+        dup = data.get('duplicate', False)
+        status = 'DUPLICATE' if dup else 'PROCESSING'
+        db.add_new_incident(ticketId, data, status=status)
+        # Only run the pipeline for non-duplicated tickets.
+        if not dup:
+            chain(process.s(data))()
 
 
 @app.task(name='run.process')
