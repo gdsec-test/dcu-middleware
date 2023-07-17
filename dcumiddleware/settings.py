@@ -204,6 +204,7 @@ class UnitTestAppConfig():
     KELVIN_DBNAME = ''
 
     BROKER_URL = os.getenv('MULTIPLE_BROKERS')
+    IRM_URL = 'https://irm-api.cset.int.dev-gdcorp.tools'
 
 
 config_by_name = {'dev': DevelopmentAppConfig, 'prod': ProductionAppConfig, 'ote': OTEAppConfig,
