@@ -243,6 +243,37 @@ class TestRun(TestCase):
         mock_update_actions.assert_not_called()
         self.assertDictEqual(result, self.BLACKLISTED_TICKET)
 
+    @patch.object(Collection, 'find_one')
+    def test_blacklisted_user_gen(self, mock_find_one):
+        mock_find_one.side_effect = [
+            {'entity': 'test.com', 'category': 'godaddy_asset', 'action': 'resolved'},
+            {'entity': '123456789', 'category': 'godaddy_asset', 'action': 'resolved'},
+            {'entity': '987654321', 'category': 'user_gen', 'action': 'resolved'}
+        ]
+        result = run.get_blacklist_info('test.com', '123456789', '987654321')
+        self.assertIsNone(result)
+        mock_find_one.side_effect = [
+            {'entity': 'test.com', 'category': 'godaddy_asset', 'action': 'resolved'},
+            {'entity': '123456789', 'category': 'user_gen', 'action': 'resolved'},
+            {'entity': '987654321', 'category': 'godaddy_asset', 'action': 'resolved'}
+        ]
+        result = run.get_blacklist_info('test.com', '123456789', '987654321')
+        self.assertIsNone(result)
+        mock_find_one.side_effect = [
+            {'entity': 'test.com', 'category': 'user_gen', 'action': 'resolved'},
+            {'entity': '123456789', 'category': 'godaddy_asset', 'action': 'resolved'},
+            {'entity': '987654321', 'category': 'godaddy_asset', 'action': 'resolved'}
+        ]
+        result = run.get_blacklist_info('test.com', '123456789', '987654321')
+        self.assertIsNone(result)
+        mock_find_one.side_effect = [
+            {'entity': 'test.com', 'category': 'godaddy_asset', 'action': 'resolved'},
+            {'entity': '123456789', 'category': 'godaddy_asset', 'action': 'resolved'},
+            {'entity': '987654321', 'category': 'godaddy_asset', 'action': 'resolved'}
+        ]
+        result = run.get_blacklist_info('test.com', '123456789', '987654321')
+        self.assertEqual(result, 'resolved')
+
     @patch.object(PhishstoryMongo, 'update_actions_sub_document', return_value=None)
     @patch.object(Collection, 'find_one', return_value={'entity': 'test.com', 'action': ['nonsense']})
     def test_invalid_action(self, mock_find_one, mock_update_actions):

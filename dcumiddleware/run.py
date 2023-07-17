@@ -107,11 +107,17 @@ metricset = apm._metrics.get_metricset('dcumiddleware.metrics.Metrics')
 
 def get_blacklist_info(source: str, domain_shopper: str, host_shopper: str) -> Union[list, None]:
     source_bl_record = blacklist_collection.find_one({BLACKLIST_ENTITY_KEY: source})
-    if source_bl_record:
-        return source_bl_record.get(ACTION_KEY) if source_bl_record else None
-
     host_shopper_bl_record = blacklist_collection.find_one({BLACKLIST_ENTITY_KEY: host_shopper})
     domain_shopper_bl_record = blacklist_collection.find_one({BLACKLIST_ENTITY_KEY: domain_shopper})
+
+    # if there are any user_gen matches drop and let GDBS process them.
+    if (source_bl_record and source_bl_record.get('category') == 'user_gen') or \
+        (host_shopper_bl_record and host_shopper_bl_record.get('category') == 'user_gen') or \
+            (domain_shopper_bl_record and domain_shopper_bl_record.get('category') == 'user_gen'):
+        return None
+
+    if source_bl_record:
+        return source_bl_record.get(ACTION_KEY) if source_bl_record else None
 
     if host_shopper and not domain_shopper:
         return host_shopper_bl_record.get(ACTION_KEY) if host_shopper_bl_record else None
