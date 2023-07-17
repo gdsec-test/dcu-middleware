@@ -45,6 +45,7 @@ class AppConfig(object):
     KELVIN_DBNAME = ''
 
     BROKER_URL = os.getenv('MULTIPLE_BROKERS')
+    IRM_URL = 'https://irm-api.cset.int.dev-gdcorp.tools'
 
     def __init__(self):
         self.DB_PASS = quote(os.getenv('DB_PASS', 'password'))
@@ -73,6 +74,7 @@ class ProductionAppConfig(AppConfig):
     KELVIN_DBNAME = 'dcu_kelvin'
 
     SSO_URL = 'https://sso.gdcorp.tools'
+    IRM_URL = 'https://irm-api.cset.int.gdcorp.tools'
 
     def __init__(self):
         super(ProductionAppConfig, self).__init__()
@@ -96,6 +98,7 @@ class OTEAppConfig(AppConfig):
     KELVIN_DBNAME = 'ote_dcu_kelvin'
 
     SSO_URL = 'https://sso.ote-gdcorp.tools'
+    IRM_URL = 'https://irm-api.cset.int.ote-gdcorp.tools'
 
     def __init__(self):
         super(OTEAppConfig, self).__init__()
@@ -119,6 +122,7 @@ class TestAppConfig(AppConfig):
     KELVIN_DBNAME = 'testkelvin'
 
     SSO_URL = 'https://sso.test-gdcorp.tools'
+    IRM_URL = 'https://irm-api.cset.int.test-gdcorp.tools'
 
     def __init__(self):
         super(TestAppConfig, self).__init__()
@@ -142,6 +146,7 @@ class DevelopmentAppConfig(AppConfig):
     KELVIN_DBNAME = 'devkelvin'
 
     SSO_URL = 'https://sso.dev-gdcorp.tools'
+    IRM_URL = 'https://irm-api.cset.int.dev-gdcorp.tools'
 
     def __init__(self):
         super(DevelopmentAppConfig, self).__init__()

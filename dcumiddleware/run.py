@@ -9,6 +9,8 @@ import yaml
 from celery import Celery, bootsteps, chain
 from celery.utils.log import get_task_logger
 from csetutils.celery import instrument
+from csetutils.services.irm import IRMClient
+from csetutils.services.models.report import ReportStates, ReportUpdate
 from dcdatabase.kelvinmongo import KelvinMongo
 from dcdatabase.phishstorymongo import PhishstoryMongo
 from func_timeout import FunctionTimedOut, func_timeout
@@ -16,7 +18,7 @@ from kombu.common import QoS
 from pymongo import MongoClient
 
 from dcumiddleware.celeryconfig import CeleryConfig
-from dcumiddleware.settings import config_by_name
+from dcumiddleware.settings import AppConfig, config_by_name
 from dcumiddleware.utilities.apihelper import APIHelper
 from dcumiddleware.utilities.cmapservicehelper import CmapServiceHelper
 from dcumiddleware.utilities.kelvinhelper import KelvinHelper
@@ -25,7 +27,7 @@ from dcumiddleware.utilities.shopperhelper import ShopperApiHelper
 
 # Grab the correct settings based on environment
 env = os.getenv('sysenv', 'unit-test')
-app_settings = config_by_name[env]()
+app_settings: AppConfig = config_by_name[env]()
 
 app = Celery()
 app.config_from_object(CeleryConfig())
@@ -79,6 +81,12 @@ VIP_KEY = 'vip'
 
 apm = instrument('middleware', env=env, metric_sets=['dcumiddleware.metrics.Metrics'])
 __db = None
+irm = IRMClient(
+    app_settings.SSO_URL,
+    app_settings.CMAP_CLIENT_CERT,
+    app_settings.CMAP_CLIENT_KEY,
+    app_settings.IRM_URL
+)
 
 
 # turning off global qos in celery
@@ -321,7 +329,20 @@ def sync_attribute(ticket_id, field, value):
         return kdb.update_incident(ticket_id, {field: value})
     else:
         db = get_db()
-        return db.update_incident(ticket_id, {field: value})
+        result = db.update_incident(ticket_id, {field: value})
+        if result:
+            irmReportId = result.get('irm_report_id')
+            if irmReportId:
+                update = ReportUpdate()
+                if field in ['abuseVerified', 'close_reason']:
+                    update.attributes = {field: value}
+                elif field == 'phishstory_status':
+                    update.state = ReportStates.closed
+                elif field == 'closed':
+                    update.closedAt = value
+                update.lastModified = result.get('last_modified')
+                irm.update_report(irmReportId, update)
+        return result
 
 
 ''' PRIVATE TASKS'''

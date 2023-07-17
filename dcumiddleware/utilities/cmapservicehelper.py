@@ -159,12 +159,18 @@ class CmapServiceHelper(object):
                 isDomainHighValue
                 securitySubscription {
                   sucuriProduct
+                  products {
+                    createdDate
+                    sucuriProduct
+                    entitlementId
+                  }
                 }
                 sslSubscriptions {
                   certCommonName
                   certType
                   createdAt
                   expiresAt
+                  entitlementId
                 }
                 host {
                   dataCenter
