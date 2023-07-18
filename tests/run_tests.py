@@ -247,31 +247,35 @@ class TestRun(TestCase):
     def test_blacklisted_user_gen(self, mock_find_one):
         mock_find_one.side_effect = [
             {'entity': 'test.com', 'category': 'godaddy_asset', 'action': 'resolved'},
+            None,
             {'entity': '123456789', 'category': 'godaddy_asset', 'action': 'resolved'},
             {'entity': '987654321', 'category': 'user_gen', 'action': 'resolved'}
         ]
-        result = run.get_blacklist_info('test.com', '123456789', '987654321')
+        result = run.get_blacklist_info('test.com', 'www.test.com', '123456789', '987654321')
         self.assertIsNone(result)
         mock_find_one.side_effect = [
             {'entity': 'test.com', 'category': 'godaddy_asset', 'action': 'resolved'},
+            None,
             {'entity': '123456789', 'category': 'user_gen', 'action': 'resolved'},
             {'entity': '987654321', 'category': 'godaddy_asset', 'action': 'resolved'}
         ]
-        result = run.get_blacklist_info('test.com', '123456789', '987654321')
+        result = run.get_blacklist_info('test.com', 'www.test.com', '123456789', '987654321')
         self.assertIsNone(result)
         mock_find_one.side_effect = [
             {'entity': 'test.com', 'category': 'user_gen', 'action': 'resolved'},
+            None,
             {'entity': '123456789', 'category': 'godaddy_asset', 'action': 'resolved'},
             {'entity': '987654321', 'category': 'godaddy_asset', 'action': 'resolved'}
         ]
-        result = run.get_blacklist_info('test.com', '123456789', '987654321')
+        result = run.get_blacklist_info('test.com', 'www.test.com', '123456789', '987654321')
         self.assertIsNone(result)
         mock_find_one.side_effect = [
             {'entity': 'test.com', 'category': 'godaddy_asset', 'action': 'resolved'},
+            None,
             {'entity': '123456789', 'category': 'godaddy_asset', 'action': 'resolved'},
             {'entity': '987654321', 'category': 'godaddy_asset', 'action': 'resolved'}
         ]
-        result = run.get_blacklist_info('test.com', '123456789', '987654321')
+        result = run.get_blacklist_info('test.com', 'www.test.com', '123456789', '987654321')
         self.assertEqual(result, 'resolved')
 
     @patch.object(PhishstoryMongo, 'update_actions_sub_document', return_value=None)
@@ -328,7 +332,7 @@ class TestRun(TestCase):
 
     @patch.object(PhishstoryMongo, 'update_actions_sub_document', return_value=None)
     @patch.object(APIHelper, 'close_incident', return_value=None)
-    @patch.object(Collection, 'find_one', side_effect=[None, {'entity': 'test.com', 'action': ['false_positive']}, None])
+    @patch.object(Collection, 'find_one', side_effect=[None, None, {'entity': 'test.com', 'action': ['false_positive']}, None])
     def test_host_shopper_only_bl(self, mock_find_one, mock_close_incident, mock_update_actions):
         self.BLACKLISTED_TICKET[run.DATA_KEY][run.DOMAIN_Q_KEY][run.HOST_KEY] = {run.SHOPPER_KEY: 'test'}
         result = run._check_for_blacklist_auto_actions(self.BLACKLISTED_TICKET)
@@ -339,7 +343,7 @@ class TestRun(TestCase):
 
     @patch.object(PhishstoryMongo, 'update_actions_sub_document', return_value=None)
     @patch.object(APIHelper, 'close_incident', return_value=None)
-    @patch.object(Collection, 'find_one', side_effect=[None, None, {'entity': 'test.com', 'action': ['false_positive']}])
+    @patch.object(Collection, 'find_one', side_effect=[None, None, None, {'entity': 'test.com', 'action': ['false_positive']}])
     def test_domain_shopper_only_bl(self, mock_find_one, mock_close_incident, mock_update_actions):
         self.BLACKLISTED_TICKET[run.DATA_KEY][run.DOMAIN_Q_KEY][run.SHOPPER_INFO_KEY] = {run.SHOPPER_KEY: 'test'}
         result = run._check_for_blacklist_auto_actions(self.BLACKLISTED_TICKET)
@@ -350,7 +354,7 @@ class TestRun(TestCase):
 
     @patch.object(PhishstoryMongo, 'update_actions_sub_document', return_value=None)
     @patch.object(APIHelper, 'close_incident', return_value=None)
-    @patch.object(Collection, 'find_one', side_effect=[None, {'entity': 'test.com', 'action': ['false_positive']}, {'entity': 'test.com', 'action': ['false_positive']}])
+    @patch.object(Collection, 'find_one', side_effect=[None, None, {'entity': 'test.com', 'action': ['false_positive']}, {'entity': 'test.com', 'action': ['false_positive']}, None])
     def test_both_shopper_bl(self, mock_find_one, mock_close_incident, mock_update_actions):
         self.BLACKLISTED_TICKET[run.DATA_KEY][run.DOMAIN_Q_KEY][run.SHOPPER_INFO_KEY] = {run.SHOPPER_KEY: 'test'}
         self.BLACKLISTED_TICKET[run.DATA_KEY][run.DOMAIN_Q_KEY][run.HOST_KEY] = {run.SHOPPER_KEY: 'test'}
@@ -362,7 +366,7 @@ class TestRun(TestCase):
 
     @patch.object(PhishstoryMongo, 'update_actions_sub_document', return_value=None)
     @patch.object(APIHelper, 'close_incident', return_value=None)
-    @patch.object(Collection, 'find_one', side_effect=[None, None, None])
+    @patch.object(Collection, 'find_one', side_effect=[None, None, None, None])
     def test_no_shopper_bl(self, mock_find_one, mock_close_incident, mock_update_actions):
         self.BLACKLISTED_TICKET[run.DATA_KEY][run.DOMAIN_Q_KEY][run.SHOPPER_INFO_KEY] = {run.SHOPPER_KEY: 'test'}
         self.BLACKLISTED_TICKET[run.DATA_KEY][run.DOMAIN_Q_KEY][run.HOST_KEY] = {run.SHOPPER_KEY: 'test'}
@@ -374,7 +378,7 @@ class TestRun(TestCase):
 
     @patch.object(PhishstoryMongo, 'update_actions_sub_document', return_value=None)
     @patch.object(APIHelper, 'close_incident', return_value=None)
-    @patch.object(Collection, 'find_one', side_effect=[None, None, None])
+    @patch.object(Collection, 'find_one', side_effect=[None, None, None, None])
     def test_failed_enrichment_bl(self, mock_find_one, mock_close_incident, mock_update_actions):
         self.BLACKLISTED_TICKET[run.DATA_KEY][run.DOMAIN_Q_KEY][run.SHOPPER_INFO_KEY] = {run.SHOPPER_KEY: 'test'}
         self.BLACKLISTED_TICKET[run.DATA_KEY][run.DOMAIN_Q_KEY][run.HOST_KEY] = {run.SHOPPER_KEY: 'test'}
@@ -384,3 +388,14 @@ class TestRun(TestCase):
         mock_close_incident.assert_not_called()
         mock_update_actions.assert_not_called()
         self.assertEqual(self.BLACKLISTED_TICKET, result)
+
+    @patch.object(PhishstoryMongo, 'update_actions_sub_document', return_value=None)
+    @patch.object(APIHelper, 'close_incident', return_value=None)
+    @patch.object(Collection, 'find_one', side_effect=[None, {'entity': 'www.test.com', 'action': ['false_positive']}, None, None])
+    def test_subdomain_only_bl(self, mock_find_one, mock_close_incident, mock_update_actions):
+        self.BLACKLISTED_TICKET['sourceSubDomain'] = 'www.test.com'
+        result = run._check_for_blacklist_auto_actions(self.BLACKLISTED_TICKET)
+        mock_find_one.assert_called()
+        mock_close_incident.assert_called()
+        mock_update_actions.assert_called()
+        self.assertIsNone(result)

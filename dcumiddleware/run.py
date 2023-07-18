@@ -113,19 +113,24 @@ app.steps['consumer'].add(NoChannelGlobalQoS)
 metricset = apm._metrics.get_metricset('dcumiddleware.metrics.Metrics')
 
 
-def get_blacklist_info(source: str, domain_shopper: str, host_shopper: str) -> Union[list, None]:
-    source_bl_record = blacklist_collection.find_one({BLACKLIST_ENTITY_KEY: source})
+def get_blacklist_info(domain: str, domain_with_subdomain: str, domain_shopper: str, host_shopper: str) -> Union[list, None]:
+    domain_bl_record = blacklist_collection.find_one({BLACKLIST_ENTITY_KEY: domain})
+    subdomain_bl_record = blacklist_collection.find_one({BLACKLIST_ENTITY_KEY: domain_with_subdomain})
     host_shopper_bl_record = blacklist_collection.find_one({BLACKLIST_ENTITY_KEY: host_shopper})
     domain_shopper_bl_record = blacklist_collection.find_one({BLACKLIST_ENTITY_KEY: domain_shopper})
 
     # if there are any user_gen matches drop and let GDBS process them.
-    if (source_bl_record and source_bl_record.get('category') == 'user_gen') or \
+    if (domain_bl_record and domain_bl_record.get('category') == 'user_gen') or \
+        (subdomain_bl_record and subdomain_bl_record.get('category') == 'user_gen') or \
         (host_shopper_bl_record and host_shopper_bl_record.get('category') == 'user_gen') or \
             (domain_shopper_bl_record and domain_shopper_bl_record.get('category') == 'user_gen'):
         return None
 
-    if source_bl_record:
-        return source_bl_record.get(ACTION_KEY) if source_bl_record else None
+    if domain_bl_record:
+        return domain_bl_record.get(ACTION_KEY) if domain_bl_record else None
+
+    if subdomain_bl_record:
+        return subdomain_bl_record.get(ACTION_KEY) if subdomain_bl_record else None
 
     if host_shopper and not domain_shopper:
         return host_shopper_bl_record.get(ACTION_KEY) if host_shopper_bl_record else None
@@ -462,10 +467,11 @@ def _check_for_blacklist_auto_actions(data):
     if data.get(DATA_KEY, {}).get(DOMAIN_Q_KEY, {}).get(BLACKLIST_KEY) and not data.get(FAILED_ENRICHMENT_KEY, False):
         domain_shopper = data.get(DATA_KEY, {}).get(DOMAIN_Q_KEY, {}).get(SHOPPER_INFO_KEY, {}).get(SHOPPER_KEY, None)
         host_shopper = data.get(DATA_KEY, {}).get(DOMAIN_Q_KEY, {}).get(HOST_KEY, {}).get(SHOPPER_KEY, None)
-        source = data.get('sourceSubDomain')
+        domainWithSubdomain = data.get('sourceSubDomain')
+        domain = data.get('sourceDomainOrIp')
         ticket = data.get(TICKET_ID_KEY)
 
-        result_action = get_blacklist_info(source, domain_shopper, host_shopper)
+        result_action = get_blacklist_info(domain, domainWithSubdomain, domain_shopper, host_shopper)
 
         if result_action:
             if isinstance(result_action, list):
