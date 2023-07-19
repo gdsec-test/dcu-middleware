@@ -15,7 +15,7 @@ from dcdatabase.kelvinmongo import KelvinMongo
 from dcdatabase.phishstorymongo import PhishstoryMongo
 from func_timeout import FunctionTimedOut, func_timeout
 from kombu.common import QoS
-from pymongo import MongoClient
+from pymongo import MongoClient, collection
 
 from dcumiddleware.celeryconfig import CeleryConfig
 from dcumiddleware.settings import AppConfig, config_by_name
@@ -111,9 +111,26 @@ app.steps['consumer'].add(NoChannelGlobalQoS)
 
 # Configure DCU celery metrics
 metricset = apm._metrics.get_metricset('dcumiddleware.metrics.Metrics')
+__bl_collection = None
+
+
+def get_bl_mongo_connection() -> collection.Collection:
+    """
+    Celery works fork the run module into the configured number of processes at start time. PyMongo is not
+    fork safe(see https://pymongo.readthedocs.io/en/stable/faq.html#is-pymongo-fork-safe) so by putting
+    the collection retrieval within the helper function, we ensure that each fork will call and initialize
+    its own MongoClient.
+    """
+    global __bl_collection
+    if not __bl_collection:
+        blacklist_client = MongoClient(app_settings.DBURL)
+        blacklist_db = blacklist_client[app_settings.DB]
+        __bl_collection = blacklist_db[app_settings.BLACKLIST_COLLECTION]
+    return __bl_collection
 
 
 def get_blacklist_info(domain: str, domain_with_subdomain: str, domain_shopper: str, host_shopper: str) -> Union[list, None]:
+    blacklist_collection = get_bl_mongo_connection()
     domain_bl_record = blacklist_collection.find_one({BLACKLIST_ENTITY_KEY: domain})
     subdomain_bl_record = blacklist_collection.find_one({BLACKLIST_ENTITY_KEY: domain_with_subdomain})
     host_shopper_bl_record = blacklist_collection.find_one({BLACKLIST_ENTITY_KEY: host_shopper})
@@ -259,9 +276,6 @@ else:
     logging.basicConfig(level=logging.INFO)
 
 api = APIHelper(app_settings)
-blacklist_client = MongoClient(app_settings.DBURL)
-blacklist_db = blacklist_client[app_settings.DB]
-blacklist_collection = blacklist_db[app_settings.BLACKLIST_COLLECTION]
 
 """
 Sample data:
