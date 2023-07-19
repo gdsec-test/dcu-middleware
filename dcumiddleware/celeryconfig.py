@@ -22,6 +22,9 @@ class CeleryConfig:
     worker_send_task_events = False
     # Force kill a task if it takes longer than three minutes.
     task_time_limit = 180
+    # Generate soft time limit exceptions before the hard time limits
+    # so our retry logic is correctly applied.
+    task_soft_time_limit = 120
     WORKER_ENABLE_REMOTE_CONTROL = True
 
     queue_args = {'x-queue-type': 'quorum'}

@@ -320,7 +320,7 @@ def sync_customer_security(data):
             chain(process.s(data))()
 
 
-@app.task(name='run.process')
+@app.task(name='run.process', acks_late=True, max_retries=None, autoretry_for=(Exception,))
 def process(data):
     """
     Main processing pipeline for incidents submitted from the API
@@ -376,8 +376,8 @@ def _is_uuid(uuid_str: str) -> bool:
     return False
 
 
-@app.task(name='run._load_and_enrich_data', bind=True, default_retry_delay=app_settings.TASK_TIMEOUT,
-          max_retries=app_settings.TASK_MAX_RETRIES)
+@app.task(name='run._load_and_enrich_data', acks_late=True, bind=True, default_retry_delay=app_settings.TASK_TIMEOUT,
+          max_retries=app_settings.TASK_MAX_RETRIES, autoretry_for=(Exception,))
 def _load_and_enrich_data(self, data):
     """
     Loads the data from CMAP and merges it with information gained from CMAP Service
@@ -471,7 +471,7 @@ def _load_and_enrich_data(self, data):
     return db.update_incident(ticket_id, cmap_helper.api_cmap_merge(data, cmap_data))
 
 
-@app.task(name='run._check_for_blacklist_auto_actions')
+@app.task(name='run._check_for_blacklist_auto_actions', acks_late=True, max_retries=None, autoretry_for=(Exception,))
 def _check_for_blacklist_auto_actions(data):
     """
     Checks if ticket is on blocklist and performs automated actions if applicable
@@ -498,7 +498,7 @@ def _check_for_blacklist_auto_actions(data):
     return data
 
 
-@app.task(name='run._route_to_brand_services')
+@app.task(name='run._route_to_brand_services', acks_late=True, max_retries=None, autoretry_for=(Exception,))
 def _route_to_brand_services(data):
     """
     Routes data to the appropriate Brand Service to be processed further
