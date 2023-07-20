@@ -143,7 +143,7 @@ def get_blacklist_info(domain: str, domain_with_subdomain: str, domain_shopper: 
             (domain_shopper_bl_record and domain_shopper_bl_record.get('category') == 'user_gen'):
         return None
 
-    if domain_bl_record:
+    if domain_bl_record and domain not in app_settings.ENRICH_ON_SUBDOMAIN:
         return domain_bl_record.get(ACTION_KEY) if domain_bl_record else None
 
     if subdomain_bl_record:
