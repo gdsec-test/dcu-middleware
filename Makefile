@@ -33,9 +33,9 @@ unit-test:
 .PHONY: testcov
 testcov:
 	@echo "----- Running tests with coverage -----"
-	@coverage run --source=dcumiddleware -m unittest discover tests "*_tests.py"
-	@coverage xml
-	@coverage report
+	@poetry run coverage run --source=dcumiddleware -m unittest discover tests "*_tests.py"
+	@poetry run coverage xml
+	@poetry run coverage report
 
 dist/requirements.txt: poetry.lock pyproject.toml
 	@mkdir -p dist/
