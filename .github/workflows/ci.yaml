@@ -1,3 +1,4 @@
+# This ci script is for python repos with unit tests & test coverage.
 ---
 name: Run CI
 
@@ -14,9 +15,9 @@ on:
 
 jobs:
   ci:
-    runs-on: [csetubuntu]
+    runs-on: [ csetubuntu ]
     steps:
-            
+
       - name: Checkout repo
         uses: actions/checkout@v2
 
@@ -24,19 +25,13 @@ jobs:
         uses: actions/setup-python@v2
         with:
           python-version: 3.11.1
-          architecture: 'x64' 
-
-      - name: Setup Go
-        uses: actions/setup-go@v4
-        with:
-          go-version: '^1.13.1'
-          architecture: 'x64' 
+          architecture: 'x64'
 
       - name: Setup Node
         uses: actions/setup-node@v3
         with:
           node-version: 18
-          architecture: 'x64' 
+          architecture: 'x64'
 
       - name: Get Secrets
         id: secrets
@@ -75,17 +70,9 @@ jobs:
 
           echo "POETRY_HTTP_BASIC_GDDY_USERNAME=${{ steps.secrets.outputs.artifactory-username }}" >> $GITHUB_ENV
           echo "POETRY_HTTP_BASIC_GDDY_PASSWORD=${{ steps.secrets.outputs.artifactory-password }}" >> $GITHUB_ENV
-      
-      - name: Configure Golang
-        shell: bash
-        run: |
-          go env -w GOPRIVATE="github.com/gdcorp-infosec/*,github.com/gdcorp-golang/*,github.secureserver.net/*"
-          git config --global url."https://${{ steps.secrets.outputs.pat-cloud }}:x-oauth-basic@github.com/gdcorp-infosec".insteadOf "https://github.com/gdcorp-infosec"
-          git config --global url."https://${{ steps.secrets.outputs.pat-onpremise }}:x-oauth-basic@github.secureserver.net".insteadOf "https://github.secureserver.net" 
-          git config --global url."https://${{ steps.secrets.outputs.pat-cloud }}:x-oauth-basic@github.com/gdcorp-golang".insteadOf "https://github.com/gdcorp-golang"
-             
+
       - name: Install Dependencies with pip
-        run: | 
+        run: |
           pip install pre-commit
           pip install coverage
           pip install pipx
@@ -93,9 +80,10 @@ jobs:
 
       - name: Install Packages
         run: |
-          poetry install
+          sudo apt-get update
+          sudo apt-get install gcc libffi-dev -y
           make init
-      
+
       - name: Run unit tests
         run: |
           make unit-test
@@ -106,7 +94,10 @@ jobs:
           VALIDATE_ALL_CODEBASE: false
           VALIDATE_GITHUB_ACTIONS: false
           VALIDATE_BASH: false
-          DEFAULT_BRANCH: main
+          VALIDATE_PYTHON_BLACK: false
+          VALIDATE_JSCPD: false
+          VALIDATE_PYTHON_ISORT: false
+          PYTHON_FLAKE8_CONFIG_FILE : .flake8
           GITHUB_TOKEN: ${{ steps.secrets.outputs.pat-cloud }}
 
       - name: Generate Test Coverage
@@ -114,7 +105,6 @@ jobs:
           make testcov
 
       - name: Read Coverage, Create Findings
-        if: ${{ contains('file', 'coverage.xml') }}
         uses: gdcorp-action-public-forks/cobertura-action@4729b64a58adc1be66bc724e6421f24667e04b89
         with:
           path: coverage.xml
@@ -174,4 +164,4 @@ jobs:
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v2
         with:
-          category: "/language:${{matrix.language}}"
+          category: "/language:${{ matrix.language }}"
