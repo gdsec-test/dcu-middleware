@@ -184,6 +184,7 @@ class CmapServiceHelper(object):
                   os
                   product
                   shopperId
+                  shopperCountry
                   shopperPlid
                   customerId
                   entitlementId
@@ -219,6 +220,7 @@ class CmapServiceHelper(object):
                   domainCount
                   shopperCreateDate
                   shopperId
+                  shopperCountry
                   customerId
                   shopperPlid
                   vip {
