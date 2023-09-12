@@ -24,6 +24,7 @@ from dcumiddleware.utilities.cmapservicehelper import CmapServiceHelper
 from dcumiddleware.utilities.kelvinhelper import KelvinHelper
 from dcumiddleware.utilities.routinghelper import RoutingHelper
 from dcumiddleware.utilities.shopperhelper import ShopperApiHelper
+from dcumiddleware.utilities.branddetectionhelper import BrandDetectionHelper
 
 # Grab the correct settings based on environment
 env = os.getenv('sysenv', 'unit-test')
@@ -74,6 +75,7 @@ REGISTRAR_KEY = 'registrar'
 RESOLVED_NO_ACTION = 'resolved_no_action'
 SHOPPER_INFO_KEY = 'shopperInfo'
 SHOPPER_KEY = 'shopperId'
+SHOPPER_PLID_KEY = 'shopperPlid'
 CUSTOMER_KEY = 'customerId'
 SOURCE_KEY = 'sourceDomainOrIp'
 TICKET_ID_KEY = '_id'
@@ -398,6 +400,8 @@ def _load_and_enrich_data(self, data):
     cmap_helper = CmapServiceHelper(app_settings)
     shopper_api_helper = ShopperApiHelper(app_settings.SHOPPER_API_URL, app_settings.SHOPPER_API_CERT_PATH,
                                           app_settings.SHOPPER_API_KEY_PATH)
+    brand_detector = BrandDetectionHelper(app_settings.BRAND_DETECTION_URL, app_settings.CMAP_CLIENT_CERT,
+                                          app_settings.CMAP_CLIENT_KEY)
     db = get_db()
     had_failed_enrichment = data.pop(FAILED_ENRICHMENT_KEY, False)
 
@@ -448,7 +452,26 @@ def _load_and_enrich_data(self, data):
             cmap_data.get(DATA_KEY, {}).get(DOMAIN_Q_KEY, {})[HOST_KEY] = host_data
         elif data.get(KEY_ABUSE_VERIFIED):
             validate_abuse_verified(data, cmap_data, domain, ip)
-
+        # Attempt to update brands based on shopper plid
+        host = cmap_data.get(DATA_KEY, {}).get(DOMAIN_Q_KEY, {}).get(HOST_KEY, {})
+        host_plid = host.get(SHOPPER_PLID_KEY)
+        domain_plid = cmap_data.get(DATA_KEY, {}).get(DOMAIN_Q_KEY, {}).get(SHOPPER_INFO_KEY, {}).get(SHOPPER_PLID_KEY)
+        host_brand = {}
+        if host_plid and host_plid != '1':
+            host_brand = brand_detector.get_plid_info(plid=host_plid)
+        if host_brand:
+            host['abuseReportEmail'] = host_brand['abuse_report_email']
+            host['brand'] = host_brand['brand']
+            host['hostingAbuseEmail'] = host_brand['hosting_abuse_email']
+            host['hostingCompanyName'] = host_brand['hosting_company_name']
+        domain_brand = {}
+        if domain_plid and domain_plid != '1':
+            registrar_info = cmap_data.get(DATA_KEY, {}).get(DOMAIN_Q_KEY, {}).get(REGISTRAR_KEY, {})
+            domain_brand = brand_detector.get_plid_info(plid=domain_plid)
+        if domain_brand:
+            registrar_info['abuseReportEmail'] = domain_brand['abuse_report_email']
+            registrar_info['brand'] = domain_brand['brand']
+            registrar_info['registrarAbuseEmail'] = domain_brand['hosting_abuse_email']
         if not enrichment_succeeded(cmap_data):
             data[FAILED_ENRICHMENT_KEY] = True
             metricset.counter('failed_enrichment', reset_on_collect=True).inc(1)

@@ -46,6 +46,7 @@ class AppConfig(object):
 
     BROKER_URL = os.getenv('MULTIPLE_BROKERS')
     IRM_URL = 'https://irm-api.cset.int.dev-gdcorp.tools'
+    BRAND_DETECTION_URL = 'http://brand-detection.abuse-api-dev.svc.cluster.local:5000'
 
     def __init__(self):
         self.DB_PASS = quote(os.getenv('DB_PASS', 'password'))
@@ -75,6 +76,7 @@ class ProductionAppConfig(AppConfig):
 
     SSO_URL = 'https://sso.gdcorp.tools'
     IRM_URL = 'https://irm-api.cset.int.gdcorp.tools'
+    BRAND_DETECTION_URL = 'http://brand-detection.abuse-api-prod.svc.cluster.local:5000'
 
     def __init__(self):
         super(ProductionAppConfig, self).__init__()
@@ -99,6 +101,7 @@ class OTEAppConfig(AppConfig):
 
     SSO_URL = 'https://sso.ote-gdcorp.tools'
     IRM_URL = 'https://irm-api.cset.int.ote-gdcorp.tools'
+    BRAND_DETECTION_URL = 'http://brand-detection.abuse-api-ote.svc.cluster.local:5000'
 
     def __init__(self):
         super(OTEAppConfig, self).__init__()
@@ -123,6 +126,7 @@ class TestAppConfig(AppConfig):
 
     SSO_URL = 'https://sso.test-gdcorp.tools'
     IRM_URL = 'https://irm-api.cset.int.test-gdcorp.tools'
+    BRAND_DETECTION_URL = 'http://brand-detection.abuse-api-test.svc.cluster.local:5000'
 
     def __init__(self):
         super(TestAppConfig, self).__init__()
@@ -147,6 +151,7 @@ class DevelopmentAppConfig(AppConfig):
 
     SSO_URL = 'https://sso.dev-gdcorp.tools'
     IRM_URL = 'https://irm-api.cset.int.dev-gdcorp.tools'
+    BRAND_DETECTION_URL = 'http://brand-detection.abuse-api-dev.svc.cluster.local:5000'
 
     def __init__(self):
         super(DevelopmentAppConfig, self).__init__()
@@ -205,6 +210,7 @@ class UnitTestAppConfig():
 
     BROKER_URL = os.getenv('MULTIPLE_BROKERS')
     IRM_URL = 'https://irm-api.cset.int.dev-gdcorp.tools'
+    BRAND_DETECTION_URL = 'http://brand-detection.abuse-api-dev.svc.cluster.local:5000'
 
 
 config_by_name = {'dev': DevelopmentAppConfig, 'prod': ProductionAppConfig, 'ote': OTEAppConfig,
