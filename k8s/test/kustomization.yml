@@ -61,5 +61,5 @@ patches:
     kind: Deployment
     name: middleware
 images:
-- name: docker-dcu-local.artifactory.secureserver.net/dcumiddleware
+- name: gdartifactory1.jfrog.io/docker-dcu-local/dcumiddleware
   newTag: test

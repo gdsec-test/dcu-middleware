@@ -1,6 +1,6 @@
 services:
   dcumiddleware:
-    image: docker-dcu-local.artifactory.secureserver.net/dcumiddleware:dev
+    image: gdartifactory1.jfrog.io/docker-dcu-local/dcumiddleware:dev
     environment:
       ABUSE_API_URL: ${ABUSE_API_URL}
       BROKER_URL: ${BROKER_URL}

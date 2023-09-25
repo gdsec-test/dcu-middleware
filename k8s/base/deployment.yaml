@@ -17,11 +17,11 @@ spec:
         app: "middleware"
     spec:
       imagePullSecrets:
-        - name: "dcu-artifactory-creds"
+        - name: "artifactory-saas-creds"
       containers:
         - name: "middleware"
           imagePullPolicy: "Always"
-          image: docker-dcu-local.artifactory.secureserver.net/dcumiddleware
+          image: gdartifactory1.jfrog.io/docker-dcu-local/dcumiddleware
           livenessProbe:
             exec:
               command:

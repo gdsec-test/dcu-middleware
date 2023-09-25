@@ -528,7 +528,7 @@ services = ["crm-notate (>=1.0.2,<2.0.0)"]
 
 [package.source]
 type = "legacy"
-url = "https://artifactory.secureserver.net/artifactory/api/pypi/python-virt/simple"
+url = "https://gdartifactory1.jfrog.io/artifactory/api/pypi/python-virt/simple"
 reference = "gddy"
 
 [[package]]
@@ -548,7 +548,7 @@ pymongo = {version = "3.11.3", extras = ["ocsp"]}
 
 [package.source]
 type = "legacy"
-url = "https://artifactory.secureserver.net/artifactory/api/pypi/python-virt/simple"
+url = "https://gdartifactory1.jfrog.io/artifactory/api/pypi/python-virt/simple"
 reference = "gddy"
 
 [[package]]
@@ -635,7 +635,7 @@ pyjwt = ">=1.7.1"
 
 [package.source]
 type = "legacy"
-url = "https://artifactory.secureserver.net/artifactory/api/pypi/python-virt/simple"
+url = "https://gdartifactory1.jfrog.io/artifactory/api/pypi/python-virt/simple"
 reference = "gddy"
 
 [[package]]
@@ -1326,4 +1326,4 @@ testing = ["func-timeout", "jaraco.itertools", "pytest (>=4.6)", "pytest-black (
 [metadata]
 lock-version = "2.0"
 python-versions = "3.11.1"
-content-hash = "0a669bfce57c1ccbc4ab16b30a18ee17c6ae0f1dd27ac418a557406709795bec"
+content-hash = "397c1db2e7eacab139c370c4c22f8e2f7da7aabeaa7adae7f73bd8c30ac87aa6"

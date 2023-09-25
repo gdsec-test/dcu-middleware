@@ -6,7 +6,7 @@ authors = ["DCU Engineering <dcueng@godaddy.com>"]
 
 [[tool.poetry.source]]
 name = "gddy"
-url = "https://artifactory.secureserver.net/artifactory/api/pypi/python-virt/simple"
+url = "https://gdartifactory1.jfrog.io/artifactory/api/pypi/python-virt/simple"
 priority = "supplemental"
 
 [[tool.poetry.source]]

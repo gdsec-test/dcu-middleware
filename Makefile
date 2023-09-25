@@ -1,6 +1,6 @@
 REPONAME=digital-crimes/dcumiddleware
 BUILDROOT=$(HOME)/dockerbuild/$(REPONAME)
-DOCKERREPO=docker-dcu-local.artifactory.secureserver.net/dcumiddleware
+DOCKERREPO=gdartifactory1.jfrog.io/docker-dcu-local/dcumiddleware
 DATE=$(shell date)
 COMMIT=
 BUILD_BRANCH=origin/main

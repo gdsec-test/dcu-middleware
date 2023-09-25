@@ -5,7 +5,7 @@ resources:
 
 namespace: abuse-api-prod
 images:
-- name: docker-dcu-local.artifactory.secureserver.net/dcumiddleware
+- name: gdartifactory1.jfrog.io/docker-dcu-local/dcumiddleware
   newTag: prod
 
 patches:
