@@ -148,6 +148,11 @@ class CmapServiceHelper(object):
               domainQuery(domain: "''' + domain + '''", path: "''' + path + '''") {
 
                 alexaRank
+                similarWebRank{
+                    globalRank
+                    countryRankUs
+                    countryRankIn
+                }
                 apiReseller {
                   child
                   parent
