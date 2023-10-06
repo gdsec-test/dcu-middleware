@@ -13,7 +13,7 @@ on:
        - prod
 
 jobs:
- ci:
+ k8s:
    runs-on: [csetubuntu]
    steps:
     - uses: actions/checkout@v2
@@ -77,12 +77,12 @@ jobs:
         echo "[distutils]" > ~/.pypirc
         echo "index-servers = local" >> ~/.pypirc
         echo "[local]" >> ~/.pypirc
-        echo "repository: https://artifactory.secureserver.net/artifactory/api/pypi/pypi-digital-crimes-unit-main-local" >> ~/.pypirc
+        echo "repository: https://gdartifactory1.jfrog.io/artifactory/api/pypi/pypi-digital-crimes-unit-main-local" >> ~/.pypirc
         echo "username: ${{ steps.secrets.outputs.artifactory-username }}" >> ~/.pypirc
         echo "password: ${{ steps.secrets.outputs.artifactory-password }}" >> ~/.pypirc
 
         echo "[global]" > ~/.pip/pip.conf
-        echo "index-url = https://${{ steps.secrets.outputs.artifactory-username }}:${{ steps.secrets.outputs.artifactory-password }}@artifactory.secureserver.net/artifactory/api/pypi/python-virt/simple" >> ~/.pip/pip.conf
+        echo "index-url = https://${{ steps.secrets.outputs.artifactory-username }}:${{ steps.secrets.outputs.artifactory-password }}@gdartifactory1.jfrog.io/artifactory/api/pypi/python-virt/simple" >> ~/.pip/pip.conf
 
         echo "POETRY_HTTP_BASIC_GDDY_USERNAME=${{ steps.secrets.outputs.artifactory-username }}" >> $GITHUB_ENV
         echo "POETRY_HTTP_BASIC_GDDY_PASSWORD=${{ steps.secrets.outputs.artifactory-password }}" >> $GITHUB_ENV
@@ -98,18 +98,23 @@ jobs:
     - name: Install Dependencies with pip
       run: |
         pip install poetry
+        pip install pipx
+        pip install pre-commit
+        sudo apt-get update
+        sudo apt-get install gcc libffi-dev -y
+        make init
 
     - name: Docker Login
       run: |
-        docker login docker-dcu-local.artifactory.secureserver.net -u ${{ steps.secrets.outputs.artifactory-username }} -p ${{ steps.secrets.outputs.artifactory-password }}
+        docker login gdartifactory1.jfrog.io/docker-dcu-local -u ${{ steps.secrets.outputs.artifactory-username }} -p ${{ steps.secrets.outputs.artifactory-password }}
 
     - name: Install kustomize
       run: |
         curl -s "https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh"  | bash
         mkdir -p ${HOME}/.local/bin
         cp /usr/local/bin/actions-runner/_work/${{ github.event.repository.name }}/${{ github.event.repository.name }}/kustomize ${HOME}/.local/bin/
-        echo "${HOME}/.local/bin" >> $GITHUB_PATH 
-        echo $GITHUB_PATH   
+        echo "${HOME}/.local/bin" >> $GITHUB_PATH
+        echo $GITHUB_PATH
 
     - name: Run Deployment
       run: |
