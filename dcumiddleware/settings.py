@@ -12,7 +12,7 @@ class AppConfig(object):
 
     # The sub-domains for these domains have the same ip as the domain ip, but we get better
     #  enrichment querying on the sub-domain
-    ENRICH_ON_SUBDOMAIN = {'godaddysites.com', 'go.studio', 'secureserversites.net'}
+    ENRICH_ON_SUBDOMAIN = {'godaddysites.com', 'go.studio', 'secureserversites.net', 'myftpupload.com'}
 
     CMAP_SERVICE = os.getenv('SERVICE_URL', 'service')
 
