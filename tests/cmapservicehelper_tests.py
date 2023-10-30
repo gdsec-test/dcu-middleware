@@ -132,65 +132,18 @@ class TestCmapServiceHelper(TestCase):
         self.assertTrue('shopperId' in doc['data']['domainQuery']['shopperInfo']['vip'])
 
     def test_api_cmap_merge(self):
-        apidata = {'info': 'My spam Farm is better than yours...',
-                   'target': 'The spam Brothers',
-                   'reporter': 'testuser',
-                   'source': 'http://spam.com/thegoodstuff/jonas.php?g=a&itin=1324',
-                   'sourceDomainOrIp': 'spam.com',
-                   'proxy': 'Must be viewed from an German IP',
-                   'ticketId': 'DCU000001053',
-                   'type': 'PHISHING'
-                   }
-        cmapdata = {'data': {
-            'domainQuery': {
-                'host': {
-                    'hostingCompanyName': 'GO-DADDY-COM-LLC'
-                },
-                'registrar': {
-                    'registrarName': 'GoDaddy.com, LLC',
-                    'domainCreateDate': '2014-09-25'
-                },
-                'apiReseller': {
-                    'parent': None,
-                    'child': None
-                },
-                'shopperInfo': {
-                    'shopperId': '49047180',
-                    'customerId': "1234-5678-9012",
-                    'shopperCreateDate': '2012-01-09',
-                    'domainCount': 9,
-                    'vip': {
-                        'blacklist': True,
-                        'portfolioType': 'No Premium Services For This Shopper'
-                    },
-                },
-                'blacklist': True
-            }
-        }}
-        doc = self.cmapservice.api_cmap_merge(apidata, cmapdata)
-        self.assertTrue(doc['data']['domainQuery']['host']['hostingCompanyName'] == 'GO-DADDY-COM-LLC')
-        self.assertTrue(doc['data']['domainQuery']['registrar']['registrarName'] == 'GoDaddy.com, LLC')
-        self.assertTrue(doc['data']['domainQuery']['registrar']['domainCreateDate'] == '2014-09-25')
-        self.assertTrue(doc['data']['domainQuery']['apiReseller']['parent'] is None)
-        self.assertTrue(doc['data']['domainQuery']['apiReseller']['child'] is None)
-        self.assertTrue(doc['data']['domainQuery']['shopperInfo']['shopperId'] == '49047180')
-        self.assertEqual(doc['data']['domainQuery']['shopperInfo']['customerId'], "1234-5678-9012")
-        self.assertTrue(doc['data']['domainQuery']['shopperInfo']['shopperCreateDate'] == '2012-01-09')
-        self.assertTrue(doc['data']['domainQuery']['shopperInfo']['domainCount'] == 9)
-        self.assertTrue(doc['data']['domainQuery']['shopperInfo']['vip']['blacklist'] is True)
-        self.assertTrue(
-            doc['data']['domainQuery']['shopperInfo']['vip']['portfolioType'] == 'No Premium Services For This Shopper')
-        self.assertTrue(doc['data']['domainQuery']['blacklist'] is True)
-        self.assertTrue(doc['info'] == 'My spam Farm is better than yours...')
-        self.assertTrue(doc['target'] == 'The spam Brothers')
-        self.assertTrue(doc['reporter'] == 'testuser')
-        self.assertTrue(doc['source'] == 'http://spam.com/thegoodstuff/jonas.php?g=a&itin=1324')
-        self.assertTrue(doc['sourceDomainOrIp'] == 'spam.com')
-        self.assertTrue(doc['proxy'] == 'Must be viewed from an German IP')
-        self.assertTrue(doc['ticketId'] == 'DCU000001053')
-        self.assertTrue(doc['type'] == 'PHISHING')
-        doc2 = self.cmapservice.api_cmap_merge(apidata, None)
-        self.assertTrue(doc2['type'] == 'PHISHING')
+        apidata = {'info': 'apidata'}
+        cmapdata = {'data': {'domainQuery': 'cmapdata'}}
+        cmapV2data = {'productData': {'product': {}, 'cmapV2data': 'data'}}
+        doc = self.cmapservice.api_cmap_merge(apidata, cmapdata, cmapV2data)
+        self.assertTrue(doc == {'info': 'apidata', 'data': {'domainQuery': 'cmapdata'}, 'productData': {'product': {}, 'cmapV2data': 'data'}})
+        apidata = {'info': {'info': 'apidata'}, 'info': 'dupe'}
+        cmapdata = {'data': {'domainQuery': 'cmapdata'}, 'domainQuery': ['query']}
+        doc2 = self.cmapservice.api_cmap_merge(apidata, cmapdata, cmapV2data)
+        self.assertTrue(doc2 == {'info': 'dupe', 'data': {'domainQuery': 'cmapdata'}, 'domainQuery': ['query'], 'productData': {'product': {}, 'cmapV2data': 'data'}})
+
+        with self.assertRaises(KeyError):
+            self.cmapservice.api_cmap_merge(self.cmapservice.api_cmap_merge(apidata, None, cmapV2data))
 
     def test_date_time_format(self):
         date = self.cmapservice._date_time_format('2007-03-08T12:11:06Z')

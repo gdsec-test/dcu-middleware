@@ -21,6 +21,7 @@ from dcumiddleware.celeryconfig import CeleryConfig
 from dcumiddleware.settings import AppConfig, config_by_name
 from dcumiddleware.utilities.apihelper import APIHelper
 from dcumiddleware.utilities.cmapservicehelper import CmapServiceHelper
+from dcumiddleware.utilities.cmapv2helper import CmapV2Helper
 from dcumiddleware.utilities.kelvinhelper import KelvinHelper
 from dcumiddleware.utilities.routinghelper import RoutingHelper
 from dcumiddleware.utilities.shopperhelper import ShopperApiHelper
@@ -398,6 +399,7 @@ def _load_and_enrich_data(self, data):
     cmap_helper = CmapServiceHelper(app_settings)
     shopper_api_helper = ShopperApiHelper(app_settings.SHOPPER_API_URL, app_settings.SHOPPER_API_CERT_PATH,
                                           app_settings.SHOPPER_API_KEY_PATH)
+    cmapV2_helper = CmapV2Helper(app_settings.CMAP_V2_SERVICE, app_settings.SSO_URL, app_settings.CMAP_CLIENT_CERT, app_settings.CMAP_CLIENT_KEY)
     db = get_db()
     had_failed_enrichment = data.pop(FAILED_ENRICHMENT_KEY, False)
 
@@ -440,7 +442,7 @@ def _load_and_enrich_data(self, data):
     try:
         # Retrieve CMAP data from CMapServiceHelper
         cmap_data = cmap_helper.domain_query(domain, url_path)
-
+        cmapV2_data = cmapV2_helper.lookup_host_by_authority(domain)
         if KEY_METADATA in data and KEY_ENTITLEMENT_ID in data[KEY_METADATA] and KEY_CUSTOMER_ID in data[KEY_METADATA]:
             entitlement_id = data[KEY_METADATA][KEY_ENTITLEMENT_ID]
             customer_id = data[KEY_METADATA][KEY_CUSTOMER_ID]
@@ -468,7 +470,7 @@ def _load_and_enrich_data(self, data):
     metricset.counter('successful_enrichment', reset_on_collect=True).inc(1)
     # TODO CMAPT-5069: remove 'shopperID' from cmap_data before sending it to the DB
     # return the result of merging the CMap data with data gathered from the API
-    return db.update_incident(ticket_id, cmap_helper.api_cmap_merge(data, cmap_data))
+    return db.update_incident(ticket_id, cmap_helper.api_cmap_merge(data, cmap_data, cmapV2_data))
 
 
 @app.task(name='run._check_for_blacklist_auto_actions', acks_late=True, max_retries=None, autoretry_for=(Exception,))

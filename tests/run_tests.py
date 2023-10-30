@@ -41,10 +41,11 @@ class MockCmapServiceHelper:
         self._path = _path
         return {'status': 'good'}
 
-    def api_cmap_merge(self, _dict1, _dict2):
+    def api_cmap_merge(self, _dict1, _dict2, _dict3):
         _return = dict()
         _return.update(_dict1)
         _return.update(_dict2)
+        _return.update(_dict3)
         return _return
 
 
@@ -61,6 +62,7 @@ class TestRun(TestCase):
     REGISTRAR_KEY = 'registrar'
     DOMAIN_KEY = 'domainId'
     SHOPPER_INFO_KEY = 'shopperInfo'
+    cmapV2_data = {'productData': 'mock_product_data'}
 
     def setUp(self):
         self.incident = {
@@ -107,21 +109,30 @@ class TestRun(TestCase):
         mock_db.assert_called_with(KEY_TICKET_ID, {'field': 'value'})
 
     # Test successful load and enrichment
+    @patch('csetutils.services.jwt_base.post')
+    @patch('dcumiddleware.utilities.cmapv2helper.requests.get')
     @patch.object(PhishstoryMongo, 'remove_field', return_value=None)
     @patch.object(PhishstoryMongo, 'update_incident', return_value=None)
     @patch('dcumiddleware.run.CmapServiceHelper', return_value=MockCmapServiceHelper({}))
     @patch.object(socket, 'gethostbyname', return_value='1.1.1.1')
-    def test_load_and_enrich_data_success(self, mock_socket, mock_cmap, mock_db_update, mock_db_remove):
+    def test_load_and_enrich_data_success(self, mock_socket, mock_cmap, mock_db_update, mock_db_remove, mock_get, mock_post):
+        mock_post.return_value = MagicMock(json=MagicMock(return_value={'data': 'mock_token'}))
+        mock_get.return_value = MagicMock(json=MagicMock(return_value=self.cmapV2_data), status_code=200)
         run._load_and_enrich_data(AUTO_SUSPEND_DOMAIN)
         mock_socket.assert_called()
         self.assertEqual(mock_cmap.return_value._path, '/test%20me')
         mock_db_update.assert_called()
         mock_db_remove.assert_called()
+        mock_get.assert_called_with('https://cmapv2.cset.int.test-gdcorp.tools/v1/cmap/lookupByHostAuthority?host=test1.godaddysites.com', headers={'Authorization': 'sso-jwt mock_token', 'Content-Type': 'application/json'})
 
+    @patch('csetutils.services.jwt_base.post')
+    @patch('dcumiddleware.utilities.cmapv2helper.requests.get')
     @patch.object(PhishstoryMongo, 'update_incident', return_value=None)
     @patch('dcumiddleware.run.CmapServiceHelper')
     @patch.object(socket, 'gethostbyname', return_value='1.1.1.1')
-    def test_load_and_enrich_entitlement(self, mock_socket, mock_cmap, mock_db):
+    def test_load_and_enrich_entitlement(self, mock_socket, mock_cmap, mock_db, mock_get, mock_post):
+        mock_post.return_value = MagicMock(json=MagicMock(return_value={'data': 'mock_token'}))
+        mock_get.return_value = MagicMock(json=MagicMock(return_value=self.cmapV2_data), status_code=200)
         mock_cmap.return_value = MagicMock(
             product_lookup_entitlement=MagicMock(return_value={run.KEY_SHOPPER_ID: 'test_shopper'}),
             domain_query=MagicMock(return_value={})
@@ -130,6 +141,7 @@ class TestRun(TestCase):
         mock_socket.assert_called()
         mock_cmap.return_value.product_lookup_entitlement.assert_called_with('test-customer', 'test-entitlement')
         mock_db.assert_called()
+        mock_get.assert_called_with('https://cmapv2.cset.int.test-gdcorp.tools/v1/cmap/lookupByHostAuthority?host=test1.godaddysites.com', headers={'Authorization': 'sso-jwt mock_token', 'Content-Type': 'application/json'})
 
     def build_cmap_data_object(self, shopper_brand='GODADDY', shopper_id='123456', customer_id='123456', domain_brand='GODADDY', domain_id='123456', domain_shopper='123456', domain_customer='123456'):
         data = {
