@@ -8,6 +8,7 @@ from pymongo.collection import Collection
 
 from dcumiddleware import run
 from dcumiddleware.utilities.apihelper import APIHelper
+from dcumiddleware.utilities.cmapv2helper import CmapV2Helper
 
 HOSTED = 'HOSTED'
 KEY_BLACKLIST = 'blacklist'
@@ -41,11 +42,12 @@ class MockCmapServiceHelper:
         self._path = _path
         return {'status': 'good'}
 
-    def api_cmap_merge(self, _dict1, _dict2, _dict3):
+    def api_cmap_merge(self, _dict1, _dict2, _dict3, _dict4):
         _return = dict()
         _return.update(_dict1)
         _return.update(_dict2)
         _return.update(_dict3)
+        _return.update(_dict4)
         return _return
 
 
@@ -62,7 +64,63 @@ class TestRun(TestCase):
     REGISTRAR_KEY = 'registrar'
     DOMAIN_KEY = 'domainId'
     SHOPPER_INFO_KEY = 'shopperInfo'
-    cmapV2_data = {'productData': 'mock_product_data'}
+    cmapv2_data = {
+        "customers": {
+            "one customer id": {
+                "createdDate": "2018-05-01",
+                "plid": 1,
+                "vip": False,
+                "blacklist": False,
+                "parentCustomerId": "",
+                "attributes": {
+                    "domainCount": 13,
+                    "vipPortfolio": ""
+                }
+            }
+        },
+        "products": {
+            "first product id": {
+                "customerId": "one customer id",
+                "createdDate": "2018-05-01",
+                "plid": 1,
+                "vip": False,
+                "blacklist": False,
+                "product": "GoCentral",
+                "attributes": {
+                    "vipPortfolio": "",
+                    "dataCenter": None,
+                    "containerId": None,
+                    "hostname": None,
+                    "ip": "ip-str",
+                    "os": "Linux",
+                    "mwpId": None,
+                    "friendlyName": None,
+                    "username": None,
+                    "managedLevel": None
+                },
+                "associatedProducts": [
+                    "second product id",
+                    "third product id"
+                ]
+            },
+            "second product id": {
+                "customerId": "one customer id",
+                "createdDate": "2018-05-01",
+                "plid": 1,
+                "vip": False,
+                "blacklist": False,
+                "product": "Standard SSL",
+                "attributes": {
+                    "certCommonName": None,
+                    "createdAt": "2023-07-10",
+                    "expiresAt": "2024-07-09"
+                },
+                "associatedProducts": []
+            }},
+        "brand": "GODADDY",
+        "hostingCompanyName": "GoDaddy.com LLC",
+        "abuseEmail": "abuse@godaddy.com"
+    }
 
     def setUp(self):
         self.incident = {
@@ -101,6 +159,7 @@ class TestRun(TestCase):
 
         self.NOT_BLACKLISTED_TICKET = {run.DATA_KEY: {run.DOMAIN_Q_KEY: {KEY_BLACKLIST: False}}}
         self.BLACKLISTED_TICKET = {run.DATA_KEY: {run.DOMAIN_Q_KEY: {KEY_BLACKLIST: True}}}
+        self.cmapv2service = CmapV2Helper('mock1', 'mock2', 'mock3', 'mock4')
 
     # Test sync_attribute
     @patch.object(PhishstoryMongo, 'update_incident', return_value=None)
@@ -117,7 +176,7 @@ class TestRun(TestCase):
     @patch.object(socket, 'gethostbyname', return_value='1.1.1.1')
     def test_load_and_enrich_data_success(self, mock_socket, mock_cmap, mock_db_update, mock_db_remove, mock_get, mock_post):
         mock_post.return_value = MagicMock(json=MagicMock(return_value={'data': 'mock_token'}))
-        mock_get.return_value = MagicMock(json=MagicMock(return_value=self.cmapV2_data), status_code=200)
+        mock_get.return_value = MagicMock(json=MagicMock(return_value=self.cmapv2_data), status_code=200)
         run._load_and_enrich_data(AUTO_SUSPEND_DOMAIN)
         mock_socket.assert_called()
         self.assertEqual(mock_cmap.return_value._path, '/test%20me')
@@ -132,7 +191,7 @@ class TestRun(TestCase):
     @patch.object(socket, 'gethostbyname', return_value='1.1.1.1')
     def test_load_and_enrich_entitlement(self, mock_socket, mock_cmap, mock_db, mock_get, mock_post):
         mock_post.return_value = MagicMock(json=MagicMock(return_value={'data': 'mock_token'}))
-        mock_get.return_value = MagicMock(json=MagicMock(return_value=self.cmapV2_data), status_code=200)
+        mock_get.return_value = MagicMock(json=MagicMock(return_value=self.cmapv2_data), status_code=200)
         mock_cmap.return_value = MagicMock(
             product_lookup_entitlement=MagicMock(return_value={run.KEY_SHOPPER_ID: 'test_shopper'}),
             domain_query=MagicMock(return_value={})
@@ -411,3 +470,27 @@ class TestRun(TestCase):
         mock_close_incident.assert_called()
         mock_update_actions.assert_called()
         self.assertIsNone(result)
+
+    def test_cmapv2Data_mapped(self):
+        doc = self.cmapv2service.convert_cmapv2data({'productData': self.cmapv2_data})
+        self.assertTrue('domainQuery' in doc['cmapv2Data'])
+        self.assertTrue('apiReseller' in doc['cmapv2Data']['domainQuery'])
+        self.assertTrue('securitySubscription' in doc['cmapv2Data']['domainQuery'])
+        self.assertTrue('sslSubscription' in doc['cmapv2Data']['domainQuery'])
+        self.assertTrue('host' in doc['cmapv2Data']['domainQuery'])
+        self.assertTrue('registrar' in doc['cmapv2Data']['domainQuery'])
+        self.assertTrue('shopperInfo' in doc['cmapv2Data']['domainQuery'])
+        self.assertTrue('hostname' in doc['cmapv2Data']['domainQuery']['host'])
+        self.assertTrue('vipPortfolio' in doc['cmapv2Data']['domainQuery']['host']['vip'])
+        self.assertTrue('brand' in doc['cmapv2Data']['domainQuery']['registrar'])
+        self.assertTrue('abuseReportEmail' in doc['cmapv2Data']['domainQuery']['registrar'])
+        self.assertTrue(doc['cmapv2Data']['domainQuery']['apiReseller']['parentCustomerId'] == 'one customer id')
+        self.assertTrue(doc['cmapv2Data']['domainQuery']['host']['entitlementId'] == 'first product id')
+        self.assertTrue(doc['cmapv2Data']['domainQuery']['securitySubscription']['products'] == ['first product id'])
+        self.assertTrue(doc['cmapv2Data']['domainQuery']['sslSubscription'] == ['second product id'])
+        self.assertTrue(self.cmapv2service.convert_cmapv2data(None) is None)
+        self.assertTrue(self.cmapv2service.convert_cmapv2data({}) is None)
+
+        cmapv2_data = {'cmapv2Data': 'productData'}
+        with self.assertRaises(Exception):
+            self.cmapv2service.convert_cmapv2data(cmapv2_data)

@@ -134,16 +134,17 @@ class TestCmapServiceHelper(TestCase):
     def test_api_cmap_merge(self):
         apidata = {'info': 'apidata'}
         cmapdata = {'data': {'domainQuery': 'cmapdata'}}
-        cmapV2data = {'productData': {'product': {}, 'cmapV2data': 'data'}}
-        doc = self.cmapservice.api_cmap_merge(apidata, cmapdata, cmapV2data)
-        self.assertTrue(doc == {'info': 'apidata', 'data': {'domainQuery': 'cmapdata'}, 'productData': {'product': {}, 'cmapV2data': 'data'}})
+        cmapv2data = {'productData': {'product': {}, 'cmapv2data': 'data'}}
+        mapped_cmapv2 = {'cmapv2data': 'productData'}
+        doc = self.cmapservice.api_cmap_merge(apidata, cmapdata, cmapv2data, mapped_cmapv2)
+        self.assertTrue(doc == {'info': 'apidata', 'data': {'domainQuery': 'cmapdata'}, 'productData': {'product': {}, 'cmapv2data': 'data'}, 'cmapv2data': 'productData'})
         apidata = {'info': {'info': 'apidata'}, 'info': 'dupe'}
         cmapdata = {'data': {'domainQuery': 'cmapdata'}, 'domainQuery': ['query']}
-        doc2 = self.cmapservice.api_cmap_merge(apidata, cmapdata, cmapV2data)
-        self.assertTrue(doc2 == {'info': 'dupe', 'data': {'domainQuery': 'cmapdata'}, 'domainQuery': ['query'], 'productData': {'product': {}, 'cmapV2data': 'data'}})
+        doc2 = self.cmapservice.api_cmap_merge(apidata, cmapdata, cmapv2data, mapped_cmapv2)
+        self.assertTrue(doc2 == {'info': 'dupe', 'data': {'domainQuery': 'cmapdata'}, 'domainQuery': ['query'], 'productData': {'product': {}, 'cmapv2data': 'data'}, 'cmapv2data': 'productData'})
 
         with self.assertRaises(KeyError):
-            self.cmapservice.api_cmap_merge(self.cmapservice.api_cmap_merge(apidata, None, cmapV2data))
+            self.cmapservice.api_cmap_merge(self.cmapservice.api_cmap_merge(apidata, None, cmapv2data, mapped_cmapv2))
 
     def test_date_time_format(self):
         date = self.cmapservice._date_time_format('2007-03-08T12:11:06Z')
