@@ -91,7 +91,7 @@ class OTEAppConfig(AppConfig):
     APIQUEUE = 'otedcumiddleware'
     GDBRANDSERVICESQUEUE = 'otegdbrandservice'
     EMEABRANDSERVICESQUEUE = 'oteemeabrandservice'
-    ROUTINGSQUEUE = 'ote-external-routing'
+    ROUTINGQUEUE = 'ote-external-routing'
 
     PDNA_REPORTER_ID = '1500319040'
     PDNA_REPORTER_CID = 'eb80d7fe-1c19-419e-9039-da36b53bdee8'
