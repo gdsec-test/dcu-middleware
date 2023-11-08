@@ -42,6 +42,9 @@ class CeleryConfig:
         'run.process_emea': {
             'queue': Queue(app_settings.EMEABRANDSERVICESQUEUE, Exchange(app_settings.EMEABRANDSERVICESQUEUE),
                            routing_key=app_settings.EMEABRANDSERVICESQUEUE, queue_arguments=queue_args)},
+        'routing.run.process_external_report': {
+            'queue': Queue(app_settings.ROUTINGQUEUE, Exchange(app_settings.ROUTINGQUEUE),
+                           routing_key=app_settings.ROUTINGQUEUE, queue_arguments=queue_args)},
     }
 
     def __init__(self):

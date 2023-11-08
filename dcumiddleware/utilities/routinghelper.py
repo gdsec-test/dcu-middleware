@@ -1,4 +1,12 @@
 import logging
+import os
+
+from dcdatabase.phishstorymongo import PhishstoryMongo
+
+from dcumiddleware.settings import AppConfig, config_by_name
+
+env = os.getenv('sysenv', 'unit-test')
+app_settings: AppConfig = config_by_name[env]()
 
 
 class RoutingHelper:
@@ -7,6 +15,8 @@ class RoutingHelper:
     GODADDY = 'GODADDY'
     KEY_BRAND = 'brand'
     KEY_TICKET_ID = 'ticketId'
+    KEY_ABUSE_META = 'abuseMeta'
+    KEY_PHISHSTORY_STATUS = 'phishstory_status'
     """
     Responsible for all routing responsibilities to the brand services.
     """
@@ -37,6 +47,15 @@ class RoutingHelper:
         dq = data.get('data', {}).get('domainQuery', {})
         host_brand = dq.get('host', {}).get(self.KEY_BRAND)
         registrar_brand = dq.get('registrar', {}).get(self.KEY_BRAND)
+
+        abuse_meta = data.get(self.KEY_ABUSE_META, '')
+        if abuse_meta == 'DSA':
+            ticket_id = data.get(self.KEY_TICKET_ID)
+            self._capp.send_task('routing.run.process_external_report', args=[ticket_id])
+            db = PhishstoryMongo(app_settings)
+            db.update_incident(ticket_id, {self.KEY_PHISHSTORY_STATUS: 'FORWARDED_TO_EXTERNAL_SERVICE'})
+            data[self.KEY_PHISHSTORY_STATUS] = 'FORWARDED_TO_EXTERNAL_SERVICE'
+            return data
 
         brands = self._find_brands_to_route(host_brand, registrar_brand)
 

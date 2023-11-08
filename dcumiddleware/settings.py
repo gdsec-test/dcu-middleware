@@ -62,6 +62,7 @@ class ProductionAppConfig(AppConfig):
     APIQUEUE = 'dcumiddleware'
     GDBRANDSERVICESQUEUE = 'gdbrandservice'
     EMEABRANDSERVICESQUEUE = 'emeabrandservice'
+    ROUTINGQUEUE = 'external-routing'
 
     TASK_TIMEOUT = 60 * 60
     TASK_MAX_RETRIES = 4
@@ -90,6 +91,7 @@ class OTEAppConfig(AppConfig):
     APIQUEUE = 'otedcumiddleware'
     GDBRANDSERVICESQUEUE = 'otegdbrandservice'
     EMEABRANDSERVICESQUEUE = 'oteemeabrandservice'
+    ROUTINGSQUEUE = 'ote-external-routing'
 
     PDNA_REPORTER_ID = '1500319040'
     PDNA_REPORTER_CID = 'eb80d7fe-1c19-419e-9039-da36b53bdee8'
@@ -115,6 +117,7 @@ class TestAppConfig(AppConfig):
     APIQUEUE = 'testdcumiddleware'
     GDBRANDSERVICESQUEUE = 'testgdbrandservice'
     EMEABRANDSERVICESQUEUE = 'testemeabrandservice'
+    ROUTINGQUEUE = 'test-external-routing'
 
     PDNA_REPORTER_ID = '4051952'
     PDNA_REPORTER_CID = 'f2f9341e-48e8-4db1-8152-05da9609b99b'
@@ -140,6 +143,7 @@ class DevelopmentAppConfig(AppConfig):
     APIQUEUE = 'devdcumiddleware'
     GDBRANDSERVICESQUEUE = 'devgdbrandservice'
     EMEABRANDSERVICESQUEUE = 'devemeabrandservice'
+    ROUTINGQUEUE = 'dev-external-routing'
 
     PDNA_REPORTER_ID = '1767806'
     PDNA_REPORTER_CID = '4eddbbb1-2abc-4c82-a129-3209723ffc12'
@@ -164,6 +168,7 @@ class UnitTestAppConfig():
     APIQUEUE = 'testdcumiddleware'
     GDBRANDSERVICESQUEUE = ''
     EMEABRANDSERVICESQUEUE = ''
+    ROUTINGSQUEUE = ''
 
     DBURL = 'localhost'
     DB = 'test'
