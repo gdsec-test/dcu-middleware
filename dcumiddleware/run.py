@@ -442,8 +442,11 @@ def _load_and_enrich_data(self, data):
     try:
         # Retrieve CMAP data from CMapServiceHelper
         cmap_data = cmap_helper.domain_query(domain, url_path)
-        cmapv2_data = cmapv2_helper.lookup_host_by_authority(domain)
-        map_cmapv2 = cmapv2_helper.convert_cmapv2data(cmapv2_data)
+        try:
+            cmapv2_data = cmapv2_helper.lookup_host_by_authority(domain)
+            map_cmapv2 = cmapv2_helper.convert_cmapv2data(cmapv2_data)
+        except Exception:
+            cmapv2_data, map_cmapv2 = {}, {}
         if KEY_METADATA in data and KEY_ENTITLEMENT_ID in data[KEY_METADATA] and KEY_CUSTOMER_ID in data[KEY_METADATA]:
             entitlement_id = data[KEY_METADATA][KEY_ENTITLEMENT_ID]
             customer_id = data[KEY_METADATA][KEY_CUSTOMER_ID]
