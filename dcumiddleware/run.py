@@ -439,7 +439,6 @@ def _load_and_enrich_data(self, data):
     elif domain_name in app_settings.ENRICH_ON_SUBDOMAIN:
         domain = sub_domain_name
 
-
     cmapv2_data, map_cmapv2 = {}, {}
     try:
         # Retrieve CMAP data from CMapServiceHelper
