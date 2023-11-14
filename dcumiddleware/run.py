@@ -439,6 +439,8 @@ def _load_and_enrich_data(self, data):
     elif domain_name in app_settings.ENRICH_ON_SUBDOMAIN:
         domain = sub_domain_name
 
+
+    cmapv2_data, map_cmapv2 = {}, {}
     try:
         # Retrieve CMAP data from CMapServiceHelper
         cmap_data = cmap_helper.domain_query(domain, url_path)
@@ -446,7 +448,7 @@ def _load_and_enrich_data(self, data):
             cmapv2_data = cmapv2_helper.lookup_host_by_authority(domain)
             map_cmapv2 = cmapv2_helper.convert_cmapv2data(cmapv2_data)
         except Exception:
-            cmapv2_data, map_cmapv2 = {}, {}
+            pass
         if KEY_METADATA in data and KEY_ENTITLEMENT_ID in data[KEY_METADATA] and KEY_CUSTOMER_ID in data[KEY_METADATA]:
             entitlement_id = data[KEY_METADATA][KEY_ENTITLEMENT_ID]
             customer_id = data[KEY_METADATA][KEY_CUSTOMER_ID]
