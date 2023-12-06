@@ -300,6 +300,11 @@ class TestRun(TestCase):
         status = run.enrichment_succeeded(data)
         self.assertTrue(status)
 
+    def test_enrichment_status_check_no_brand_with_domain_shopper(self):
+        data = self.build_cmap_data_object(domain_brand=None, domain_shopper='123456')
+        status = run.enrichment_succeeded(data)
+        self.assertFalse(status)
+
     @patch.object(Collection, 'find_one', return_value=None)
     def test_blacklist_is_false(self, mock_find_one):
         result = run._check_for_blacklist_auto_actions(self.NOT_BLACKLISTED_TICKET)

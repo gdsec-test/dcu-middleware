@@ -201,8 +201,10 @@ def enrichment_succeeded(data):
     missing_domain = domain.get(DOMAIN_ID_KEY, None) is None
     missing_domain_shopper = shopper.get(SHOPPER_KEY, None) is None
     missing_domain_customer = shopper.get(CUSTOMER_KEY, None) is None
+    missing_domain_brand = domain.get(BRAND_KEY, None) is None
     domain_enrich_fail = registered_here and (missing_domain or missing_domain_shopper or missing_domain_customer)
-
+    # Mark as failed enrichment if we get a domain domain shopper and we dont get a domain brand
+    domain_enrich_fail = domain_enrich_fail or (missing_domain_brand and not missing_domain_shopper)
     if host_enrich_fail or domain_enrich_fail:
         return False
     return True
