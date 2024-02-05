@@ -315,6 +315,8 @@ def sync_customer_security(data):
     db = get_db()
     result = db.get_incident(ticketId)
     if not result:
+        if 'plid' in data:
+            data['plid'] = str(int(data['plid']))
         dup = data.get('duplicate', False)
         status = 'DUPLICATE' if dup else 'PROCESSING'
         db.add_new_incident(ticketId, data, status=status)
