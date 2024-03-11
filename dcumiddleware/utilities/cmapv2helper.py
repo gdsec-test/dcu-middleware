@@ -34,8 +34,8 @@ class CmapV2Helper(CertJwtHttpClient):
             cmapV2_data = response.json()
             return {'productData': cmapV2_data}
 
-        except Exception:
-            logging.exception(f'Error querying CMAP V2 service for domain {domain}')
+        except Exception as e:
+            logging.exception(f'Error querying CMAP V2 service for domain {domain}. Error message: {e} ')
             raise
 
     def convert_cmapv2data(self, productData: dict) -> Optional[Dict[str, str]]:

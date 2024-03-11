@@ -33,6 +33,16 @@ AUTO_SUSPEND_DOMAIN = {
     KEY_FAILED_ENRICHMENT: True,
 }
 
+CLOSED_TICKET = {
+    'phishstory_status': 'CLOSED',
+    'ticketId': 'DCU001',
+}
+
+OPEN_TICKET = {
+    'phishstory_status': OPEN,
+    'ticketId': 'DCU001',
+}
+
 
 class MockCmapServiceHelper:
     def __init__(self, _settings):
@@ -159,7 +169,7 @@ class TestRun(TestCase):
 
         self.NOT_BLACKLISTED_TICKET = {run.DATA_KEY: {run.DOMAIN_Q_KEY: {KEY_BLACKLIST: False}}}
         self.BLACKLISTED_TICKET = {run.DATA_KEY: {run.DOMAIN_Q_KEY: {KEY_BLACKLIST: True}}}
-        self.cmapv2service = CmapV2Helper('mock1', 'mock2', 'mock3', 'mock4')
+        self.cmapv2service = CmapV2Helper('mock_service_url', 'mock_sso_host', 'mock_client_cert_path', 'mock_client_key_path')
 
     # Test sync_attribute
     @patch.object(PhishstoryMongo, 'update_incident', return_value=None)
@@ -172,16 +182,20 @@ class TestRun(TestCase):
     @patch('dcumiddleware.utilities.cmapv2helper.requests.get')
     @patch.object(PhishstoryMongo, 'remove_field', return_value=None)
     @patch.object(PhishstoryMongo, 'update_incident', return_value=None)
+    @patch.object(PhishstoryMongo, 'get_incident', return_value=AUTO_SUSPEND_DOMAIN)
     @patch('dcumiddleware.run.CmapServiceHelper', return_value=MockCmapServiceHelper({}))
     @patch.object(socket, 'gethostbyname', return_value='1.1.1.1')
-    def test_load_and_enrich_data_success(self, mock_socket, mock_cmap, mock_db_update, mock_db_remove, mock_get, mock_post):
+    def test_load_and_enrich_data_success(self, mock_socket, mock_cmap, mock_db_update, mock_db_remove, mock_db_get, mock_get, mock_post):
         mock_post.return_value = MagicMock(json=MagicMock(return_value={'data': 'mock_token'}))
         mock_get.return_value = MagicMock(json=MagicMock(return_value=self.cmapv2_data), status_code=200)
         run._load_and_enrich_data(AUTO_SUSPEND_DOMAIN)
+        result = run.is_closed(AUTO_SUSPEND_DOMAIN[KEY_TICKET_ID])
         mock_socket.assert_called()
         self.assertEqual(mock_cmap.return_value._path, '/test%20me')
+        self.assertFalse(result)
         mock_db_update.assert_called()
         mock_db_remove.assert_called()
+        mock_db_get.assert_called()
         mock_get.assert_called_with('https://cmapv2.cset.int.test-gdcorp.tools/v1/cmap/lookupByHostAuthority?host=test1.godaddysites.com', headers={'Authorization': 'sso-jwt mock_token', 'Content-Type': 'application/json'})
 
     @patch('csetutils.services.jwt_base.post')
@@ -499,3 +513,33 @@ class TestRun(TestCase):
         cmapv2_data = {'cmapv2Data': 'productData'}
         with self.assertRaises(Exception):
             self.cmapv2service.convert_cmapv2data(cmapv2_data)
+
+    # Test get_incident
+    # Test don't update closed tickets, is_closed returns True
+    @patch('csetutils.services.jwt_base.post')
+    @patch.object(PhishstoryMongo, 'get_incident', return_value=CLOSED_TICKET)
+    def test_closed_ticket_no_enrichment(self, mock_db, mock_post):
+        mock_post.return_value = MagicMock(json=MagicMock(return_value={'data': 'mock_token'}))
+        result = run.is_closed(CLOSED_TICKET['ticketId'])
+        mock_db.assert_called_with(CLOSED_TICKET['ticketId'])
+        self.assertTrue(result)
+
+    # Test get_incident
+    # Test don't update closed tickets, is_closed returns False
+    @patch('csetutils.services.jwt_base.post')
+    @patch.object(PhishstoryMongo, 'get_incident', return_value=OPEN_TICKET)
+    def test_open_ticket_yes_enrichment(self, mock_db, mock_post):
+        mock_post.return_value = MagicMock(json=MagicMock(return_value={'data': 'mock_token'}))
+        result = run.is_closed(OPEN_TICKET['ticketId'])
+        mock_db.assert_called_with(OPEN_TICKET['ticketId'])
+        self.assertFalse(result)
+
+    # Test get_incident
+    # Test don't update closed tickets, is_closed returns None
+    @patch('csetutils.services.jwt_base.post')
+    @patch.object(PhishstoryMongo, 'get_incident', return_value=None)
+    def test_no_ticket_found_no_enrichment(self, mock_db, mock_post):
+        mock_post.return_value = MagicMock(json=MagicMock(return_value={'data': 'mock_token'}))
+        result = run.is_closed(None)
+        mock_db.assert_not_called()
+        self.assertIsNone(result)

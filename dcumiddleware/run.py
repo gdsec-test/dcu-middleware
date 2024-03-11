@@ -130,6 +130,24 @@ def get_bl_mongo_connection() -> collection.Collection:
     return __bl_collection
 
 
+def is_closed(ticket_id: str):
+    '''
+    Retrieves the phishstory status of a ticket.
+
+    :param ticket_id: The ticket being queried.
+    :return: True if the phishstory status of the ticket is closed, False if open, and None if the ticket is not found.
+    '''
+    try:
+        db = get_db()
+        if ticket_id is not None:
+            data = db.get_incident(ticket_id)
+            if data is not None:
+                return data['phishstory_status'] == 'CLOSED'
+        return None
+    except Exception as e:
+        logging.exception(f'Error querying the phishstory status for ticket {ticket_id}. Error message: {e}')
+
+
 def get_blacklist_info(domain: str, domain_with_subdomain: str, domain_shopper: str, host_shopper: str) -> Union[list, None]:
     blacklist_collection = get_bl_mongo_connection()
     domain_bl_record = blacklist_collection.find_one({BLACKLIST_ENTITY_KEY: domain})
@@ -477,6 +495,12 @@ def _load_and_enrich_data(self, data):
             self.retry(exc=e)
 
     metricset.counter('successful_enrichment', reset_on_collect=True).inc(1)
+
+    # If the ticket is closed, we don't need to update or enrich it.
+    if is_closed(ticket_id):
+        logging.info(f'Ticket {ticket_id} is closed. Skipping enrichment.')
+        data['phishstory_status'] == 'CLOSED'
+        return db.get_incident(ticket_id)
     # TODO CMAPT-5069: remove 'shopperID' from cmap_data before sending it to the DB
     # return the result of merging the CMap data with data gathered from the API
     return db.update_incident(ticket_id, cmap_helper.api_cmap_merge(data, cmap_data, cmapv2_data, map_cmapv2))
@@ -489,6 +513,10 @@ def _check_for_blacklist_auto_actions(data):
     :param data:
     :return:
     """
+    if data.get('phishstory_status') == 'CLOSED':
+        ticket_id = data.get('ticketId')
+        logging.info(f'Ticket {ticket_id} is closed. Skipping blacklist check.')
+        return data
     if data.get(DATA_KEY, {}).get(DOMAIN_Q_KEY, {}).get(BLACKLIST_KEY) and not data.get(FAILED_ENRICHMENT_KEY, False):
         domain_shopper = data.get(DATA_KEY, {}).get(DOMAIN_Q_KEY, {}).get(SHOPPER_INFO_KEY, {}).get(SHOPPER_KEY, None)
         host_shopper = data.get(DATA_KEY, {}).get(DOMAIN_Q_KEY, {}).get(HOST_KEY, {}).get(SHOPPER_KEY, None)
@@ -518,6 +546,11 @@ def _route_to_brand_services(data):
     """
     if not isinstance(data, dict):
         return
+
+    if data.get('phishstory_status') == 'CLOSED':
+        ticket_id = data.get('ticketId')
+        logging.info(f'Ticket {ticket_id} is closed. Skipping Brand Service routing.')
+        return data
 
     db = get_db()
     routing_helper = RoutingHelper(app, api, db)
